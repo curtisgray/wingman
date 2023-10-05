@@ -2,7 +2,7 @@
 
 <h2 style="text-align: center;">Wingman is under heavy development. Expect frequent updates and breaking changes.</h2>
 
-# What is Wingman
+# Your Wingman
 
 Wingman is an open source local native user experience for AI models. Wingman is designed from the ground up to be personalized, adaptive, and proactive.
 
@@ -137,5 +137,5 @@ If you have any questions reach out to Electric Curtis on [Twitter](https://twit
 
 ## Acknowledgements
 
-Wingman's UX is forked and modified from https://github.com/mckaywrigley/chatbot-ui
-Wingman's service based on the llama.cpp library at https://github.com/ggerganov/llama.cpp
+- UX is forked and modified from https://github.com/mckaywrigley/chatbot-ui
+- Service uses the llama.cpp library at https://github.com/ggerganov/llama.cpp
