@@ -1,0 +1,63 @@
+{
+    "extends": [
+        "next/core-web-vitals",
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:react/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "project": [
+            "./tsconfig.json"
+        ]
+    },
+    // "plugins": [
+    //     "@typescript-eslint",
+    //     "react-hooks/recommended",
+    //     "react"
+    // ],
+    "rules": {
+        "indent": [
+            "error",
+            4,
+            {
+                "SwitchCase": 1
+            }
+        ],
+        "semi": [
+            "error",
+            "always"
+        ],
+        "quotes": [
+            "warn",
+            "double"
+        ],
+        "@typescript-eslint/strict-boolean-expressions": [
+            2,
+            {
+                // "allowString": true,
+                // "allowNumber": true,
+                // "allowNullableObject": true,
+                // "allowNullableBoolean": true,
+                // "allowNullableString": true,
+                // "allowNullableNumber": true,
+                "allowAny": true
+            }
+        ],
+        "key-spacing": [
+            2,
+            {
+                "beforeColon": false,
+                "afterColon": true
+            }
+        ]
+    },
+    "ignorePatterns": [
+        "dist/*"
+    ]
+}

@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.21)
 
 project(wingman C CXX)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # set home directory depending on platform
 if (WIN32)
     set(HOME_DIR $ENV{USERPROFILE})
@@ -12,17 +15,21 @@ endif()
 # set destination directory depending on platform
 if (DEFINED ENV{WINGMAN_DESTINATION_DIR})
     set(DESTINATION_DIR $ENV{WINGMAN_DESTINATION_DIR})
+else()
+    set(DESTINATION_DIR ${CMAKE_INSTALL_PREFIX})
 endif()
-message(STATUS "Wingman destination directory: ${DESTINATION_DIR}")
+message(STATUS "Wingman destination (install) directory: ${DESTINATION_DIR}")
 
-#find_package(unofficial-sqlite3 CONFIG REQUIRED)
 find_package(SQLiteCpp CONFIG REQUIRED)
 find_library(USOCKETS_LIBRARY uSockets REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(libuv CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_path(UWEBSOCKETS_INCLUDE_DIRS "uwebsockets/App.h" REQUIRED)
-find_package(CURL CONFIG REQUIRED)
+#find_package(CURL CONFIG REQUIRED)
+find_package(cpr CONFIG REQUIRED)
+find_package(CLI11 CONFIG REQUIRED)
+
 add_subdirectory(vendors/llama.cpp)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${UWEBSOCKETS_INCLUDE_DIRS})
@@ -45,8 +52,6 @@ file(GLOB SHARED_HEADERS
 
 list(APPEND SHARED_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/llama_cpp ${CMAKE_CURRENT_SOURCE_DIR}/common)
 
-### Llama.cpp
-
 ### Wingman
 add_executable(${TARGET} wingman.cpp)
 target_include_directories(${TARGET} PRIVATE ${SHARED_HEADERS})
@@ -59,7 +64,6 @@ target_link_libraries(${TARGET} PRIVATE
     common llama
     ZLIB::ZLIB
     ${USOCKETS_LIBRARY}
-#    unofficial::sqlite3::sqlite3
     $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
     ${CMAKE_THREAD_LIBS_INIT})
 
@@ -75,7 +79,7 @@ endif()
 set(DOWNLOAD_TARGET wingman.download)
 
 file(GLOB DOWNLOAD_SOURCES
-    wingman.launcher.cpp
+    wingman.download.cpp
 )
 
 # glob list of header files
@@ -93,11 +97,11 @@ set(${DOWNLOAD_TARGET}_link_libraries
     common llama
     ZLIB::ZLIB
     ${USOCKETS_LIBRARY}
-#    unofficial::sqlite3::sqlite3
     SQLiteCpp
     $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
     spdlog::spdlog_header_only
-    CURL::libcurl
+    cpr::cpr
+    CLI11::CLI11
     ${CMAKE_THREAD_LIBS_INIT}
 )
 

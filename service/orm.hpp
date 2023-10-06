@@ -14,6 +14,7 @@
 namespace wingman {
 	namespace fs = std::filesystem;
 
+#pragma region SQLite constants
 	enum class ResultCode {
 		SQLITE_OK = 0,
 		SQLITE_ERROR = 1,
@@ -48,7 +49,6 @@ namespace wingman {
 		SQLITE_DONE = 101
 	};
 
-
 #define SQLITE_OPEN_READONLY         0x00000001  /* Ok for sqlite3_open_v2() */
 #define SQLITE_OPEN_READWRITE        0x00000002  /* Ok for sqlite3_open_v2() */
 #define SQLITE_OPEN_CREATE           0x00000004  /* Ok for sqlite3_open_v2() */
@@ -71,7 +71,7 @@ namespace wingman {
 #define SQLITE_OPEN_WAL              0x00080000  /* VFS only */
 #define SQLITE_OPEN_NOFOLLOW         0x01000000  /* Ok for sqlite3_open_v2() */
 #define SQLITE_OPEN_EXRESCODE        0x02000000  /* Extended result codes */
-
+#pragma endregion SQLITE constants
 
 	struct Column {
 		std::string name;
@@ -114,7 +114,6 @@ namespace wingman {
 	}
 
 	class DatabaseActions {
-		//sqlite3 *dbInstance;
 		SQLite::Database &dbInstance;
 
 	public:
@@ -211,38 +210,6 @@ namespace wingman {
 		std::map<std::string, Column> columns;
 		std::vector<std::string> columnNames;
 
-		//std::optional<AppItem> getSome()
-		//{
-		//	AppItem item;
-
-		//	bool completed = false;
-		//	bool found = false;
-		//	while (!completed) {
-		//		const auto result = queryGetByPK.tryExecuteStep();
-		//		if (result == static_cast<int>(ResultCode::SQLITE_BUSY)) {
-		//			// wait for 10ms
-		//			std::this_thread::sleep_for(std::chrono::milliseconds(10));
-		//		} else if (result == static_cast<int>(ResultCode::SQLITE_DONE)) {
-		//			completed = true;
-		//			break;
-		//		} else if (result == static_cast<int>(ResultCode::SQLITE_ROW)) {
-		//			item.name = queryGetByPK.getColumn("name").getText();
-		//			item.key = queryGetByPK.getColumn("key").getText();
-		//			item.value = queryGetByPK.getColumn("value").getText();
-		//			item.enabled = queryGetByPK.getColumn("enabled").getInt();
-		//			item.created = queryGetByPK.getColumn("created").getInt64();
-		//			item.updated = queryGetByPK.getColumn("updated").getInt64();
-		//			found = true;
-		//		} else {
-		//			throw std::runtime_error("(getSome) Failed to get record: " + std::string(dbInstance.getErrorMsg()));
-		//		}
-		//	}
-
-		//	if (found) {
-		//		return item;
-		//	}
-		//	return std::nullopt;
-		//}
 		std::optional<AppItem> getSome(SQLite::Statement &query) const
 		{
 			std::vector<AppItem> items;
@@ -285,7 +252,6 @@ namespace wingman {
 		}
 
 		std::optional<AppItem> get(const std::string &name, const std::optional<std::string> &key = std::nullopt)
-			//std::unique_ptr<AppItem> get(const std::string &name, const std::optional<std::string> &key = std::nullopt)
 		{
 			queryGetByPK.reset();
 			queryGetByPK.bind("$name", name);
@@ -302,7 +268,6 @@ namespace wingman {
 			std::string sql;
 			bool insert = false;
 			if (existingItem) {
-			//if (existingItem) {
 				sql = std::format("UPDATE {} SET", TABLE_NAME);
 				std::string fields;
 				for (const auto &name : columnNames) {
@@ -484,7 +449,6 @@ namespace wingman {
 		}
 
 		std::optional<DownloadItem> get(const std::string &modelRepo, const std::string &filePath)
-		//std::unique_ptr<DownloadItem> get(const std::string &modelRepo, const std::string &filePath)
 		{
 			queryGetByPK.reset();
 			queryGetByPK.bind("$modelRepo", modelRepo);
@@ -493,9 +457,7 @@ namespace wingman {
 			queryGetByPK.reset();
 			if (!items.empty())
 				 return items[0];
-				//return std::make_unique<DownloadItem>(items[0]);
 			return std::nullopt;
-			//return nullptr;
 		}
 
 		const std::optional<DownloadItem> getValue(const std::string &modelRepo, const std::string &filePath)
@@ -688,7 +650,7 @@ namespace wingman {
 		{
 			std::vector<std::string> files;
 
-			for (const auto &entry : std::filesystem::directory_iterator(downloadsDirectory)) {
+			for (const auto &entry : fs::directory_iterator(downloadsDirectory)) {
 				if (entry.is_regular_file()) {
 					files.push_back(entry.path().filename().string());
 				}
@@ -700,10 +662,10 @@ namespace wingman {
 		static std::vector<DownloadedFileInfo> getDownloadedFileInfos()
 		{
 			std::vector<DownloadedFileInfo> fileInfos;
-			auto modelFiles = getModelFiles();
+			const auto modelFiles = getModelFiles();
 
 			for (const auto &file : modelFiles) {
-				auto name = safeDownloadItemNameToModelRepo(file);
+				const auto name = safeDownloadItemNameToModelRepo(file);
 				if (!name) {
 					spdlog::debug("Skipping file: " + file + " because it's not a downloaded model file.");
 					continue;
@@ -716,8 +678,8 @@ namespace wingman {
 
 		static std::string safeDownloadItemName(const std::string &modelRepo, const std::string &filePath)
 		{
-			std::regex slashRegex("\\/");
-			std::string result = std::regex_replace(modelRepo, slashRegex, "[-]");
+			const std::regex slashRegex("\\/");
+			const std::string result = std::regex_replace(modelRepo, slashRegex, "[-]");
 			return result + "[=]" + filePath;
 		}
 
@@ -727,11 +689,11 @@ namespace wingman {
 				return {};
 			}
 
-			size_t pos = name.find("[=]");
-			std::string modelRepoPart = name.substr(0, pos);
-			std::string filePathPart = name.substr(pos + 3);
+			const size_t pos               = name.find("[=]");
+			std::string modelRepoPart      = name.substr(0, pos);
+			const std::string filePathPart = name.substr(pos + 3);
 
-			std::regex dashRegex("\\[-\\]");
+			const std::regex dashRegex("\\[-\\]");
 			modelRepoPart = std::regex_replace(modelRepoPart, dashRegex, "/");
 
 			return { DownloadItemName { modelRepoPart, filePathPart } }; // Return the struct and true flag indicating success.
@@ -739,7 +701,7 @@ namespace wingman {
 
 		static std::string getDownloadItemFilePath(const std::string &modelRepo, const std::string &filePath)
 		{
-			std::filesystem::path path = downloadsDirectory / safeDownloadItemName(modelRepo, filePath);
+			fs::path path = downloadsDirectory / safeDownloadItemName(modelRepo, filePath);
 			return path.string();
 		}
 	};
@@ -1044,7 +1006,6 @@ namespace wingman {
 	inline bool DownloadItemActions::isDownloaded(const std::string &modelRepo, const std::string &filePath)
 	{
 		ItemActionsFactory ormFactory;
-		//const auto item = ormFactory.download()->get(modelRepo, filePath);
 		const auto item = ormFactory.download()->get(modelRepo, filePath);
 
 		// If it's in the database and marked as complete, then it's downloaded.
@@ -1053,7 +1014,7 @@ namespace wingman {
 		}
 
 		// If it's not in the database, we check the file system.
-		return std::filesystem::exists(downloadsDirectory / filePath);
+		return fs::exists(downloadsDirectory / filePath);
 	}
 
 	inline DownloadedFileInfo DownloadItemActions::getDownloadedFileInfo(const std::string &modelRepo, const std::string &filePath)
@@ -1075,15 +1036,15 @@ namespace wingman {
 			fileInfo.totalBytes = -1;
 			fileInfo.downloadedBytes = -1;
 			// get this info from the disk
-			// created time is not POSIX, so we use last_write_time and copy it to created and updated
-			fileInfo.created = std::filesystem::last_write_time(downloadsDirectory / fs::path(filePath)).time_since_epoch().count();
+			// created time is not part of the POSIX standard, so we use last_write_time and copy it to created and updated
+			fileInfo.created = fs::last_write_time(downloadsDirectory / fs::path(filePath)).time_since_epoch().count();
 			fileInfo.updated = fileInfo.created;
 		}
 
 		auto safeFileName = safeDownloadItemName(modelRepo, filePath);
 		auto path = downloadsDirectory / filePath;
 		// Getting the size directly from the file system.
-		fileInfo.fileSizeOnDisk = std::filesystem::file_size(downloadsDirectory / fs::path(filePath));
+		fileInfo.fileSizeOnDisk = fs::file_size(downloadsDirectory / fs::path(filePath));
 
 		return fileInfo;
 	}
@@ -1111,6 +1072,8 @@ namespace wingman {
 		if (j.contains("currentDownload")) {
 			auto currentDownload = DownloadItemActions::fromJson(j["currentDownload"]);
 			//downloadServerAppItem.currentDownload = DownloadItemActions::fromJson(j["currentDownload"]);
+			//downloadServerAppItem.currentDownload = currentDownload;
+			downloadServerAppItem.currentDownload.emplace(currentDownload);
 		}
 		if (j.contains("error")) {
 			downloadServerAppItem.error = j["error"].get<std::string>();

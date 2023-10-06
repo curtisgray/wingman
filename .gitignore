@@ -11,6 +11,7 @@ tt.json
 tt.py
 tt.ts
 tt.js
+.backup
 
 # dependencies
 /node_modules

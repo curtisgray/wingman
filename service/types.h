@@ -1,5 +1,6 @@
 
 #pragma once
+#include <ctime>
 #include <map>
 #include <optional>
 #include <string>
@@ -22,8 +23,8 @@ namespace wingman {
 			key("default")
 			, value("{}")
 			, enabled(1)
-			, created(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count())
-			, updated(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count())
+			, created(time(nullptr))
+			, updated(time(nullptr))
 		{}
 
 		static AppItem make(const std::string &name)
@@ -34,9 +35,9 @@ namespace wingman {
 		}
 	};
 
-	NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(AppItem, name, key, value, enabled, created, updated)
+	NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(AppItem, name, key, value, enabled, created, updated);
 
-		enum class DownloadItemStatus {
+	enum class DownloadItemStatus {
 		idle,
 		queued,
 		downloading,
@@ -76,11 +77,9 @@ namespace wingman {
 			status(DownloadItemStatus::idle)
 			, totalBytes(0)
 			, downloadedBytes(0)
-			, downloadSpeed("")
 			, progress(0)
-			, error("")
-			, created(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count())
-			, updated(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count())
+			, created(time(nullptr))
+			, updated(time(nullptr))
 		{}
 
 		static DownloadItem make(const std::string &modelRepo, const std::string &filePath)
@@ -137,14 +136,14 @@ namespace wingman {
 
 		static DownloadItemStatus toStatus(const unsigned char *input)
 		{
-			std::string status(reinterpret_cast<const char *>(input));
+			const std::string status(reinterpret_cast<const char *>(input));
 			return toStatus(status);
 		}
 	};
 
-	NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(DownloadItem, modelRepo, filePath, status, totalBytes, downloadedBytes, downloadSpeed, progress, error, created, updated)
+	NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(DownloadItem, modelRepo, filePath, status, totalBytes, downloadedBytes, downloadSpeed, progress, error, created, updated);
 
-		enum class WingmanItemStatus {
+	enum class WingmanItemStatus {
 		idle,
 		queued,
 		inferring,
@@ -176,9 +175,8 @@ namespace wingman {
 		WingmanItem() :
 			status(WingmanItemStatus::idle)
 			, force(0)
-			, error("")
-			, created(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count())
-			, updated(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count())
+			, created(time(nullptr))
+			, updated(time(nullptr))
 		{}
 
 		static WingmanItem make(const std::string &alias, const std::string &modelRepo, const std::string &filePath, int force)
@@ -191,8 +189,8 @@ namespace wingman {
 			item.force = force;
 			item.error = "";
 			// set created and updated to the current time in unix milliseconds
-			item.created = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-			item.updated = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+			item.created = time(nullptr);
+			item.updated = time(nullptr);
 			return item;
 		}
 
@@ -214,6 +212,9 @@ namespace wingman {
 					return "cancelling";
 				case WingmanItemStatus::cancelled:
 					return "cancelled";
+				default:
+					throw std::runtime_error("Unknown DownloadItemStatus: " + std::to_string(static_cast<int>(status)));
+
 			}
 		}
 
@@ -240,14 +241,14 @@ namespace wingman {
 
 		static WingmanItemStatus toStatus(const unsigned char *input)
 		{
-			std::string status(reinterpret_cast<const char *>(input));
+			const std::string status(reinterpret_cast<const char *>(input));
 			return toStatus(status);
 		}
 	};
 
-	NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(WingmanItem, alias, status, modelRepo, filePath, force, error, created, updated)
+	NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(WingmanItem, alias, status, modelRepo, filePath, force, error, created, updated);
 
-		struct DownloadedFileInfo {
+	struct DownloadedFileInfo {
 		std::string modelRepo;
 		std::string filePath;
 		std::string status;
@@ -271,8 +272,8 @@ namespace wingman {
 			item.fileSizeOnDisk = 0;
 			item.filePathOnDisk = "";
 			// set created and updated to the current time in unix milliseconds
-			item.created = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-			item.updated = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+			item.created = time(nullptr);
+			item.updated = time(nullptr);
 			return item;
 		}
 	};
@@ -298,8 +299,8 @@ namespace wingman {
 
 		DownloadServerAppItem() :
 			status(DownloadServerAppItemStatus::unknown)
-			, created(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count())
-			, updated(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count())
+			, created(time(nullptr))
+			, updated(time(nullptr))
 		{}
 
 		static DownloadServerAppItem make()
@@ -392,8 +393,6 @@ namespace wingman {
 			auto currentDownload = j.at("currentDownload").get<DownloadItem>();
 			downloadServerAppItem.currentDownload.emplace(currentDownload);
 		}
-		//auto currentDownloadJson = j.at("currentDownload");
-		//from_json(j.at("currentDownload"), currentDownload);
 		downloadServerAppItem.status = DownloadServerAppItem::toStatus(j.at("status").get<std::string>());
 		downloadServerAppItem.error = j.at("error").get<std::string>();
 		downloadServerAppItem.created = j.at("created").get<long long>();
@@ -428,15 +427,9 @@ namespace wingman {
 		return std::string(getenv(key.c_str()));
 	}
 
-	//std::string get_wingman_home()
-	//{
-	//    std::string home = get_home_env_var();
-	//    return home + "/.wingman";
-	//}
-
 	fs::path get_wingman_home()
 	{
-		auto home = fs::path(get_home_env_var());
+		const auto home = fs::path(get_home_env_var());
 		return home / ".wingman";
 	}
 } // namespace wingman

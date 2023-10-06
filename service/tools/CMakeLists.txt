@@ -14,4 +14,10 @@ function(wingman_build_tool source)
     endif()
 endfunction()
 
-wingman_build_tool(tool.insert.download.cpp)
+# run `wingman_build_tool` for each tool in the tools directory
+file(GLOB tools RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} tool.*.cpp)
+foreach(tool ${tools})
+	wingman_build_tool(${tool})
+endforeach()
+#wingman_build_tool(tool.insert.download.cpp)
+#wingman_build_tool(tool.listavailable.downloads.cpp)
