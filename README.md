@@ -24,17 +24,26 @@ Wing man is designed to grow with you, getting to know you through conversation.
 
 ## Installation
 
+Note, an OpenAI API key is NOT needed, unless you want to run an OpenAI GPT-style model. Otherwise it is not needed. Wingman is designed to run without it.
+
+Wingman will autodetect whether you have an OpenAI API key and make a GPT AI models available automatically.
+
 ### **Native Installers**
 
-*Coming soon*
+*Coming soon for Windows, Mac and Linux*
 
-Choose a native installer for your platform:
+### **Build From Source**
 
-[Windows](./Releases/Wingman-Setup-latest.exe)
+See [Build Locally](#build-locally) for instructions on how to build Wingman locally.
 
-[Mac](./Releases/Wingman-latest.dmg)
+```shell
+cd [wingman root]
+run
+```
 
-[Linux](./Releases/Wingman-latest.AppImage)
+#### Prerequisites
+
+None
 
 ### **Docker**
 
@@ -51,19 +60,9 @@ Pull from Docker Hub:
 docker run -e OPENAI_API_KEY=xxxxxxxx -p 3000:3000 carverlab/public-cloud:wingman
 ```
 
-### **Native**
+### Prerequisites
 
-See [Build Locally](#build-locally) for instructions on how to build Wingman locally.
-
-```shell
-cd [wingman root]
-run
-```
-
-#### Prerequisites
-
-None
-
+- Docker (latest)
 
 ## Build Locally
 
