@@ -20,15 +20,18 @@ else()
 endif()
 message(STATUS "Wingman destination (install) directory: ${DESTINATION_DIR}")
 
-find_package(SQLiteCpp CONFIG REQUIRED)
+#find_package(SQLiteCpp CONFIG REQUIRED)
 find_library(USOCKETS_LIBRARY uSockets REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(libuv CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_path(UWEBSOCKETS_INCLUDE_DIRS "uwebsockets/App.h" REQUIRED)
-#find_package(CURL CONFIG REQUIRED)
-find_package(cpr CONFIG REQUIRED)
+find_package(CURL CONFIG REQUIRED)
+#find_package(cpr CONFIG REQUIRED)
 find_package(CLI11 CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+find_package(unofficial-sqlite3 CONFIG REQUIRED)
+
 
 add_subdirectory(vendors/llama.cpp)
 
@@ -65,6 +68,9 @@ target_link_libraries(${TARGET} PRIVATE
     ZLIB::ZLIB
     ${USOCKETS_LIBRARY}
     $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
+    fmt::fmt
+    CURL::libcurl
+    unofficial::sqlite3::sqlite3
     ${CMAKE_THREAD_LIBS_INIT})
 
 if (WIN32)
@@ -97,11 +103,14 @@ set(${DOWNLOAD_TARGET}_link_libraries
     common llama
     ZLIB::ZLIB
     ${USOCKETS_LIBRARY}
-    SQLiteCpp
+#    SQLiteCpp
     $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
     spdlog::spdlog_header_only
-    cpr::cpr
+ #   cpr::cpr
     CLI11::CLI11
+    fmt::fmt
+    CURL::libcurl
+    unofficial::sqlite3::sqlite3
     ${CMAKE_THREAD_LIBS_INIT}
 )
 

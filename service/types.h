@@ -23,8 +23,8 @@ namespace wingman {
 			key("default")
 			, value("{}")
 			, enabled(1)
-			, created(time(nullptr))
-			, updated(time(nullptr))
+			, created(std::time(nullptr))
+			, updated(std::time(nullptr))
 		{}
 
 		static AppItem make(const std::string &name)
@@ -78,8 +78,8 @@ namespace wingman {
 			, totalBytes(0)
 			, downloadedBytes(0)
 			, progress(0)
-			, created(time(nullptr))
-			, updated(time(nullptr))
+			, created(std::time(nullptr))
+			, updated(std::time(nullptr))
 		{}
 
 		static DownloadItem make(const std::string &modelRepo, const std::string &filePath)
@@ -175,8 +175,8 @@ namespace wingman {
 		WingmanItem() :
 			status(WingmanItemStatus::idle)
 			, force(0)
-			, created(time(nullptr))
-			, updated(time(nullptr))
+			, created(std::time(nullptr))
+			, updated(std::time(nullptr))
 		{}
 
 		static WingmanItem make(const std::string &alias, const std::string &modelRepo, const std::string &filePath, int force)
@@ -189,8 +189,8 @@ namespace wingman {
 			item.force = force;
 			item.error = "";
 			// set created and updated to the current time in unix milliseconds
-			item.created = time(nullptr);
-			item.updated = time(nullptr);
+			item.created = std::time(nullptr);
+			item.updated = std::time(nullptr);
 			return item;
 		}
 
@@ -272,8 +272,8 @@ namespace wingman {
 			item.fileSizeOnDisk = 0;
 			item.filePathOnDisk = "";
 			// set created and updated to the current time in unix milliseconds
-			item.created = time(nullptr);
-			item.updated = time(nullptr);
+			item.created = std::time(nullptr);
+			item.updated = std::time(nullptr);
 			return item;
 		}
 	};
@@ -299,8 +299,8 @@ namespace wingman {
 
 		DownloadServerAppItem() :
 			status(DownloadServerAppItemStatus::unknown)
-			, created(time(nullptr))
-			, updated(time(nullptr))
+			, created(std::time(nullptr))
+			, updated(std::time(nullptr))
 		{}
 
 		static DownloadServerAppItem make()

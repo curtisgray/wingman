@@ -1,6 +1,8 @@
 import { AIModel, AIModelID, AIModels, DownloadableItem, Vendors } from "@/types/ai";
 import
 {
+    HF_MODEL_ENDS_WITH,
+    HF_MODEL_FILE_EXTENSION,
     HF_THEBLOKE_MODELS_URL,
     HF_THEBLOKE_MODEL_URL,
     OPENAI_API_HOST,
@@ -93,7 +95,7 @@ const handler = async (req: Request): Promise<Response> =>
                         const quantizationMap = new Map<string, string>();
                         model.siblings.forEach((s: { rfilename: string; }) =>
                         {
-                            if (s.rfilename.endsWith(".gguf")) {
+                            if (s.rfilename.endsWith(HF_MODEL_FILE_EXTENSION)) {
                                 const quantization = s.rfilename.split(".")[s.rfilename.split(".").length - 2].substring(1);
                                 quantizationMap.set(quantization, s.rfilename);
                             }
@@ -101,7 +103,7 @@ const handler = async (req: Request): Promise<Response> =>
                         if (quantizationMap.size > 0) {
                             return {
                                 id: model.id,
-                                name: model.id.replace("-GGUF", ""),
+                                name: model.id.replace(HF_MODEL_ENDS_WITH, ""),
                                 vendor: Vendors.huggingface.name,
                                 location: `${HF_THEBLOKE_MODEL_URL}${model.id}`,
                                 apiKey: null,
