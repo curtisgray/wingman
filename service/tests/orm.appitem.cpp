@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../orm.hpp"
+#include "orm.h"
 
 namespace fs = std::filesystem;
 

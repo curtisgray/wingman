@@ -1,4 +1,5 @@
 #include "build-info.h"
+#include <nlohmann/json.hpp>
 #include "common.h"
 #include "grammar-parser.h"
 #include "llama.h"
@@ -9,7 +10,6 @@
 #endif
 
 #include "httplib.h"
-#include "json.hpp"
 // if squiggly blue line appears below CMake includes, such as those brought in by vcpkg,
 //  set "configurationProvider" to "ms-vscode.cmake-tools" in .vscode/c_cpp_properties.json
 #include "uwebsockets/App.h"

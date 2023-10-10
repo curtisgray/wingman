@@ -20,18 +20,16 @@ else()
 endif()
 message(STATUS "Wingman destination (install) directory: ${DESTINATION_DIR}")
 
-#find_package(SQLiteCpp CONFIG REQUIRED)
 find_library(USOCKETS_LIBRARY uSockets REQUIRED)
+find_path(UWEBSOCKETS_INCLUDE_DIRS "uwebsockets/App.h" REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(libuv CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
-find_path(UWEBSOCKETS_INCLUDE_DIRS "uwebsockets/App.h" REQUIRED)
 find_package(CURL CONFIG REQUIRED)
-#find_package(cpr CONFIG REQUIRED)
-find_package(CLI11 CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(unofficial-sqlite3 CONFIG REQUIRED)
-
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(argparse CONFIG REQUIRED)
 
 add_subdirectory(vendors/llama.cpp)
 
@@ -42,22 +40,42 @@ if (WIN32)
 endif()
 
 set(TARGET wingman)
-file(GLOB SHARED_SOURCES
-    on_exit.cpp
+
+set(SHARED_HEADER_DIRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-file(GLOB SHARED_HEADERS
-    orm.hpp
-    on_exit.h
-    json.hpp
-    httplib.h
+list(APPEND SHARED_HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/llama_cpp ${CMAKE_CURRENT_SOURCE_DIR}/common)
+message(STATUS "Shared header directories: ${SHARED_HEADER_DIRS}")
+
+set(${TARGET}_lib_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/libsrc/curl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libsrc/orm.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libsrc/on_exit.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libsrc/download.service.cpp
 )
 
-list(APPEND SHARED_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/llama_cpp ${CMAKE_CURRENT_SOURCE_DIR}/common)
+set(SHARED_target_link_libraries
+    ZLIB::ZLIB
+    ${USOCKETS_LIBRARY}
+    $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
+    spdlog::spdlog_header_only
+    fmt::fmt
+    CURL::libcurl
+    unofficial::sqlite3::sqlite3
+    nlohmann_json::nlohmann_json
+    argparse::argparse
+    ${CMAKE_THREAD_LIBS_INIT}
+)
+
+### Wingman Library
+add_library(${TARGET}_lib OBJECT ${${TARGET}_lib_SOURCES})
+target_include_directories(${TARGET}_lib PUBLIC ${SHARED_HEADER_DIRS})
+set_property(TARGET ${TARGET}_lib PROPERTY CXX_STANDARD 20)
 
 ### Wingman
 add_executable(${TARGET} wingman.cpp)
-target_include_directories(${TARGET} PRIVATE ${SHARED_HEADERS})
+target_include_directories(${TARGET} PRIVATE ${SHARED_HEADER_DIRS})
 set_property(TARGET ${TARGET} PROPERTY CXX_STANDARD 20)
 install(TARGETS ${TARGET} RUNTIME DESTINATION ${DESTINATION_DIR})
 target_compile_definitions(${TARGET} PRIVATE
@@ -65,12 +83,8 @@ target_compile_definitions(${TARGET} PRIVATE
 )
 target_link_libraries(${TARGET} PRIVATE
     common llama
-    ZLIB::ZLIB
-    ${USOCKETS_LIBRARY}
-    $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
-    fmt::fmt
-    CURL::libcurl
-    unofficial::sqlite3::sqlite3
+	$<TARGET_OBJECTS:${TARGET}_lib>
+    ${SHARED_target_link_libraries}
     ${CMAKE_THREAD_LIBS_INIT})
 
 if (WIN32)
@@ -88,33 +102,14 @@ file(GLOB DOWNLOAD_SOURCES
     wingman.download.cpp
 )
 
-# glob list of header files
-file(GLOB DOWNLOAD_HEADERS
-    download.server.hpp
-)
-add_executable(${DOWNLOAD_TARGET} ${DOWNLOAD_SOURCES} ${SHARED_SOURCES} )
-target_include_directories(${DOWNLOAD_TARGET} PRIVATE ${DOWNLOAD_HEADERS} ${SHARED_HEADERS})
+add_executable(${DOWNLOAD_TARGET} ${DOWNLOAD_SOURCES})
+target_include_directories(${DOWNLOAD_TARGET} PRIVATE ${SHARED_HEADER_DIRS})
 set_property(TARGET ${DOWNLOAD_TARGET} PROPERTY CXX_STANDARD 20)
 install(TARGETS ${DOWNLOAD_TARGET} RUNTIME DESTINATION ${DESTINATION_DIR})
 target_compile_definitions(${DOWNLOAD_TARGET} PRIVATE
     WINGMAN_VERBOSE=$<BOOL:${LLAMA_SERVER_VERBOSE}>
 )
-set(${DOWNLOAD_TARGET}_link_libraries
-    common llama
-    ZLIB::ZLIB
-    ${USOCKETS_LIBRARY}
-#    SQLiteCpp
-    $<IF:$<TARGET_EXISTS:libuv::uv_a>,libuv::uv_a,libuv::uv>
-    spdlog::spdlog_header_only
- #   cpr::cpr
-    CLI11::CLI11
-    fmt::fmt
-    CURL::libcurl
-    unofficial::sqlite3::sqlite3
-    ${CMAKE_THREAD_LIBS_INIT}
-)
-
-target_link_libraries(${DOWNLOAD_TARGET} PRIVATE ${${DOWNLOAD_TARGET}_link_libraries})
+target_link_libraries(${DOWNLOAD_TARGET} PRIVATE $<TARGET_OBJECTS:${TARGET}_lib> ${SHARED_target_link_libraries})
 
 add_subdirectory(tests)
 add_subdirectory(tools)

@@ -1,17 +1,16 @@
-#include "on_exit.h"
-#include "orm.hpp"
+#include <iostream>
+#include <argparse/argparse.hpp>
+
+#include "orm.h"
 
 namespace wingman::tools {
-	namespace fs = std::filesystem;
-	void start(std::string &modelRepo, std::string &filePath)
+	void start(const std::string &modelRepo, const std::string &filePath)
 	{
 		spdlog::info("Insert download tool start.");
 
-		const std::string file{ __FILE__ };
-		const fs::path directory = fs::path(file).parent_path();
-		const auto baseDirectory = directory / fs::path("out");
-		fs::create_directories(baseDirectory);
 		ItemActionsFactory actionsFactory;
+
+		// verify that the model exists on the download server
 
 		DownloadItem item;
 		item.modelRepo = modelRepo;
@@ -21,28 +20,38 @@ namespace wingman::tools {
 		if (actionsFactory.download()->count() != 1) {
 			throw std::runtime_error("Insert failed!");
 		}
-		//spdlog::info("Press Ctrl-C to quit");
-		//stash::wait_for_termination();
-		spdlog::info("Insert download success.");
+
+		spdlog::info("Inserted {}:{}", modelRepo, filePath);
 	}
 }
 
 int main(int argc, char *argv[])
 {
-	if (argc != 3) {
-		spdlog::error("Usage: {} <modelRepo> <filePath>", argv[0]);
-		return 1;
-	}
-	//std::string modelRepo = "TheBloke/Xwin-LM-13B-V0.1-GGUF";
-	//std::string filePath = "xwin-lm-13b-v0.1.Q2_K.gguf";
-	std::string modelRepo = argv[1];
-	std::string filePath = argv[2];
+	// CLI::App app{ "Download Llama model from Huggingface Wingman models folder." };
+
+	argparse::ArgumentParser program("tool.insert.download");
+	program.add_argument("-m", "--modelRepo").required().help("Huggingface model repository name in form '[RepoUser]/[ModelId]'");
+	program.add_argument("-q", "--quantization").required().help("Quantization to download").default_value("Q4_0");
+	
 	try {
-		wingman::tools::start(modelRepo, filePath);
+		program.parse_args(argc, argv);    // Example: ./main --color orange
+	}
+		catch (const std::runtime_error& err) {
+			std::cerr << err.what() << std::endl;
+			std::cerr << program;
+			std::exit(1);
+	}
+
+	const auto modelRepo = program.get<std::string>("--modelRepo");
+	const auto quantization = program.get<std::string>("--quantization");
+	
+	try {
+		//const auto modelRepo = "TheBloke/Amethyst-13B-Mistral";
+		//const auto quantization = "Q4_0";
+		wingman::tools::start(modelRepo, quantization);
 	} catch (const std::exception &e) {
-		spdlog::error("Exception: " + std::string(e.what()));
+		std::cerr << "Exception: " << std::string(e.what());
 		return 1;
 	}
-	spdlog::info("Job's done.");
 	return 0;
 }

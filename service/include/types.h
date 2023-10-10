@@ -5,7 +5,7 @@
 #include <optional>
 #include <string>
 #include <filesystem>
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 namespace wingman {
 	namespace fs = std::filesystem;
@@ -415,7 +415,7 @@ namespace wingman {
 		std::map<std::string, TableColumnInfo> columns; // map column name to its info
 	};
 
-	std::string get_home_env_var()
+	inline std::string get_home_env_var()
 	{
 		std::string key;
 #ifdef _WIN32
@@ -424,10 +424,10 @@ namespace wingman {
 		key = "HOME";
 #endif
 
-		return std::string(getenv(key.c_str()));
+		return std::string(::getenv(key.c_str()));
 	}
 
-	fs::path get_wingman_home()
+	inline fs::path get_wingman_home()
 	{
 		const auto home = fs::path(get_home_env_var());
 		return home / ".wingman";

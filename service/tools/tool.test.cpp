@@ -1,49 +1,44 @@
-#include <cerrno>
-#include <cstdint>
-#include <filesystem>
-#include <fstream>
-#include <curl/curl.h>
-#include <fmt/core.h>
-#include "json.hpp"
-#include "util.hpp"
-#include "orm.hpp"
+#include <string>
+#include <argparse/argparse.hpp>
 
-namespace fs = std::filesystem;
+#include "curl.h"
+#include "orm.h"
 
-int main()
+int main(int argc, char *argv[])
 {
-	spdlog::set_level(spdlog::level::debug);
+	spdlog::set_level(spdlog::level::trace);
 
-	const auto modelRepo = R"(TheBloke/samantha-mistral-7B)";
-	const auto quantization = R"(Q5_K_M)";
+	argparse::ArgumentParser program("tool.insert.download");
+	program.add_argument("-m", "--modelRepo").required().help("Huggingface model repository name in form '[RepoUser]/[ModelId]'");
+	program.add_argument("-q", "--quantization").required().help("Quantization to download").default_value("Q4_0");
 
-	//try {
-	fmt::print("modelRepo: {}, quantization: {}\n", modelRepo, quantization);
-	const auto url = urlForModel(modelRepo, quantization);
-	fmt::print("url: {}\n", url);
+	try {
+		program.parse_args(argc, argv);
+	} catch (const std::runtime_error &err) {
+		std::cerr << err.what() << std::endl;
+		std::cerr << program;
+		std::exit(1);
+	}
 
-	//const auto request = Request{ "https://dummyjson.com/products/1" };
-	//const auto request = Request{ "https://dummyjson.com/products/1", "GET", { { "Accept", "application/json" } } };
+	const auto modelRepo = program.get<std::string>("--modelRepo");
+	const auto quantization = program.get<std::string>("--quantization");
 
-	// download model to file
-	const std::string file{ __FILE__ };
-	const fs::path directory = fs::path(file).parent_path();
-	const auto baseDirectory = directory / fs::path("out");
-	fs::create_directories(baseDirectory);
-	wingman::ItemActionsFactory itemActionsFactory(baseDirectory);
+	try {
+		// check if model exists on the download server
+		const auto url = wingman::DownloadItemActions::urlForModelQuant(modelRepo, quantization);
+		auto request = wingman::curl::Request{ url};
+		request.file.checkExistsThenExit = true;
+		const auto response = wingman::curl::fetch(request);
+		if (response.file.fileExists) {
+			std::cout << "Model found on server: " << modelRepo << std::endl;
+		} else {
+			std::cout << "Model not found on server: " << modelRepo << std::endl;
+		}
+	} catch (const std::exception &e) {
+		std::cerr << "Exception: " << std::string(e.what());
+		return 1;
+	}
 
-	//const auto downloadFile = itemActionsFactory.getModelsDir() / wingman::DownloadItemActions::getDownloadItemQuantizedFilePath(modelRepo, quantization);
-	const auto filePath = wingman::DownloadItemActions::getFileNameFromModelRepo(modelRepo, quantization);
-	const auto item = itemActionsFactory.download()->enqueue(modelRepo, filePath);
-	const auto request = Request{ url, {}, {}, {}, {  item, quantization, itemActionsFactory.download() } };
-	const auto response = fetch(request);
-	//const auto response = fetch("https://dummyjson.com/products/1");
 
-	const auto json = response.json();
-	fmt::print("json: {}\n", json.dump(4));
-//} catch (const std::exception &e) {
-//	fmt::print("Exception: {}\n", e.what());
-//	return 1;
-//}
 	return 0;
 }

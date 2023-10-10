@@ -1,15 +1,15 @@
 
 #include <iostream>
 
-#include "orm.hpp"
-#include "download.server.hpp"
+#include "orm.h"
+#include "download.service.h"
 #include "on_exit.h"
 
 void start()
 {
 	spdlog::set_level(spdlog::level::debug);
 
-	ItemActionsFactory actionsFactory;
+	wingman::ItemActionsFactory actionsFactory;
 	DownloadServer server(actionsFactory);
 	std::thread serverThread(&DownloadServer::run, &server);
 	// wait for ctrl-c

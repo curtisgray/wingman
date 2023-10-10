@@ -1,7 +1,7 @@
-#include <CLI/CLI.hpp>
-#include "./orm.hpp"
-#include "./curl.hpp"
-#include "./json.hpp"
+#include <nlohmann/json.hpp>
+
+#include "orm.h"
+#include "curl.h"
 
 namespace wingman::tools {
 	namespace fs = std::filesystem;

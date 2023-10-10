@@ -1,6 +1,7 @@
 #pragma once
 #include <regex>
 #include <string>
+#include <CLI/App.hpp>
 
 namespace wingman::util {
 	template<typename T>
@@ -8,9 +9,8 @@ namespace wingman::util {
 	{
 		if (o) {
 			return os << o;
-		} else {
-			return os << "<nullopt>";
 		}
+		return os << "<nullopt>";
 	}
 
 	struct ci_less {
@@ -118,4 +118,36 @@ namespace wingman::util {
 	}
 #pragma endregion
 
+	inline std::string prettyBytes(const long long bytes)
+	{
+		if (bytes < 1024)
+			return fmt::format("{} B", bytes);
+
+		const char *suffixes[9];
+		suffixes[0] = "B";
+		suffixes[1] = "KB";
+		suffixes[2] = "MB";
+		suffixes[3] = "GB";
+		suffixes[4] = "TB";
+		suffixes[5] = "PB";
+		suffixes[6] = "EB";
+		suffixes[7] = "ZB";
+		suffixes[8] = "YB";
+		unsigned long long s = 0; // which suffix to use
+		auto count = static_cast<double>(bytes);
+		while (count >= 1024.0 && s < std::size(suffixes) - 1) {
+			s++;
+			count /= 1024.0;
+		}
+		return fmt::format("{:.1f} {}", count, suffixes[s]);
+	}
+
+	inline std::string calculateDownloadSpeed(const std::time_t start, const long long totalBytes)
+	{
+		const auto elapsedSeconds = std::time(nullptr) - start;
+		if (elapsedSeconds <= 0 || totalBytes <= 0)
+			return "0 B/s";
+		const auto bytesPerSecond = totalBytes / elapsedSeconds;
+		return prettyBytes(bytesPerSecond) + "/s";
+	}
 }

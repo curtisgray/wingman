@@ -1,70 +1,64 @@
-#include <CLI/CLI.hpp>
+#include <argparse/argparse.hpp>
 #include <fmt/core.h>
-#include "./orm.hpp"
-#include "./curl.hpp"
-#include "./json.hpp"
+#include <nlohmann/json.hpp>
+
+#include "orm.h"
+#include "curl.h"
 
 namespace wingman::tools {
-	void start(const std::optional<std::string> &modelRepo)
+	void start(const std::string &modelRepo, const std::string &quantization)
 	{
-		bool found = false;
-		if (!modelRepo || modelRepo->empty() || modelRepo->find("/") == std::string::npos) {
-			// display all models
-			const auto models = curl::getModels();
-			for (auto &model : models) {
-				const auto &id = model["id"].get<std::string>();
-				const auto &name = model["name"].get<std::string>();
-				if (modelRepo && !modelRepo->empty()) {
-					if (!util::stringContains(id, modelRepo.value(), false))
-						continue;
-				}
-				found = true;
-				fmt::print("Model: {} ({})\n", name, curl::HF_MODEL_ENDS_WITH);
-				for (auto &[key, value] : model["quantizations"].items()) {
-					if (value.size() > 1) {
-						fmt::print("\t{} ({} parts)\n", key, value.size());
-					} else {
-						fmt::print("\t{}\n", key);
-					}
-				}
-			}
-		} else {
-			// add the trailing HF_MODEL_ENDS_WITH if not present
-			std::string modelRepoCopy = modelRepo.value();
-			if (!modelRepoCopy.ends_with(curl::HF_MODEL_ENDS_WITH))
-				modelRepoCopy.append(curl::HF_MODEL_ENDS_WITH);
-			const auto models = curl::getModelQuantizations(modelRepoCopy);
-			for (auto &model : models) {
-				const auto &name = model["name"].get<std::string>();
-				found = true;
-				fmt::print("Model: {} ({})\n", name, curl::HF_MODEL_ENDS_WITH);
-				for (auto &[key, value] : model["quantizations"].items()) {
-					if (value.size() > 1) {
-						fmt::print("\t{} ({} parts)\n", key, value.size());
-					} else {
-						fmt::print("\t{}\n", key);
-					}
-				}
-			}
-		}
-		if (!found)
-			fmt::print("Nothing found.\n");
+		fmt::print("modelRepo: {}, quantization: {}\n", modelRepo, quantization);
+		const auto url = wingman::DownloadItemActions::urlForModel(modelRepo, quantization);
+		fmt::print("url: {}\n", url);
+
+		wingman::ItemActionsFactory itemActionsFactory;
+
+		const auto filePath = wingman::DownloadItemActions::getFileNameForModelRepo(modelRepo, quantization);
+		const auto item = itemActionsFactory.download()->enqueue(modelRepo, filePath);
+		auto request = wingman::curl::Request{ url, {}, {}, {}, {  item, quantization, itemActionsFactory.download() } };
+
+		fmt::print("Download from: {}\n", url);
+		fmt::print("Download to: {}\n", DownloadItemActions::getDownloadItemOutputFilePath(
+			modelRepo, quantization));
+
+		request.file.onProgress = [&](const wingman::curl::Response *response) {
+			std::cerr << fmt::format(
+				std::locale("en_US.UTF-8"),
+				"{}: {} of {} ({:.1f}%)\t\t\t\t\r",
+				response->file.item->modelRepo,
+				util::prettyBytes(response->file.totalBytesWritten),
+				util::prettyBytes(response->file.item->totalBytes),
+				response->file.item->progress);
+		};
+
+		const auto response = wingman::curl::fetch(request);
+
+		fmt::print("\ndownloaded: {}, status code: {}\n", url, response.statusCode);
 	}
 }
 
-int main(int argc, char *argv[])
+int main(const int argc, char *argv[])
 {
-	CLI::App app{ "List available downloads tool" };
+	//CLI::App app{ "Download Llama model from Huggingface Wingman models folder." };
 
-	std::string modelRepo;
-	std::string quantization;
-
-	const auto modelRepoOption = app.add_option("-m,--modelRepo", modelRepo, "Huggingface model repository name in form '[RepoUser]/[ModelId]'");
-
-	CLI11_PARSE(app, argc, argv)
+	argparse::ArgumentParser program("tool.insert.download");
+	program.add_argument("-m", "--modelRepo").required().help("Huggingface model repository name in form '[RepoUser]/[ModelId]'");
+	program.add_argument("-q", "--quantization").required().help("Quantization to download").default_value("Q4_0");
 
 	try {
-		wingman::tools::start(modelRepo);
+		program.parse_args(argc, argv);
+	} catch (const std::runtime_error &err) {
+		std::cerr << err.what() << std::endl;
+		std::cerr << program;
+		std::exit(1);
+	}
+
+	const auto modelRepo = program.get<std::string>("--modelRepo");
+	const auto quantization = program.get<std::string>("--quantization");
+
+	try {
+		wingman::tools::start(modelRepo, quantization);
 	} catch (const std::exception &e) {
 		std::cerr << "Exception: " << std::string(e.what());
 		return 1;
