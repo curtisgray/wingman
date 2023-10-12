@@ -389,31 +389,26 @@ namespace wingman {
 	inline void from_json(const nlohmann::json &j, DownloadServerAppItem &downloadServerAppItem)
 	{
 		// ensure currentDownload is not null
-		if (!j.at("currentDownload").is_null()) {
+		if (j.contains("currentDownload") && !j.at("currentDownload").is_null()) {
 			auto currentDownload = j.at("currentDownload").get<DownloadItem>();
 			downloadServerAppItem.currentDownload.emplace(currentDownload);
 		}
-		downloadServerAppItem.status = DownloadServerAppItem::toStatus(j.at("status").get<std::string>());
-		downloadServerAppItem.error = j.at("error").get<std::string>();
-		downloadServerAppItem.created = j.at("created").get<long long>();
-		downloadServerAppItem.updated = j.at("updated").get<long long>();
+		if (j.contains("status") && !j.at("status").is_null()) {
+			downloadServerAppItem.status = DownloadServerAppItem::toStatus(j.at("status").get<std::string>());
+		}
+		//downloadServerAppItem.status = DownloadServerAppItem::toStatus(j.at("status").get<std::string>());
+		if (j.contains("error") && !j.at("error").is_null()) {
+			downloadServerAppItem.error = j.at("error").get<std::string>();
+		}
+		if (j.contains("created") && !j.at("created").is_null()) {
+			downloadServerAppItem.created = j.at("created").get<long long>();
+		}
+		if (j.contains("updated") && !j.at("updated").is_null()) {
+			downloadServerAppItem.updated = j.at("updated").get<long long>();
+		}
 	}
 
 	//NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(DownloadServerAppItem, status, currentDownload, error, created, updated)
-
-	struct TableColumnInfo {
-		int cid; // column ID
-		std::string name; // column name
-		std::string type; // column data type
-		int notnull; // NOT NULL constraint flag (0 or 1)
-		std::string dflt_value; // default value
-		int pk; // primary key flag (0 or 1)
-	};
-
-	struct TableInfo {
-		std::string name; // table name
-		std::map<std::string, TableColumnInfo> columns; // map column name to its info
-	};
 
 	inline std::string get_home_env_var()
 	{

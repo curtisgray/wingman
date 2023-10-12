@@ -29,7 +29,7 @@ namespace wingman {
 			int lastErrorCode;
 
 		public:
-			Database(const fs::path &dbPath, int mode = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
+			explicit Database(const fs::path &dbPath, int mode = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
 
 			~Database();
 
@@ -45,59 +45,24 @@ namespace wingman {
 		};
 
 		class Statement {
-			sqlite3_stmt *stmt;
-			sqlite3 *db;
+			sqlite3_stmt *stmt = nullptr;
+			sqlite3 *db = nullptr;
 			std::string sql;
 			int lastErrorCode;
 
 			bool sqliteDone;
 			bool sqliteHasRow;
 
+			struct stripToken {
+				bool operator()(const std::string &a, const std::string &b) const;
+			};
+			std::map<std::string, int, stripToken> parameters;
+			std::map<std::string, int, stripToken> columns;
+
 		public:
 			Statement(const Database &database, const std::string &sql, bool longRunning = false);
 
-#pragma region StatementColumn struct
-			struct StatementColumn {
-				std::string name;
-				int index;
-
-				StatementColumn(Statement *parent, const std::string &name, int index);
-
-				const char *getName() const noexcept;
-
-				const char *getOriginName() const noexcept;
-
-				// Return the integer value of the column specified by its index starting at 0
-				int32_t getInt() const noexcept;
-
-				// Return the unsigned integer value of the column specified by its index starting at 0
-				uint32_t getUInt() const noexcept;
-
-				// Return the 64bits integer value of the column specified by its index starting at 0
-				int64_t getInt64() const noexcept;
-
-				// Return the double value of the column specified by its index starting at 0
-				double getDouble() const noexcept;
-
-				// Return a pointer to the text value (NULL terminated string) of the column specified by its index starting at 0
-				const char *getText(const char *defaultValue = "") const noexcept;
-
-				// Return a pointer to the blob value (*not* NULL terminated) of the column specified by its index starting at 0
-				const void *getBlob() const noexcept;
-
-				// Return a std::string to a TEXT or BLOB column
-				std::string getString() const;
-
-				// Return the type of the value of the column
-				int getType() const noexcept;
-
-				// Return the number of bytes used by the text value of the column
-				int getBytes() const noexcept;
-
-			private:
-				Statement *parent;
-			};
-#pragma endregion
+			~Statement();
 
 #pragma region StatementColumn bind methods
 			void bind(const std::string &parameterName, int value);
@@ -111,7 +76,31 @@ namespace wingman {
 			void bind(const std::string &parameterName, const char *value);
 #pragma endregion
 
-			StatementColumn &getColumn(const std::string &columnName);
+#pragma region Statement column get data methods
+
+			const char *getName(const std::string &columnName) const noexcept;
+
+			const char *getOriginName(const std::string &columnName) const noexcept;
+
+			int32_t getInt(const std::string &columnName) const noexcept;
+
+			uint32_t getUInt(const std::string &columnName) const noexcept;
+
+			int64_t getInt64(const std::string &columnName) const noexcept;
+
+			double getDouble(const std::string &columnName) const noexcept;
+
+			const char *getText(const std::string &columnName, const char *defaultValue = "") const noexcept;
+
+			const void *getBlob(const std::string &columnName) const noexcept;
+
+			std::string getString(const std::string &columnName) const;
+
+			int getType(const std::string &columnName) const noexcept;
+
+			int getBytes(const std::string &columnName) const noexcept;
+
+#pragma endregion
 
 			bool isDone() const;
 
@@ -130,19 +119,14 @@ namespace wingman {
 			int exec();
 
 		private:
-			struct stripToken {
-				bool operator()(const std::string &a, const std::string &b) const;
-			};
-			std::map<std::string, std::shared_ptr<StatementColumn>, stripToken> parameters;
-			std::map<std::string, std::shared_ptr<StatementColumn>, stripToken> columns;
 		};
 
 		template<typename T>
 		std::vector<T> GetSome(Statement &query, std::function<T(Statement &)> getItem);
 
-	}
+		void initializeColumns(const sqlite::Database &database, const std::string &tableName, std::map<std::string, Column> &columns, std::vector<std::string> &columnNames);
 
-	static void initializeColumns(const sqlite::Database &database, const std::string &tableName, std::map<std::string, Column> &columns, std::vector<std::string> &columnNames);
+	}
 
 	class DatabaseActions {
 		sqlite::Database &dbInstance;
@@ -166,13 +150,6 @@ namespace wingman {
 	class AppItemActions {
 		const std::string TABLE_NAME = "app";
 		const sqlite::Database &dbInstance;
-		sqlite::Statement queryGet;
-		sqlite::Statement queryGetByPK;
-		sqlite::Statement queryDelete;
-		sqlite::Statement queryClear;
-		sqlite::Statement queryCount;
-
-		std::mutex mutex;
 
 		/**
 		 * \brief columns variable is a map of column names to a Column
@@ -185,15 +162,15 @@ namespace wingman {
 	public:
 		AppItemActions(sqlite::Database &dbInstance);
 
-		std::optional<AppItem> get(const std::string &name, const std::optional<std::string> &key = std::nullopt);
+		std::optional<AppItem> get(const std::string &name, const std::optional<std::string> &key = std::nullopt) const;
 
-		void set(const AppItem &item);
+		void set(const AppItem &item) const;
 
-		void remove(const std::string &name, const std::string &key);
+		void remove(const std::string &name, const std::string &key) const;
 
-		void clear();
+		void clear() const;
 
-		int count();
+		int count() const;
 
 		static nlohmann::json toJson(const AppItem &item);
 
@@ -205,18 +182,6 @@ namespace wingman {
 		const sqlite::Database &dbInstance;
 		inline static fs::path downloadsDirectory;
 
-		sqlite::Statement queryGet;
-		sqlite::Statement queryGetByPK;
-		sqlite::Statement queryGetByStatus;
-		sqlite::Statement queryGetNextQueued;
-		sqlite::Statement queryDelete;
-		sqlite::Statement queryClear;
-		sqlite::Statement queryCount;
-		sqlite::Statement queryResetUpdate;
-		sqlite::Statement queryResetDelete;
-
-		std::mutex mutex;
-
 		/**
 		 * \brief columns variable is a map of column names to a Column
 		 */
@@ -227,30 +192,33 @@ namespace wingman {
 
 		static std::vector<DownloadItem> getSome(sqlite::Statement &query);
 	public:
-		DownloadItemActions(sqlite::Database &dbInstance, const fs::path &downloadsDirectory);
+		DownloadItemActions(sqlite::Database &dbInstance, const fs::path &downloadsDir);
 
-		std::optional<DownloadItem> get(const std::string &modelRepo, const std::string &filePath);
+		std::optional<DownloadItem> get(const std::string &modelRepo, const std::string &filePath) const;
 
-		std::optional<DownloadItem> getValue(const std::string &modelRepo, const std::string &filePath);
+		std::optional<DownloadItem> getValue(const std::string &modelRepo, const std::string &filePath) const;
 
-		std::vector<DownloadItem> getAll();
+		std::vector<DownloadItem> getAll() const;
 
-		std::vector<DownloadItem> getAllByStatus(const DownloadItemStatus status);
+		std::vector<DownloadItem> getAllByStatus(const DownloadItemStatus status) const;
 
 		// a function that returns the next queued item by oldest created date
-		std::optional<DownloadItem> getNextQueued();
+		std::optional<DownloadItem> getNextQueued() const;
 
-		void set(const DownloadItem &item);
+		void set(const DownloadItem &item) const;
 
-		std::shared_ptr<DownloadItem> enqueue(const std::string &modelRepo, const std::string &filePath);
+		std::shared_ptr<DownloadItem> enqueue(const std::string &modelRepo, const std::string &filePath) const;
 
-		void remove(const std::string &modelRepo, const std::string &filePath);
+		void remove(const std::string &modelRepo, const std::string &filePath) const;
 
-		void clear();
+		void clear() const;
 
-		int count();
+		int count() const;
 
-		void reset();
+		void reset() const;
+		bool fileExists(const std::string &modelRepo, const std::string &filePath) const;
+
+		bool fileExists(const DownloadItem &item) const;
 
 		static nlohmann::json toJson(const DownloadItem &item);
 
@@ -268,35 +236,29 @@ namespace wingman {
 
 		static std::string safeDownloadItemName(const std::string &modelRepo, const std::string &filePath);
 
-		static std::optional<DownloadItemName> safeDownloadItemNameToModelRepo(const std::string &name);
+		static std::optional<DownloadItemName> parseSafeFilePathIntoDownloadItemName(const std::string &name);
 
-		static std::string getDownloadItemFilePath(const std::string &modelRepo, const std::string &filePath);
+		static std::string getDownloadItemOutputPath(const DownloadItem &item);
 
-		static std::string getDownloadItemOutputFilePath(const std::string &modelRepo, const std::string &quantization);
+		static std::string getDownloadItemOutputPath(const std::string &modelRepo, const std::string &filePath);
 
 		static std::string getDownloadItemOutputFilePathQuant(const std::string &modelRepo, const std::string &quantization);
 
 		static std::string getModelIdFromModelRepo(const std::string &modelRepo);
 
-		static std::string getFileNameForModelRepo(const std::string &modelRepo, const std::string &quantization);
+		static std::string getQuantFileNameForModelRepo(const std::string &modelRepo, const std::string &quantization);
 
 		static std::string urlForModelQuant(const std::string &modelRepo, const std::string &quantization);
 
 		static std::string urlForModel(const std::string &modelRepo, const std::string &filePath);
+
+		static std::string urlForModel(const DownloadItem &item);
 	};
 
 	class WingmanItemActions {
 		const std::string TABLE_NAME = "wingman";
 		const sqlite::Database &dbInstance;
 		fs::path modelsDir;
-
-		sqlite::Statement queryGet;
-		sqlite::Statement queryGetByPK;
-		sqlite::Statement queryDelete;
-		sqlite::Statement queryClear;
-		sqlite::Statement queryCount;
-
-		std::mutex mutex;
 
 		/**
 		 * \brief columns variable is a map of column names to a Column
@@ -309,15 +271,15 @@ namespace wingman {
 	public:
 		WingmanItemActions(sqlite::Database &dbInstance, const fs::path &modelsDir);
 
-		std::optional<WingmanItem> get(const std::string &alias);
+		std::optional<WingmanItem> get(const std::string &alias) const;
 
-		void set(const WingmanItem &item);
+		void set(const WingmanItem &item) const;
 
-		void remove(const std::string &alias);
+		void remove(const std::string &alias) const;
 
-		void clear();
+		void clear() const;
 
-		int count();
+		int count() const;
 
 		static nlohmann::json toJson(const WingmanItem &item);
 

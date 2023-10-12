@@ -1,33 +1,49 @@
-#pragma once
 #include <chrono>
 #include <thread>
+#include <filesystem>
+
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
 
 #include "download.service.h"
 
-namespace fs = std::filesystem;
-
-DownloadServer::DownloadServer(wingman::ItemActionsFactory &actions_factory)
+//DownloadService::DownloadService(
+//	wingman::ItemActionsFactory &actions_factory)
+//	: factory(actions_factory)
+//{}
+DownloadService::DownloadService(
+	wingman::ItemActionsFactory &actions_factory, const std::function<void(wingman::curl::Response *)> &onDownloadProgress)
 	: factory(actions_factory)
-{
-}
+	, onDownloadProgress(onDownloadProgress)
+{}
 
-void DownloadServer::startDownload(const std::string &modelRepo, const std::string &filePath, bool overwrite)
+//DownloadService::DownloadService(
+//	wingman::ItemActionsFactory &actionsFactory, void(*onDownloadProgress)(wingman::curl::Response *))
+//	: factory(actionsFactory)
+//	, onDownloadProgress(onDownloadProgress)
+//{}
+
+
+//DownloadService::DownloadService(wingman::ItemActionsFactory &actions_factory)
+//	: factory(actions_factory, nullptr)
+//{}
+
+void DownloadService::startDownload(const wingman::DownloadItem &downloadItem, bool overwrite) const
 {
-	const auto url = wingman::DownloadItemActions::urlForModel(modelRepo, filePath);
-	const auto item = std::make_shared<wingman::DownloadItem>(factory.download()->get(modelRepo, filePath).value());
-	auto request = wingman::curl::Request{ url, {}, {}, {}, {  item, std::nullopt, factory.download() } };
+	const auto url = wingman::DownloadItemActions::urlForModel(downloadItem);
+	const auto item = std::make_shared<wingman::DownloadItem>(wingman::DownloadItem{ downloadItem });
+	auto request = wingman::curl::Request{ url };
+	request.file.item = item;
+	request.file.actions = factory.download();
+	request.file.onProgress = onDownloadProgress;
 
 	const auto response = wingman::curl::fetch(request);
 }
 
-void DownloadServer::updateServerStatus(const wingman::DownloadServerAppItemStatus &status, std::optional<wingman::DownloadItem> downloadItem, std::optional<std::string> error)
+void DownloadService::updateServerStatus(const wingman::DownloadServerAppItemStatus &status, std::optional<wingman::DownloadItem> downloadItem, std::optional<std::string> error) const
 {
 	auto appItem = factory.app()->get(SERVER_NAME).value_or(wingman::AppItem::make(SERVER_NAME));
-	//auto appItem = factory.app()->get(SERVER_NAME);
 
-	//nlohmann::json j = nlohmann::json::parse(appItem);
 	nlohmann::json j = nlohmann::json::parse(appItem.value);
 	auto downloadServerItem = j.template get<wingman::DownloadServerAppItem>();
 	downloadServerItem.status = status;
@@ -38,73 +54,89 @@ void DownloadServer::updateServerStatus(const wingman::DownloadServerAppItemStat
 		downloadServerItem.currentDownload.emplace(downloadItem.value());
 	}
 	nlohmann::json j2 = downloadServerItem;
-	//appItem->value = j2.dump();
-	//factory.app()->set(*appItem);
 	appItem.value = j2.dump();
 	factory.app()->set(appItem);
 }
 
-void DownloadServer::initializeServerStatus() const
+void DownloadService::runOrphanedDownloadCleanup() const
 {
-	const nlohmann::json jsonDownloadServerAppItem = wingman::DownloadServerAppItem::make();
-	wingman::AppItem item = wingman::AppItem::make(SERVER_NAME);
-	item.value = jsonDownloadServerAppItem.dump();
-	factory.app()->set(item);
-
 	// Check for orphaned downloads and clean up
 	for (const auto downloads = factory.download()->getAll(); const auto & download : downloads) {
 		if (download.status == wingman::DownloadItemStatus::complete) {
-			// Use static method to check if the download file exists in the file system
-			if (!wingman::DownloadItemActions::isDownloaded(download.modelRepo, download.filePath)) {
-				// Use static method to delete the download item file
-				std::string filePath = wingman::DownloadItemActions::getDownloadItemFilePath(download.modelRepo, download.filePath);
-				fs::remove(filePath); // Assuming you have 'namespace fs = std::filesystem;'
+			// Check if the download file exists in the file system
+			if (!factory.download()->fileExists(download)) {
 				factory.download()->remove(download.modelRepo, download.filePath);
 			}
 		}
 	}
+	// Check for orphaned downloaded model files on disk and clean up
+	for (const auto files = wingman::DownloadItemActions::getModelFiles(); const auto & file : files) {
+		// get file names from disk and check if they are in the database
+		if (const auto din = wingman::DownloadItemActions::parseSafeFilePathIntoDownloadItemName(file)) {
+			const auto downloadItem = factory.download()->get(din.value().modelRepo, din.value().filePath);
+			if (!downloadItem) {
+				// get full path to file and remove it
+				const auto fullPath = wingman::DownloadItemActions::getDownloadItemOutputPath(din.value().modelRepo, din.value().filePath);
+				spdlog::info(SERVER_NAME + ": Removing orphaned file " + fullPath + " from disk.");
+				std::filesystem::remove(fullPath);
+			}
+		}
+	}
+}
+
+void DownloadService::initialize() const
+{
+	wingman::DownloadServerAppItem dsai;
+	nlohmann::json j = dsai;
+	wingman::AppItem item;
+	item.name = SERVER_NAME;
+	item.value = j.dump();
+	factory.app()->set(item);
+
+	runOrphanedDownloadCleanup();
 	factory.download()->reset();
 }
 
-void DownloadServer::run()
+void DownloadService::run()
 {
 	try {
 		if (!keepRunning) {
 			return;
 		}
 
-		spdlog::debug(SERVER_NAME + ": Download server started.");
+		spdlog::debug(SERVER_NAME + ": (run) Download server started.");
 
-		initializeServerStatus();
+		initialize();
 
 		while (keepRunning) {
 			updateServerStatus(wingman::DownloadServerAppItemStatus::ready);
-			spdlog::trace(SERVER_NAME + ": Checking for queued downloads...");
-			auto nextItem = factory.download()->getNextQueued();
-			if (nextItem) {
-				const auto &currentItem = nextItem.value();
-				const std::string modelName = currentItem.modelRepo + "/" + currentItem.filePath;
+			spdlog::trace(SERVER_NAME + ": (run) Checking for queued downloads...");
+			if (auto nextItem = factory.download()->getNextQueued()) {
+				auto &currentItem = nextItem.value();
+				const std::string modelName = currentItem.modelRepo + ": " + currentItem.filePath;
 
-				spdlog::info(SERVER_NAME + ": Processing download of " + modelName + "...");
+				spdlog::info(SERVER_NAME + ": (run) Processing download of " + modelName + "...");
 
 				if (currentItem.status == wingman::DownloadItemStatus::queued) {
 					// Update status to downloading
-					wingman::DownloadItem updatedItem = currentItem;
-					updatedItem.status = wingman::DownloadItemStatus::downloading;
-					factory.download()->set(updatedItem);
-					updateServerStatus(wingman::DownloadServerAppItemStatus::preparing, updatedItem);
+					//wingman::DownloadItem updatedItem = currentItem;
+					currentItem.status = wingman::DownloadItemStatus::downloading;
+					factory.download()->set(currentItem);
+					updateServerStatus(wingman::DownloadServerAppItemStatus::preparing, currentItem);
 
-					spdlog::debug(SERVER_NAME + ": (main) calling startDownload " + modelName + "...");
+					spdlog::debug(SERVER_NAME + ": (run) calling startDownload " + modelName + "...");
 					try {
-						startDownload(updatedItem.modelRepo, updatedItem.filePath, true);
+						startDownload(currentItem, true);
 					} catch (const std::exception &e) {
-						spdlog::error(SERVER_NAME + ": (main) Exception (startDownload): " + std::string(e.what()));
-						updateServerStatus(wingman::DownloadServerAppItemStatus::error, updatedItem, e.what());
+						spdlog::error(SERVER_NAME + ": (run) Exception (startDownload): " + std::string(e.what()));
+						updateServerStatus(wingman::DownloadServerAppItemStatus::error, currentItem, e.what());
 					}
-					spdlog::info(SERVER_NAME + ": Download of " + modelName + " complete.");
+					spdlog::info(SERVER_NAME + ": (run) Download of " + modelName + " complete.");
 					updateServerStatus(wingman::DownloadServerAppItemStatus::ready);
 				}
 			}
+
+			runOrphanedDownloadCleanup();
 
 			spdlog::trace(SERVER_NAME + ": Waiting " + std::to_string(QUEUE_CHECK_INTERVAL) + "ms...");
 			std::this_thread::sleep_for(std::chrono::milliseconds(QUEUE_CHECK_INTERVAL));
@@ -113,10 +145,12 @@ void DownloadServer::run()
 		spdlog::debug(SERVER_NAME + ": Download server stopped.");
 	} catch (const std::exception &e) {
 		spdlog::error(SERVER_NAME + ": Exception (run): " + std::string(e.what()));
+		stop();
 	}
+	updateServerStatus(wingman::DownloadServerAppItemStatus::stopped);
 }
 
-void DownloadServer::stop()
+void DownloadService::stop()
 {
 	keepRunning = false;
 }

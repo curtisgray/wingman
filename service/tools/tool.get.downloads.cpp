@@ -14,12 +14,12 @@ namespace wingman::tools {
 
 		wingman::ItemActionsFactory itemActionsFactory;
 
-		const auto filePath = wingman::DownloadItemActions::getFileNameForModelRepo(modelRepo, quantization);
+		const auto filePath = wingman::DownloadItemActions::getQuantFileNameForModelRepo(modelRepo, quantization);
 		const auto item = itemActionsFactory.download()->enqueue(modelRepo, filePath);
 		auto request = wingman::curl::Request{ url, {}, {}, {}, {  item, quantization, itemActionsFactory.download() } };
 
 		fmt::print("Download from: {}\n", url);
-		fmt::print("Download to: {}\n", DownloadItemActions::getDownloadItemOutputFilePath(
+		fmt::print("Download to: {}\n", DownloadItemActions::getDownloadItemOutputPath(
 			modelRepo, quantization));
 
 		request.file.onProgress = [&](const wingman::curl::Response *response) {
@@ -40,11 +40,14 @@ namespace wingman::tools {
 
 int main(const int argc, char *argv[])
 {
-	//CLI::App app{ "Download Llama model from Huggingface Wingman models folder." };
-
 	argparse::ArgumentParser program("tool.insert.download");
-	program.add_argument("-m", "--modelRepo").required().help("Huggingface model repository name in form '[RepoUser]/[ModelId]'");
-	program.add_argument("-q", "--quantization").required().help("Quantization to download").default_value("Q4_0");
+
+	program.add_description("Schedule to download Llama model from Huggingface to Wingman models folder.");
+	program.add_argument("--modelRepo")
+		.required()
+		.help("Huggingface model repository name in form '[RepoUser]/[ModelId]'");
+	program.add_argument("--quantization")
+		.help("Quantization to download. Defaults to `Q4_0`");
 
 	try {
 		program.parse_args(argc, argv);
@@ -54,11 +57,11 @@ int main(const int argc, char *argv[])
 		std::exit(1);
 	}
 
-	const auto modelRepo = program.get<std::string>("--modelRepo");
-	const auto quantization = program.get<std::string>("--quantization");
+	const auto modelRepo = program.present<std::string>("--modelRepo");
+	const auto quantization = program.present<std::string>("--quantization");
 
 	try {
-		wingman::tools::start(modelRepo, quantization);
+		wingman::tools::start(modelRepo.value(), quantization.value_or("Q4_0"));
 	} catch (const std::exception &e) {
 		std::cerr << "Exception: " << std::string(e.what());
 		return 1;

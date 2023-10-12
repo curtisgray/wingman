@@ -8,7 +8,7 @@ namespace wingman::tools {
 
 	void start()
 	{
-		spdlog::info("Dump model data to files.");
+		spdlog::info("Dump model data from Huggingface.co to files.");
 
 		const std::string file{ __FILE__ };
 		const fs::path directory = fs::path(file).parent_path();
@@ -36,10 +36,7 @@ namespace wingman::tools {
 int main(int argc, char *argv[])
 {
 	spdlog::set_level(spdlog::level::trace);
-	if (argc != 1) {
-		spdlog::error("Usage: {}", argv[0]);
-		return 1;
-	}
+
 	try {
 		wingman::tools::start();
 	} catch (const std::exception &e) {

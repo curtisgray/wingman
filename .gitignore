@@ -12,6 +12,7 @@ tt.py
 tt.ts
 tt.js
 .backup
+*.db
 
 # dependencies
 /node_modules

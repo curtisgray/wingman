@@ -10,10 +10,7 @@ endfunction()
 
 find_package(GTest CONFIG REQUIRED)
 
-# enable testing
-enable_testing()
-
-set(TEST_LINK_LIBRARIES $<TARGET_OBJECTS:${TARGET}_lib> ${SHARED_target_link_libraries} GTest::gtest_main GTest::gmock_main)
+set(TEST_LINK_LIBRARIES $<TARGET_OBJECTS:${TARGET}_lib> ${SHARED_target_link_libraries} GTest::gtest_main)
 
 # run `wingman_build_and_test_executable` for each source file
 file(GLOB tests RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)

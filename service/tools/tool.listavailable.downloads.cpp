@@ -57,9 +57,14 @@ int main(int argc, char *argv[])
 {
 	//CLI::App app{ "List available Huggingface.co Llama models. Use --modelRepo [search string] to search for models." };
 
-	argparse::ArgumentParser program("tool.listavailable.downloads");
-	program.add_argument("-m", "--modelRepo").required().help("Huggingface model repository name in form '[RepoUser]/[ModelId]'");
-	program.add_argument("-q", "--quantization").required().help("Quantization to download").default_value("Q4_0");
+	argparse::ArgumentParser program("tool.listavailable.downloads", "0.1");
+
+	program
+		.add_description("List available Huggingface.co Llama models. Use --modelRepo [search string] to search for models.");
+
+	program.add_argument("-m", "--modelRepo")
+		//.required()
+		.help("Huggingface model repository name in form '[RepoUser]/[ModelId]'");
 
 	try {
 		program.parse_args(argc, argv);    // Example: ./main --color orange
@@ -69,8 +74,7 @@ int main(int argc, char *argv[])
 		std::exit(1);
 	}
 
-	const auto modelRepo = program.get<std::string>("--modelRepo");
-	const auto quantization = program.get<std::string>("--quantization");
+	const auto modelRepo = program.present<std::string>("--modelRepo");
 
 	try {
 		wingman::tools::start(modelRepo);

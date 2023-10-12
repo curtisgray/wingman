@@ -36,7 +36,8 @@ namespace wingman::curl {
 	void updateItemProgress(Response *res)
 	{
 		// only update db every 5 seconds
-		if (std::time(nullptr) - res->file.item->updated < 5)
+		const auto seconds = std::time(nullptr) - res->file.item->updated;
+		if (seconds < 1)
 			return;
 		if (res->file.item->totalBytes == 0) {
 			// get the expected file size from the headers
@@ -157,10 +158,10 @@ namespace wingman::curl {
 					path = request.file.actions->getDownloadItemOutputFilePathQuant(
 						request.file.item->modelRepo, request.file.quantization.value());
 				} else {
-					path = request.file.actions->getDownloadItemOutputFilePath(
+					path = request.file.actions->getDownloadItemOutputPath(
 						request.file.item->modelRepo, request.file.item->filePath);
 				}
-				//path = request.file.actions->getDownloadItemOutputFilePath(
+				//path = request.file.actions->getDownloadItemOutputPath(
 				//	request.file.item->modelRepo, request.file.item->filePath);
 				response.file.handle = std::make_shared<std::ofstream>(path, std::ios::binary);
 				if (!response.file.handle) {
@@ -256,6 +257,14 @@ namespace wingman::curl {
 	{
 		const auto request = Request{ url };
 		return fetch(request);
+	}
+
+	bool remoteFileExists(const std::string &url)
+	{
+		auto request = Request{ url };
+		request.file.checkExistsThenExit = true;
+		const auto response = fetch(request);
+		return response.file.fileExists;
 	}
 
 	nlohmann::json getRawModels()

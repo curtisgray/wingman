@@ -20,6 +20,12 @@ else()
 endif()
 message(STATUS "Wingman destination (install) directory: ${DESTINATION_DIR}")
 
+if (TRUE)
+    include(CTest)
+    # enable testing
+    enable_testing()
+endif()
+
 find_library(USOCKETS_LIBRARY uSockets REQUIRED)
 find_path(UWEBSOCKETS_INCLUDE_DIRS "uwebsockets/App.h" REQUIRED)
 find_package(ZLIB REQUIRED)
@@ -95,31 +101,8 @@ if(TARGET BUILD_INFO)
   add_dependencies(${TARGET} BUILD_INFO)
 endif()
 
-### Download
-set(DOWNLOAD_TARGET wingman.download)
-
-file(GLOB DOWNLOAD_SOURCES
-    wingman.download.cpp
-)
-
-add_executable(${DOWNLOAD_TARGET} ${DOWNLOAD_SOURCES})
-target_include_directories(${DOWNLOAD_TARGET} PRIVATE ${SHARED_HEADER_DIRS})
-set_property(TARGET ${DOWNLOAD_TARGET} PROPERTY CXX_STANDARD 20)
-install(TARGETS ${DOWNLOAD_TARGET} RUNTIME DESTINATION ${DESTINATION_DIR})
-target_compile_definitions(${DOWNLOAD_TARGET} PRIVATE
-    WINGMAN_VERBOSE=$<BOOL:${LLAMA_SERVER_VERBOSE}>
-)
-target_link_libraries(${DOWNLOAD_TARGET} PRIVATE $<TARGET_OBJECTS:${TARGET}_lib> ${SHARED_target_link_libraries})
-
+### Tests
 add_subdirectory(tests)
+
+### Tools
 add_subdirectory(tools)
-
-if(WIN32)
-    TARGET_LINK_LIBRARIES(${DOWNLOAD_TARGET} PRIVATE ws2_32)
-endif()
-
-target_compile_features(${DOWNLOAD_TARGET} PRIVATE cxx_std_11)
-
-if(TARGET BUILD_INFO)
-    add_dependencies(${DOWNLOAD_TARGET} BUILD_INFO)
-endif()

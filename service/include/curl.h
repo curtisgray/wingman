@@ -26,7 +26,7 @@ namespace wingman::curl {
 
 	struct Response;
 
-	typedef void (*OnProgressEvent)(Response *);
+	//typedef void (*OnProgressEvent)(Response *);
 
 	struct Response {
 		std::vector<std::byte> data;
@@ -39,7 +39,7 @@ namespace wingman::curl {
 			std::streamsize totalBytesWritten = 0;
 			std::shared_ptr<std::ofstream> handle = nullptr;
 			std::shared_ptr<DownloadItem> item = nullptr;
-			std::optional<std::string> quantization;
+			std::optional<std::string> quantization = std::nullopt;
 			std::shared_ptr<DownloadItemActions> actions = nullptr;
 			std::function<void(Response *)>	 onProgress = nullptr;
 			bool checkExistsThenExit = false;
@@ -89,7 +89,7 @@ namespace wingman::curl {
 		// setting this will cause the file to be downloaded to the specified path
 		struct RequestFile {
 			std::shared_ptr<DownloadItem> item = nullptr;
-			std::optional<std::string> quantization;
+			std::optional<std::string> quantization = std::nullopt;
 			std::shared_ptr<DownloadItemActions> actions = nullptr;
 			std::function<void(Response *)> onProgress = nullptr;
 			bool checkExistsThenExit = false;
@@ -102,6 +102,8 @@ namespace wingman::curl {
 	Response fetch(const Request &request);
 
 	Response fetch(const std::string &url);
+
+	bool remoteFileExists(const std::string &url);
 
 	nlohmann::json getRawModels();
 
