@@ -4,7 +4,6 @@
 .vscode
 .vs
 out
-services
 wingman_history*.json
 .backup
 *.db
