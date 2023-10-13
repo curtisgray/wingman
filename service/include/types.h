@@ -1,10 +1,10 @@
 
 #pragma once
 #include <ctime>
-#include <map>
 #include <optional>
 #include <string>
 #include <filesystem>
+#include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 
 namespace wingman {

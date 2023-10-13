@@ -7,7 +7,7 @@
 class DownloadService {
 	std::atomic<bool> keepRunning = true;
 
-	wingman::ItemActionsFactory &factory;
+	wingman::ItemActionsFactory &actions;
 	const std::string SERVER_NAME = "DownloadService";
 	const int QUEUE_CHECK_INTERVAL = 1000; // Assuming 1000ms as in TypeScript
 

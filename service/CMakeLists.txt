@@ -2,8 +2,13 @@ cmake_minimum_required(VERSION 3.21)
 
 project(wingman C CXX)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# set(CMAKE_CXX_STANDARD 20)
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED true)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED true)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 # set home directory depending on platform
 if (WIN32)
@@ -49,9 +54,12 @@ set(TARGET wingman)
 
 set(SHARED_HEADER_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/llama_cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common
 )
 
-list(APPEND SHARED_HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/llama_cpp ${CMAKE_CURRENT_SOURCE_DIR}/common)
+#list(APPEND SHARED_HEADER_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/llama_cpp ${CMAKE_CURRENT_SOURCE_DIR}/common)
+include_directories(${SHARED_HEADER_DIRS})
 message(STATUS "Shared header directories: ${SHARED_HEADER_DIRS}")
 
 set(${TARGET}_lib_SOURCES
@@ -104,5 +112,5 @@ endif()
 ### Tests
 add_subdirectory(tests)
 
-### Tools
+# ## Tools
 add_subdirectory(tools)

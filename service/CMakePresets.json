@@ -29,7 +29,7 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "LLAMA_CUBLAS": true,
         "LLAMA_BUILD_TESTS": false,
-        "LLAMA_BUILD_EXAMPLES": false
+        "LLAMA_BUILD_EXAMPLES": true
       }
     },
     {

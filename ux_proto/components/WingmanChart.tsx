@@ -38,7 +38,6 @@ const WingmanChart = ({ className = "" }: WingmanChartProps) =>
         readyState,
     } = useWebSocket("ws://localhost:6568",
         {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             shouldReconnect: (_closeEvent) => true,
             reconnectAttempts: 9999999,
             reconnectInterval: 1000,

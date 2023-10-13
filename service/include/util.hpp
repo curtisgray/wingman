@@ -1,7 +1,6 @@
 #pragma once
 #include <regex>
 #include <string>
-#include <CLI/App.hpp>
 
 namespace wingman::util {
 	template<typename T>

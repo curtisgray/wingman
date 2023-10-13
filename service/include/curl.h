@@ -4,6 +4,7 @@
 #include <functional>
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
+#include <spdlog/spdlog.h>
 
 #include "orm.h"
 #include "util.hpp"

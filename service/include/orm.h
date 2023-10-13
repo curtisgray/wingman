@@ -5,7 +5,6 @@
 #include <memory>
 #include <optional>
 #include <filesystem>
-#include <spdlog/spdlog.h>
 #include <sqlite3.h>
 #include <nlohmann/json.hpp>
 
