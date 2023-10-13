@@ -1,4 +1,0 @@
-[submodule "services/llama.cpp"]
-	path = services/llama.cpp
-	url = https://github.com/curtisgray/llama.cpp
-    branch = develop
