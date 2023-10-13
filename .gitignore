@@ -4,13 +4,8 @@
 .vscode
 .vs
 out
-vendors
-chatbot_ui_history*.json
+services
 wingman_history*.json
-tt.json
-tt.py
-tt.ts
-tt.js
 .backup
 *.db
 
