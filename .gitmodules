@@ -1,3 +1,4 @@
-[submodule "service/vendors/llama.cpp"]
-	path = service/vendors/llama.cpp
-	url = https://github.com/ggerganov/llama.cpp
+[submodule "services/llama.cpp"]
+	path = services/llama.cpp
+	url = https://github.com/curtisgray/llama.cpp
+    branch = develop
