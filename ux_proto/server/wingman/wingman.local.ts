@@ -47,17 +47,15 @@ switch (process.platform) {
 export const EXE_NAME = `wingman${EXE_EXT}`;
 interface ModelRuntimeInfo
 {
-    name: string;
-    contextSize: number;
+    platform: string;
     numLayers: number;
 }
 
-const getModelInfo = async (modelFilePath: string): Promise<ModelRuntimeInfo> =>
+const getModelInfo = async (): Promise<ModelRuntimeInfo> =>
 {
     const avgVramPerLayer = 138.54286193847656;
     const modelInfo: ModelRuntimeInfo = {
-        name: "default",
-        contextSize: 4096,
+        platform: "default",
         numLayers: 99,
     };
 
@@ -71,10 +69,10 @@ const getModelInfo = async (modelFilePath: string): Promise<ModelRuntimeInfo> =>
     if (gpuVendor.toUpperCase() === "NVIDIA" &&
         validGpuModels.some(model => gpuModel.toUpperCase().includes(model)) &&
         gpuMemory > 1024) {
-        modelInfo.name = "cuBLAS";
+        modelInfo.platform = "cuBLAS";
     }
     else {
-        modelInfo.name = "Native";
+        modelInfo.platform = "Native";
     }
     if (gpuMemory > 1024) {
         modelInfo.numLayers = Math.round(gpuMemory / avgVramPerLayer);
@@ -144,14 +142,13 @@ export const updateServerStatus = async (status: WingmanServerStatus, wingmanIte
  *
  */
 
-export const startWingman = async (modelFilePath: string, alias: string | "default", force: boolean = true) =>
+export const startWingman = async (alias: string | "default", force: boolean = true) =>
 {
     logger.silly(`${SERVER_NAME}: (startWingman)...`);
-    logger.silly(`${SERVER_NAME}: (startWingman) modelFilePath: ${modelFilePath}`);
-    const modelInfo = await getModelInfo(modelFilePath);
+    const modelInfo = await getModelInfo();
     return new Promise<void>((resolve, reject) =>
     {
-        logger.silly(`${SERVER_NAME}: main: path: ${modelFilePath}, alias: ${alias}, force: ${force}`);
+        logger.silly(`${SERVER_NAME}: main: alias: ${alias}, force: ${force}`);
 
         // if the alias is already in the map, return an error
         if (childProcesses.has(alias)) {
@@ -166,7 +163,7 @@ export const startWingman = async (modelFilePath: string, alias: string | "defau
             }
         }
 
-        const entryPoint = path.join(EXE_BASE_DIR, modelInfo.name, "bin", EXE_NAME);
+        const entryPoint = path.join(EXE_BASE_DIR, modelInfo.platform, "bin", EXE_NAME);
         if (!fs.existsSync(entryPoint)) {
             const errorString = `${SERVER_NAME}: (startWingman) entryPoint does not exist: ${entryPoint}`;
             logger.error(errorString);
@@ -185,11 +182,9 @@ export const startWingman = async (modelFilePath: string, alias: string | "defau
             const child = execFile(entryPoint, [
                 "--port", llamaPort.toString(),
                 "--websocket-port", llamaWebsocketPort.toString(),
-                "--model", modelFilePath,
                 "--alias", alias,
                 "--ctx-size", modelInfo.contextSize.toString(),
                 "--n-gpu-layers", modelInfo.numLayers.toString(),
-                // "--threads", threads.toString(),
             ], (error, stdout, stderr) =>
             {
                 if (error) {
@@ -198,8 +193,6 @@ export const startWingman = async (modelFilePath: string, alias: string | "defau
                     reject(new Error(errorString));
                     return;
                 } else {
-                    // logger.debug(`${SERVER_NAME}: stdout: ${stdout}`);
-                    // logger.debug(`${SERVER_NAME}: stderr: ${stderr}`);
                     resolve();
                 }
             });
@@ -266,26 +259,3 @@ export const stopWingman = async (alias: string | "default") =>
         childProcesses.delete(alias);
     }
 };
-
-// if (process.argv.length < 3) {
-//     console.error("Usage node index.js <modelPath> [alias]");
-//     process.exit(1);
-// }
-
-// const modelPath = process.argv[2];
-// let alias = "default";
-// if (process.argv.length > 3) {
-//     alias = process.argv[3];
-// }
-
-// main(modelPath, alias).then(async () =>
-// {
-//     logger.info(`${SERVER_NAME}: Wingman exiting.`);
-//     // await updateServerStatus("stopped");
-//     process.exit(0);
-// }).catch(async err =>
-// {
-//     logger.error(`${SERVER_NAME}: Exception (main): ${err}`);
-//     // await updateServerStatus("error", undefined, err?.toString());
-//     process.exit(1);
-// });
