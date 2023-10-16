@@ -4,13 +4,11 @@ import { useRef, useState } from "react";
 interface WingmanProps
 {
     isGenerating: boolean;
-    // items: WingmanContent[];
     latestItem: WingmanContent | undefined;
     startGenerating: (prompt: string, probabilties_to_return: number) => Promise<void>;
     stopGenerating: () => void;
 }
 
-// export function useWingman(serverPort: number, maxItemsLength: number = 100): WingmanProps;
 export function useWingman(serverPort: number): WingmanProps
 {
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
@@ -19,6 +17,7 @@ export function useWingman(serverPort: number): WingmanProps
     const startGenerating = async (content: string, probabilities_to_return?: number): Promise<void> =>
         new Promise<void>((resolve, reject) =>
         {
+            setLatestItem(undefined);
             try {
                 const controller = new AbortController();
                 fetch(encodeURI(`http://localhost:${serverPort}/completion`), {
@@ -83,6 +82,5 @@ export function useWingman(serverPort: number): WingmanProps
         continueGenerating.current = false;
     };
 
-    // return { isGenerating, item: lastItem, items, startGenerating, stopGenerating };
-    return { isGenerating, latestItem: latestItem, startGenerating, stopGenerating };
+    return { isGenerating, latestItem, startGenerating, stopGenerating };
 }

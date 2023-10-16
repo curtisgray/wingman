@@ -45,15 +45,19 @@ export const newLlamaStatsMeta = (): LlamaStatsMeta =>
 export interface LlamaStatsSystem {
     ctx_size: number;
     cuda_str: string;
+    gpu_name: string;
     mem_required: number;
-    mem_required_per_state: number;
     offloaded: number;
     offloaded_total: number;
     offloading_repeating: number;
+    offloading_nonrepeating: number;
     vram_per_layer_avg: number;
     vram_used: number;
     model_path: string;
+    model_file_name: string;
     model_name: string;
+    model_alias: string;
+    quantization: string;
     has_next_token: boolean;
 };
 
@@ -62,15 +66,19 @@ export const newLlamaStatsSystem = (): LlamaStatsSystem =>
     return {
         ctx_size: 0,
         cuda_str: "",
+        gpu_name: "",
         mem_required: 0,
-        mem_required_per_state: 0,
         offloaded: 0,
         offloaded_total: 0,
         offloading_repeating: 0,
+        offloading_nonrepeating: 0,
         vram_per_layer_avg: 0,
         vram_used: 0,
         model_path: "",
+        model_file_name: "",
         model_name: "",
+        model_alias: "",
+        quantization: "",
         has_next_token: false,
     };
 };

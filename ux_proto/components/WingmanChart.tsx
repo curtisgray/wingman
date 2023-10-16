@@ -1,7 +1,7 @@
 import { LlamaStats, LlamaStatsTimings, LlamaStatsSystem, LlamaStatsMeta, newLlamaStatsTimings, newLlamaStatsSystem, newLlamaStatsMeta } from "@/types/llama_stats";
 import React, { useState, useEffect, ReactNode } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
-import { LineChart, Line, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
+import { LineChart, Line, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, AreaChart, Area, Legend } from "recharts";
 
 function precisionRound(value: number, precision: number)
 {
@@ -23,6 +23,7 @@ const WingmanChart = ({ className = "" }: WingmanChartProps) =>
         "sample_per_second": "text-[#fa34a3]",
         "sample_per_token_ms": "text-[#999999]",
         "model_name": "text-violet-400",
+        "model_alias": "text-violet-400",
         "context_length": "text-lime-600",
         "vram_used": "text-lime-600",
         "offloaded": "text-lime-600",
@@ -32,6 +33,8 @@ const WingmanChart = ({ className = "" }: WingmanChartProps) =>
     const [metrics, setMetrics] = useState<LlamaStatsTimings>(() => newLlamaStatsTimings());
     const [system, setSystem] = useState<LlamaStatsSystem>(() => newLlamaStatsSystem());
     const [meta, setMeta] = useState<LlamaStatsMeta>(() => newLlamaStatsMeta());
+    const [lastTime, setLastTime] = useState<Date>(new Date());
+    const [pauseMetrics, setPauseMetrics] = useState<boolean>(false);
     // TODO: fix automatic online offline status detection
     const {
         lastMessage,
@@ -53,16 +56,20 @@ const WingmanChart = ({ className = "" }: WingmanChartProps) =>
     useEffect(() =>
     {
         if (lastMessage) {
-            const metrics = JSON.parse(lastMessage.data).timings;
-            Object.keys(metrics).forEach(function (key) { metrics[key] = precisionRound(metrics[key], fractionDigits); });
-            setMetrics(metrics);
-            setData([...data, metrics].slice(-1000));
+            if (JSON.parse(lastMessage.data).system.has_next_token || !pauseMetrics) {
+                const metrics = JSON.parse(lastMessage.data).timings;
+                Object.keys(metrics).forEach(function (key) { metrics[key] = precisionRound(metrics[key], fractionDigits); });
+                setMetrics(metrics);
+                setData([...data, metrics].slice(-1000));
+            }
             const system = JSON.parse(lastMessage.data).system;
             setSystem(system);
             const meta = JSON.parse(lastMessage.data).meta;
             setMeta(meta);
+            const date = new Date();
+            setLastTime(date);
         }
-    }, [data, lastMessage]);
+    }, [data, lastMessage, pauseMetrics]);
 
     const renderStat = (value: number|string, name: string, statColor: string): ReactNode =>
     {
@@ -89,16 +96,24 @@ const WingmanChart = ({ className = "" }: WingmanChartProps) =>
         return (
             <>
                 <p>Wingman <span title="Wingman is online">{connectionStatus}</span> <span>{system.cuda_str}</span></p>
+                <p>{system.gpu_name}</p>
+                <p><span>Last updated at {lastTime.toLocaleTimeString()}</span></p>
                 <div className="text-xs">
-                    <div><span className={`${chartColors.model_name} text-lg`}>{system.model_name} {system.has_next_token ? "🗣" : ""}</span></div>
+                    <div><span className={`${chartColors.model_alias} text-lg`}>{system.model_alias} {system.quantization ? system.quantization: ""} {system.has_next_token ? "🗣" : ""}</span></div>
                     <div className="flex">
-                        {meta.n_ctx &&
-                            renderStat(Number(meta.n_ctx)?.toLocaleString(undefined, { minimumFractionDigits: 0 }), "Context Length", chartColors.context_length)
+                        {system.ctx_size &&
+                            renderStat(Number(system.ctx_size)?.toLocaleString(undefined, { minimumFractionDigits: 0 }), "MB Context", chartColors.context_length)
+                        }
+
+                        {system.mem_required &&
+                            <>
+                                {renderStat(Number(system.mem_required)?.toLocaleString(undefined, { minimumFractionDigits: 0 }), "MB RAM", chartColors.vram_used)}
+                            </>
                         }
 
                         {system.vram_used &&
                             <>
-                                {renderStat(Number(system.vram_used)?.toLocaleString(undefined, { minimumFractionDigits: 0 }), "MB VRAM Total", chartColors.vram_used)}
+                                {renderStat(Number(system.vram_used)?.toLocaleString(undefined, { minimumFractionDigits: 0 }), "MB VRAM", chartColors.vram_used)}
                                 {renderStat(`${system.offloaded} / ${system.offloaded_total}`, "Layers On GPU", chartColors.offloaded)}
                             </>
                         }
@@ -126,13 +141,44 @@ const WingmanChart = ({ className = "" }: WingmanChartProps) =>
                         <YAxis domain={[0, "dataMax + 200"]} allowDataOverflow={true} yAxisId="left" orientation="right" />
                         <YAxis domain={[0, "dataMax + 200"]} allowDataOverflow={true} yAxisId="right" orientation="left" />
                         <Tooltip />
-                        {/* <Legend content={renderLegend} /> */}
                         <Line yAxisId="left" type="monotone" connectNulls={true} name="Tokens/Sec" dataKey="predicted_per_second" stroke="#34a2fa" strokeWidth={3} />
                         <Line yAxisId="left" type="monotone" connectNulls={true} name="Ms/Token Sample" dataKey="sample_per_token_ms" stroke="#999999" />
                         <Line yAxisId="right" type="monotone" connectNulls={true} name="Samples/Sec" dataKey="sample_per_second" stroke="#fa34a3" />
                         <Line yAxisId="right" type="monotone" connectNulls={true} name="Token Pred Time (ms)" dataKey="predicted_per_token_ms" stroke="#ffc658" />
                     </LineChart>
+                    {/* <AreaChart  data={data} margin={{ top: 20, right: 0, left: 0, bottom: 10 }}>
+                        <defs>
+                            <linearGradient id="predicted_per_second" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#34a2fa" stopOpacity={0.8}/>
+                                <stop offset="95%" stopColor="#34a2fa" stopOpacity={0}/>
+                            </linearGradient>
+                            <linearGradient id="sample_per_token_ms" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#999999" stopOpacity={0.8}/>
+                                <stop offset="95%" stopColor="#999999" stopOpacity={0}/>
+                            </linearGradient>
+                            <linearGradient id="sample_per_second" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#fa34a3" stopOpacity={0.8}/>
+                                <stop offset="95%" stopColor="#fa34a3" stopOpacity={0}/>
+                            </linearGradient>
+                            <linearGradient id="predicted_per_token_ms" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#ffc658" stopOpacity={0.8}/>
+                                <stop offset="95%" stopColor="#ffc658" stopOpacity={0}/>
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <YAxis domain={[0, "dataMax + 200"]} allowDataOverflow={true} yAxisId="left" orientation="right" />
+                        <YAxis domain={[0, "dataMax + 200"]} allowDataOverflow={true} yAxisId="right" orientation="left" />
+                        <Tooltip />
+                        <Area yAxisId="left" type="monotone" connectNulls={true} name="Tokens/Sec" dataKey="predicted_per_second" fill="url(#predicted_per_second)" strokeWidth={3} />
+                        <Area yAxisId="left" type="monotone" connectNulls={true} name="Ms/Token Sample" dataKey="sample_per_token_ms" fill="url(#sample_per_token_ms)" />
+                        <Area yAxisId="right" type="monotone" connectNulls={true} name="Samples/Sec" dataKey="sample_per_second" fill="url(#sample_per_second)" />
+                        <Area yAxisId="right" type="monotone" connectNulls={true} name="Token Pred Time (ms)" dataKey="predicted_per_token_ms" fill="url(#predicted_per_token_ms)" />
+                    </AreaChart> */}
                 </ResponsiveContainer>
+                <div className="flex flex-row text-xs items-center">
+                    <input type="checkbox" className="m-2" disabled={system.has_next_token} checked={pauseMetrics} onChange={() => setPauseMetrics(!pauseMetrics)} />
+                    <span>Pause Graph</span>
+                </div>
                 <div className="flex flex-row text-xs">
                     <div>
                         {renderStat(metrics.predicted_per_second, "Token Rate", chartColors.predicted_per_second)}

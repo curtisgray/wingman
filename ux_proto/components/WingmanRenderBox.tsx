@@ -1,7 +1,7 @@
 import React from "react";
 import { useWingman } from "@/hooks/useWingman";
 // import prompts from "@/prompts";
-import drone from "@/prompts/drone.prompt.json";
+import drone from "@/prompts/drone.prompt.long.json";
 import reddit from "@/prompts/reddit.prompt.json";
 import { WingmanContent } from "@/types/wingman";
 import { useEffect, useRef, useState } from "react";
