@@ -1,0 +1,4 @@
+[submodule "services/wingman.cpp"]
+	path = services/wingman.cpp
+	url = https://github.com/curtisgray/wingman.cpp
+	branch = master
