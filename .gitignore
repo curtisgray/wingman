@@ -7,6 +7,11 @@ out
 wingman_history*.json
 .backup
 *.db
+ux_proto/server/wingman/Windows
+ux_proto/server/wingman/Linux
+ux_proto/server/wingman/Darwin
+ux_proto/server/wingman/Native
+
 
 # dependencies
 /node_modules
