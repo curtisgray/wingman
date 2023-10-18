@@ -15,7 +15,7 @@ Wing man is designed to grow with you, getting to know you through conversation.
 - ✅ Add GPT-3.5 Turbo 16K
 - ✅ Duplicate existing conversations
 - ⏳ Add local Llama support (in progress)
-- ⏳ Download Llama models locally (in progress)
+- ✅ Download Llama models locally
 - ✉️ Change AI model on the fly
 - ✉️ Extend conversation beyond original context
 

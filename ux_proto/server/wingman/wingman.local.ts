@@ -3,7 +3,7 @@ import "module-alias/register";
 import logger from "@/utils/logger.winston";
 import * as path from "path";
 import * as fs from "fs";
-import { ChildProcess, execFile } from "child_process";
+import { ChildProcess, ExecFileException, execFile } from "child_process";
 import * as si from "systeminformation";
 import { default as orm } from "@/utils/server/orm";
 import { WingmanItem, WingmanServer, WingmanServerStatus } from "@/types/wingman";
@@ -173,19 +173,14 @@ export const startWingman = async (alias: string | "default", force: boolean = t
             // const llamaWebsocketPort = await getPort({ port: 6568 });
             const llamaPort = 6567;
             const llamaWebsocketPort = 6568;
-            // logger.info(`${SERVER_NAME}: Launching server with entry point: ${entryPoint}`);
             const command = `${entryPoint}`;
             logger.verbose(`${SERVER_NAME}: (startWingman) Launching server with command: ${command}`);
-
-            // get context size from model
 
             const child = execFile(entryPoint, [
                 "--port", llamaPort.toString(),
                 "--websocket-port", llamaWebsocketPort.toString(),
-                "--alias", alias,
-                "--ctx-size", modelInfo.contextSize.toString(),
-                "--n-gpu-layers", modelInfo.numLayers.toString(),
-            ], (error, stdout, stderr) =>
+                "--gpu-layers", modelInfo.numLayers.toString(),
+            ], (error: ExecFileException | null, stdout, stderr) =>
             {
                 if (error) {
                     const errorString =`${SERVER_NAME}: (startWingman) Error launching server: ${error}`;
