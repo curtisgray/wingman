@@ -1,4 +1,4 @@
-import { WingmanItem, WingmanServer } from "@/types/wingman";
+import { WingmanItem, WingmanServerAppItem } from "@/types/wingman";
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
@@ -6,7 +6,7 @@ interface WingmanServerProps
 {
     isOnline: boolean;
     items: WingmanItem[];
-    serverStatus: WingmanServer;
+    serverStatus: WingmanServerAppItem;
     requestShutdown: () => void;
     start: (alias: string, modelRepo: string, filePath: string) => Promise<void>;
 }
@@ -15,7 +15,7 @@ export function useWingmanServer(): WingmanServerProps
 {
     const [isOnline, setIsOnline] = useState<boolean>(false);
     const [items, setItems] = useState<WingmanItem[]>([]);
-    const [serverStatus, setStatus] = useState<WingmanServer>({ isa: "WingmanServer", status: "unknown", created: Date.now(), updated: Date.now() });
+    const [serverStatus, setStatus] = useState<WingmanServerAppItem>({ isa: "WingmanServerAppItem", status: "unknown", created: Date.now(), updated: Date.now() });
 
     const start = async (alias: string, modelRepo: string, filePath: string, force: boolean = false): Promise<void> =>
         new Promise<void>((resolve, reject) =>
@@ -60,7 +60,7 @@ export function useWingmanServer(): WingmanServerProps
             // console.debug(`useWingmanServer: items updated: ${value.length} items`);
         }
 
-        function onStatusEvent(value: WingmanServer)
+        function onStatusEvent(value: WingmanServerAppItem)
         {
             setStatus(value);
             // console.debug(`useWingmanServer: serverStatus updated: ${JSON.stringify(value)}`);

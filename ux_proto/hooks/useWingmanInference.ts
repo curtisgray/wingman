@@ -9,7 +9,7 @@ interface WingmanProps
     stopGenerating: () => void;
 }
 
-export function useWingman(serverPort: number): WingmanProps
+export function useWingmanInference(serverPort: number): WingmanProps
 {
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
     const continueGenerating = useRef<boolean>(true);

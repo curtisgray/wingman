@@ -1,12 +1,12 @@
 import { ConnectionStatus } from "@/types/download";
-import { WingmanItem, WingmanServer } from "@/types/wingman";
+import { WingmanItem, WingmanServerAppItem } from "@/types/wingman";
 import { useEffect, useState } from "react";
 
 interface WingmanServerProps
 {
     isOnline: boolean;
     item: WingmanItem | undefined;
-    serverStatus: WingmanServer;
+    serverStatus: WingmanServerAppItem;
     status: ConnectionStatus;
     start: (alias: string, modelRepo: string, filePath: string) => Promise<void>;
 }
@@ -16,7 +16,7 @@ export function useWingmanServer(
     filePath: string | undefined = undefined): WingmanServerProps
 {
     const [item, setItem] = useState<WingmanItem>();
-    const [serverStatus, setServerStatus] = useState<WingmanServer>({ isa: "WingmanServer", status: "unknown", created: Date.now(), updated: Date.now() });
+    const [serverStatus, setServerStatus] = useState<WingmanServerAppItem>({ isa: "WingmanServerAppItem", status: "unknown", created: Date.now(), updated: Date.now() });
     const [message, setMessage] = useState<MessageEvent>();
     const [isOnline, setIsOnline] = useState<boolean>(false);
     const [status, setStatus] = useState<ConnectionStatus>("❓");
@@ -132,7 +132,7 @@ export function useWingmanServer(
         }
     }
 
-    function onServerStatusEvent(value: WingmanServer)
+    function onServerStatusEvent(value: WingmanServerAppItem)
     {
         setServerStatus(value);
     }
@@ -143,7 +143,7 @@ export function useWingmanServer(
             return;
         }
         const msg = JSON.parse(message);
-        if (msg.isa === "WingmanServer") {
+        if (msg.isa === "WingmanServerAppItem") {
             onServerStatusEvent(msg);
         } else if (msg.isa === "WingmanItem") {
             onWingmanItemsEvent(msg);

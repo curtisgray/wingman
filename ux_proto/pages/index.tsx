@@ -3,7 +3,8 @@ import useWebSocket from "react-use-websocket";
 
 export default function Home()
 {
-    const url = new URL("/wingman/download", "http://localhost:3000");
+    // const url = new URL("/wingman/download", "http://localhost:3000");
+    const url = new URL("ws://localhost:6568");
     // construct the websocket endpoint by replacing the protocol
     // with ws or wss
     const endpoint = url.href.replace(/^http/, "ws").replace(/^https/, "wss");

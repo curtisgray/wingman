@@ -1,4 +1,4 @@
-import { ConnectionStatus, DownloadItem, DownloadServer } from "@/types/download";
+import { ConnectionStatus, DownloadItem, DownloadServerAppItem } from "@/types/download";
 import { useEffect, useState } from "react";
 // import WebSocket from "ws";
 
@@ -6,7 +6,7 @@ interface DownloadServerProps
 {
     isOnline: boolean;
     item: DownloadItem | undefined;
-    serverStatus: DownloadServer;
+    serverStatus: DownloadServerAppItem;
     status: ConnectionStatus;
 }
 
@@ -15,7 +15,7 @@ export function useDownloadServer(
     filePath: string | undefined = undefined): DownloadServerProps
 {
     const [item, setItem] = useState<DownloadItem>();
-    const [serverStatus, setServerStatus] = useState<DownloadServer>({ isa: "DownloadServer", status: "unknown", created: Date.now(), updated: Date.now() });
+    const [serverStatus, setServerStatus] = useState<DownloadServerAppItem>({ isa: "DownloadServerAppItem", status: "unknown", created: Date.now(), updated: Date.now() });
     const [message, setMessage] = useState<MessageEvent>();
     const [isOnline, setIsOnline] = useState<boolean>(false);
     const [status, setStatus] = useState<ConnectionStatus>("❓");
@@ -117,7 +117,7 @@ export function useDownloadServer(
         }
     }
 
-    function onServerStatusEvent(value: DownloadServer)
+    function onServerStatusEvent(value: DownloadServerAppItem)
     {
         setServerStatus(value);
     }
@@ -128,7 +128,7 @@ export function useDownloadServer(
             return;
         }
         const msg = JSON.parse(message);
-        if (msg.isa === "DownloadServer") {
+        if (msg.isa === "DownloadServerAppItem") {
             onServerStatusEvent(msg);
         } else if (msg.isa === "DownloadItem") {
             onDownloadItemsEvent(msg);

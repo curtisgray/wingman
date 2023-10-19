@@ -1,4 +1,4 @@
-import { DownloadItem, DownloadServer } from "@/types/download";
+import { DownloadItem, DownloadServerAppItem } from "@/types/download";
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
@@ -6,7 +6,7 @@ interface DownloadServerProps
 {
     isOnline: boolean;
     downloadItems: DownloadItem[];
-    serverStatus: DownloadServer;
+    serverStatus: DownloadServerAppItem;
     requestShutdown: () => void;
 }
 
@@ -17,7 +17,7 @@ export function useDownloadServer(
 
     const [isOnline, setIsOnline] = useState<boolean>(false);
     const [downloadItems, setDownloadItems] = useState<DownloadItem[]>([]);
-    const [serverStatus, setServerStatus] = useState<DownloadServer>({ isa: "DownloadServer", status: "unknown", created: Date.now(), updated: Date.now() });
+    const [serverStatus, setServerStatus] = useState<DownloadServerAppItem>({ isa: "DownloadServerAppItem", status: "unknown", created: Date.now(), updated: Date.now() });
     
     const requestShutdown = () =>
     {
@@ -53,7 +53,7 @@ export function useDownloadServer(
             }
         }
 
-        function onServerStatusEvent(value: DownloadServer)
+        function onServerStatusEvent(value: DownloadServerAppItem)
         {
             setServerStatus(value);
             // console.debug(`useDownloadServer: serverStatus updated: ${JSON.stringify(value)}`);

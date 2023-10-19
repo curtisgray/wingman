@@ -9,14 +9,14 @@ logger.debug(`${SERVER_NAME}: MODELS_DIR: ${MODELS_DIR}`);
 fs.promises.mkdir(MODELS_DIR).catch(() => { });  // Ignore error if directory already exists
 
 export const downloadItemFileExists = async (modelRepo: string, filePath: string): Promise<boolean> =>
-    new Promise(async (resolve, reject) =>
+    new Promise((resolve, reject) =>
     {
         try {
             const downloadItemPath = path.join(MODELS_DIR, safeDownloadItemName(modelRepo, filePath));
-            logger.debug(`${SERVER_NAME}: (downloadItemFileExists) ${downloadItemPath}`);
+            logger.debug(`${SERVER_NAME}::downloadItemFileExists ${downloadItemPath}`);
             resolve(fs.existsSync(downloadItemPath));
         } catch (error) {
-            const errorString = `${SERVER_NAME}: (downloadItemFileExists) ${error}`;
+            const errorString = `${SERVER_NAME}::downloadItemFileExists ${error}`;
             reject(new Error(errorString));
         }
     });
@@ -26,10 +26,10 @@ export const getDownloadItemFilePath = async (modelRepo: string, filePath: strin
     {
         try {
             const downloadItemPath = path.join(MODELS_DIR, safeDownloadItemName(modelRepo, filePath));
-            logger.silly(`${SERVER_NAME}: (getDownloadItemFile) ${downloadItemPath}`);
+            logger.silly(`${SERVER_NAME}::getDownloadItemFile ${downloadItemPath}`);
             resolve(downloadItemPath);
         } catch (error) {
-            const errorString = `${SERVER_NAME}: (getDownloadItemFile) ${error}`;
+            const errorString = `${SERVER_NAME}::getDownloadItemFile ${error}`;
             reject(new Error(errorString));
         }
     });
@@ -40,12 +40,12 @@ export const getDownloadItemFilePaths = async (): Promise<string[]> =>
         fs.readdir(MODELS_DIR, (err, files) =>
         {
             if (err) {
-                const errorString = `${SERVER_NAME}: (getDownloadItemFilePaths) ${err}`;
+                const errorString = `${SERVER_NAME}::getDownloadItemFilePaths ${err}`;
                 logger.error(errorString);
                 reject(new Error(errorString));
                 return;
             }
-            logger.silly(`${SERVER_NAME}: (getDownloadItemFilePaths) ${JSON.stringify(files)}`);
+            logger.silly(`${SERVER_NAME}::getDownloadItemFilePaths ${JSON.stringify(files)}`);
             resolve(files);
         });
     });
@@ -55,16 +55,16 @@ export const deleteDownloadItemFile = async (modelRepo: string, filePath: string
     {
         try {
             const downloadItemPath = path.join(MODELS_DIR, safeDownloadItemName(modelRepo, filePath));
-            logger.debug(`${SERVER_NAME}: (deleteDownloadItemFile) ${downloadItemPath}`);
+            logger.debug(`${SERVER_NAME}::deleteDownloadItemFile ${downloadItemPath}`);
             if (fs.existsSync(downloadItemPath)) {
                 await fs.promises.unlink(downloadItemPath);
-                logger.debug(`${SERVER_NAME}: (deleteDownloadItemFile) ${downloadItemPath} deleted`);
+                logger.debug(`${SERVER_NAME}::deleteDownloadItemFile ${downloadItemPath} deleted`);
             }
             else
-                logger.warn(`${SERVER_NAME}: (deleteDownloadItemFile) ${downloadItemPath} does not exist`);
+                logger.warn(`${SERVER_NAME}::deleteDownloadItemFile ${downloadItemPath} does not exist`);
             resolve();
         } catch (error) {
-            const errorString = `${SERVER_NAME}: (deleteDownloadItemFile) ${error}`;
+            const errorString = `${SERVER_NAME}::deleteDownloadItemFile ${error}`;
             logger.error(errorString);
             reject(new Error(errorString));
         }

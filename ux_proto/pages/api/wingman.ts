@@ -111,6 +111,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // wait for the wingman item to be cancelled
         while (item.status === "cancelling") {
             await new Promise(resolve => setTimeout(resolve, 100));
+            await orm.updateWingmanItem(item);
         }
         // enqueue the wingman item
         await enqueueWingmanStart(alias, item.modelRepo, item.filePath);

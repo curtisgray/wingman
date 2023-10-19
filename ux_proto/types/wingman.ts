@@ -1,8 +1,10 @@
-export type WingmanServerStatus = "ready" | "starting" | "preparing" | "running" | "stopping" | "stopped" | "error" | "unknown";
-export type WingmanServer = {
-    isa: "WingmanServer";
-    status: WingmanServerStatus;
-    currentWingman?: WingmanItem;
+export type WingmanServerAppItemStatus = "ready" | "starting" | "preparing" | "running" | "stopping" | "stopped" | "error" | "unknown";
+export type WingmanServerAppItem = {
+    isa: "WingmanServerAppItem";
+    status: WingmanServerAppItemStatus;
+    alias: string;
+    modelRepo: string;
+    filePath: string;
     error?: string;
     created: number;
     updated: number;

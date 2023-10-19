@@ -1,12 +1,12 @@
 import { AIModel, AIModelID } from "@/types/ai";
 import { Conversation } from "@/types/chat";
-import { DownloadItem, DownloadServer } from "@/types/download";
+import { DownloadItem, DownloadServerAppItem } from "@/types/download";
 
 export interface HomeInitialState
 {
     isOnline: boolean;
     downloadItems: DownloadItem[];
-    serverStatus: DownloadServer;
+    serverStatus: DownloadServerAppItem;
 
     models: AIModel[];
     conversations: Conversation[];
