@@ -1,64 +1,102 @@
-import React, { useEffect, useState } from "react";
-import { DownloadButtonProps, DownloadedFileInfo } from "@/types/download";
-import { useDownloadServer } from "@/hooks/useDownloadServer";
+import React, { useContext, useEffect, useState } from "react";
+import { DownloadButtonProps, DownloadItem } from "@/types/download";
+import { HF_MODEL_ENDS_WITH } from "@/utils/app/const";
+import HomeContext from "@/pages/api/home/home.context";
 import { useRequestDownloadAction } from "@/hooks/useRequestDownloadAction";
+import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 
-const DownloadButton = ({ modelRepo, filePath, showRepoName = true, showFileName = true, showProgress = true, showProgressText = true, className = undefined, children = undefined }: DownloadButtonProps) =>
+const DownloadButton = ({ modelRepo, filePath,
+    showRepoName = true, showFileName = true, showProgress = true, showProgressText = true,
+    onComplete = () => { }, onStarted = () => { }, onCancelled = () => { }, onProgress = () => { },
+    className = undefined, children = undefined, autoActivate = false }: DownloadButtonProps) =>
 {
-    const downloadServer = useDownloadServer();
+    const {
+        state: { lastWebSocketMessage },
+    } = useContext(HomeContext);
+
     const downloadActions = useRequestDownloadAction();
-    const handleRequestDownload = () => downloadActions.requestDownload(modelRepo, filePath);
-    const [downloadInfo, setDownloadInfo] = useState<DownloadedFileInfo | undefined>(undefined);
+    const inferenceActions = useRequestInferenceAction();
 
-    let disabled = false;
-    let downloadLabel = "Download";
-    let progress = 0;
-    let progressText = "";
-
-    const item = downloadServer.item?.modelRepo === modelRepo && downloadServer.item?.filePath === filePath ? downloadServer.item : undefined;  
-    if (item !== undefined) {
-        switch (item.status) {
-            case "complete":
-                downloadLabel = "Downloaded";
-                disabled = true;
-                break;
-            case "downloading":
-                downloadLabel = "Downloading";
-                disabled = true;
-                progress = item.progress;
-                progressText = `${item.progress.toPrecision(3)}% ${item.downloadSpeed}`;
-                break;
-            case "error":
-                downloadLabel = "Error";
-                break;
-            case "idle":
-                downloadLabel = "Download";
-                disabled = true;
-                break;
-            case "queued":
-                downloadLabel = "Queued";
-                disabled = true;
-                break;
-            default:
-                break;
-        }
-    }else{
-        if (downloadInfo !== undefined) {
-            downloadLabel = "Downloaded";
-            disabled = true;
-        }
-    }
-
-    const isDownloading = item !== undefined && item.status === "downloading";
+    const [downloadItem, setDownloadItem] = useState<DownloadItem | undefined>(undefined);
+    const [isDownloading, setIsDownloading] = useState<boolean>(false);
+    const [progress, setProgress] = useState<number>(0);
+    const [progressText, setProgressText] = useState<string>("");
+    const [downloadLabel, setDownloadLabel] = useState<string>("Download");
+    const [disabled, setDisabled] = useState<boolean>(false);
+    const [downloadStarted, setDownloadStarted] = useState<boolean>(false);
+    
+    const handleRequestDownload = () => {
+        setDisabled(true);
+        downloadActions.requestDownload(modelRepo, filePath);
+        setDownloadLabel("Queued");
+    };
 
     useEffect(() =>
     {
-        downloadActions.getDownloadedFileInfo(modelRepo, filePath)
-            .then((dfi) =>{
-                if (dfi !== undefined)
-                    setDownloadInfo(dfi);
-            });
-    }, [downloadActions, filePath, modelRepo]);
+        if (lastWebSocketMessage?.lastMessage !== undefined) {
+            const message = lastWebSocketMessage.lastMessage;
+            if (message === undefined || message === "") {
+                return;
+            }
+            const msg = JSON.parse(message);
+            if (msg?.isa === "DownloadItem") {
+                const di = msg as DownloadItem;
+                if (di.modelRepo === modelRepo && di.filePath === filePath) {
+                    setDownloadItem(di);
+                }
+            }
+        }
+
+        let isDownloadingLocal = false;
+        if (downloadItem !== undefined) {
+            switch (downloadItem.status) {
+                case "complete":
+                    setDownloadLabel("Downloaded");
+                    setDisabled(true);
+                    setProgress(downloadItem.progress);
+                    setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
+                    onComplete(downloadItem);
+                    if (autoActivate) {
+                        inferenceActions.requestStartInference(filePath, modelRepo, filePath, -1);
+                    }
+                    break;
+                case "downloading":
+                    if (!downloadStarted) {
+                        setDownloadStarted(true);
+                        onStarted(downloadItem);
+                    }
+                    setDownloadLabel("Downloading");
+                    setDisabled(true);
+                    setProgress(downloadItem.progress);
+                    setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
+                    isDownloadingLocal = true;
+                    onProgress(downloadItem.progress);
+                    break;
+                case "cancelled":
+                    setDownloadLabel("Redownload");
+                    setDisabled(false);
+                    setProgress(downloadItem.progress);
+                    setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
+                    isDownloadingLocal = false;
+                    onCancelled(downloadItem);
+                    break;
+                case "error":
+                    setDownloadLabel("Error");
+                    break;
+                case "idle":
+                    setDownloadLabel("Download");
+                    setDisabled(true);
+                    break;
+                case "queued":
+                    setDownloadLabel("Queued");
+                    setDisabled(true);
+                    break;
+                default:
+                    break;
+            }
+            setIsDownloading(isDownloadingLocal);
+        }
+    }, [lastWebSocketMessage]);
 
     return (
         <button type="button" disabled={disabled}
@@ -69,7 +107,7 @@ const DownloadButton = ({ modelRepo, filePath, showRepoName = true, showFileName
                     (
                         <>
                             <p className="self-center">{downloadLabel}</p>
-                            {showRepoName && <p>{modelRepo.replace("-GGUF", "")}</p>}
+                            {showRepoName && <p>{modelRepo.replace(HF_MODEL_ENDS_WITH, "")}</p>}
                             {showFileName && <p className="text-gray-300">{filePath}</p>}
                             {showProgress && isDownloading && <progress
                                 value={progress}

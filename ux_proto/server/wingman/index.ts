@@ -11,12 +11,12 @@ export const stop = async (): Promise<void> =>
 
 export const main = async (): Promise<void> =>
 {
-    logger.info(`${SERVER_NAME}: Wingman server started.`);
+    logger.info(`${SERVER_NAME}::main Wingman node started.`);
     try {
         await startWingman("default");
     } catch (err) {
-        logger.error(`${SERVER_NAME}: (main) Exception (startWingman): ${err}`);
+        logger.error(`${SERVER_NAME}::main Exception (startWingman): ${err}`);
     } finally {
-        logger.info(`${SERVER_NAME}: Wingman default complete.`);
+        logger.info(`${SERVER_NAME}::main Wingman default complete.`);
     }
 };

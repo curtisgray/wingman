@@ -1,12 +1,17 @@
 import { AIModel, AIModelID } from "@/types/ai";
 import { Conversation } from "@/types/chat";
-import { DownloadItem, DownloadServerAppItem } from "@/types/download";
+import { DownloadItem, DownloadServerAppItem, WingmanWebSocket } from "@/types/download";
+import { WingmanItem, WingmanServerAppItem } from "@/types/wingman";
 
 export interface HomeInitialState
 {
     isOnline: boolean;
+    lastWebSocketMessage: WingmanWebSocket | undefined;
     downloadItems: DownloadItem[];
-    serverStatus: DownloadServerAppItem;
+    wingmanItems: WingmanItem[];
+    
+    downloadServiceStatus: DownloadServerAppItem;
+    inferenceServiceStatus: WingmanServerAppItem;
 
     models: AIModel[];
     conversations: Conversation[];
@@ -27,6 +32,7 @@ const initialConversation: Conversation = {
         }
     ],
     model: {
+        isa: "AIModel",
         id: "llamamodel",
         name: "the llama model",
         maxLength: 0,
@@ -39,14 +45,26 @@ const initialConversation: Conversation = {
 };
 export const initialState: HomeInitialState = {
     isOnline: false,
+    lastWebSocketMessage: undefined,
     downloadItems: [],
-    serverStatus: {
+    wingmanItems: [],
+    downloadServiceStatus: {
+        isa: "DownloadServerAppItem",
         status: "unknown",
+        created: 0,
+        updated: 0,
+    },
+    inferenceServiceStatus: {
+        isa: "WingmanServerAppItem",
+        status: "unknown",
+        alias: "",
+        modelRepo: "",
+        filePath: "",
         created: 0,
         updated: 0,
     },
     models: [],
     selectedConversation: initialConversation,
     defaultModelId: undefined,
-    conversations: [initialConversation]
+    conversations: [initialConversation],
 };

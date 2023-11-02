@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 // import { newDownloadItem, getDownloadItem, updateDownloadItem, deleteDownloadItem } from "@/utils/server/orm.Sqlite";
 import { default as orm } from "@/utils/server/orm";
 import { default as logger } from "@/utils/logger.winston";
-import { deleteDownloadItemFile } from "@/utils/server/fs.download";
+// import { deleteDownloadItemFile } from "@/utils/server/fs.download";
 
 const SERVER_NAME = "download_handler";
 
@@ -86,8 +86,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             logger.error(`${SERVER_NAME}: (handler.resetDownload) data does not exist`);
             return res.status(404).end();
         }
-        await orm.deleteDownloadItem(modelRepo, filePath);
-        await deleteDownloadItemFile(modelRepo, filePath);
+        await orm.deleteDownloadItem(modelRepo, filePath);  // file will be deleted automatically by download service
+        // await deleteDownloadItemFile(modelRepo, filePath);
         logger.http(`${SERVER_NAME}: 205 - Reset (${modelRepo}, ${filePath})`);
         return res.status(205).end();
     };
@@ -126,7 +126,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 case "cancelled":
                 case "error":
                     // If the download is cancelled or errored, reset it and enqueue the download
-                    return enqueueDownload();
+                    return resetDownload();
                 default:
                     // If the download is already completed, queued or in-progress, inform the client
                     logger.http(`${SERVER_NAME}: 208 - Already reported (${modelRepo}, ${filePath})`);

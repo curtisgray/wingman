@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React from "react";
-import { useDownloadServer } from "@/hooks/useDownloadServer";
+import { useDownloadService } from "@/hooks/useDownloadService";
 import { ActiveDownloadItemStatuses, DownloadItem } from "@/types/download";
 
 type DownloadMetricsBasicProps = {
@@ -23,19 +23,30 @@ const DownloadMetrics = ({
 }: DownloadMetricsBasicProps) =>
 {
     // const { state: { downloadItems } } = useContext(HomeContext);
-    const downloadServer = useDownloadServer();
+    const [items, setItems] = React.useState<DownloadItem[]>([]);
+    const service = useDownloadService();
 
-    // determine if there are duplicate download items in the downloadItems array
-    const dupes = downloadServer.downloadItem.filter((e) => downloadServer.downloadItem.filter((i) => i.modelRepo === e.modelRepo && i.filePath === e.filePath).length > 1);
-    if (dupes.length > 1) {
-        throw new Error(`DownloadMetrics: dupes.length === ${dupes.length}`);
-    }
+    React.useEffect(() =>
+    {
+        // add service.item to the list of items, carefully update any existing items
+        if (service.item !== undefined) {
+            const item = service.item;
+            const index = items.findIndex(e => e.modelRepo === item.modelRepo && e.filePath === item.filePath);
+            if (index >= 0) {
+                // update the item
+                items[index] = item;
+                setItems([...items]);
+            } else {
+                setItems([...items, item]);
+            }
+        }
+    }, [service.item]);
 
-    const items = showActiveOnly ? downloadServer.downloadItem.filter(
-        e => ActiveDownloadItemStatuses.includes(e.status)) : downloadServer.downloadItem;
+    const activeItems = showActiveOnly ? items.filter(
+        e => ActiveDownloadItemStatuses.includes(e.status)) : items;
     let activeDownloads: DownloadItem[] = [];
 
-    activeDownloads = items.sort((a: DownloadItem, b: DownloadItem) => { return b.updated - a.updated; });
+    activeDownloads = activeItems.sort((a: DownloadItem, b: DownloadItem) => { return b.updated - a.updated; });
     return (
         <div className={className}>
             {activeDownloads.map((item) =>

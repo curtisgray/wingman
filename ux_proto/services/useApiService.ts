@@ -19,6 +19,18 @@ const useApiService = () => {
         },
         [fetchService]
     );
+    const getAIModels = useCallback(
+        (params: GetModelsRequestProps, signal?: AbortSignal) => {
+            return fetchService.post<GetModelsRequestProps>("http://localhost:6568/api/models", {
+                body: { key: params.key },
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                signal,
+            });
+        },
+        [fetchService]
+    );
 
     return {
         getModels,

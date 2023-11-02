@@ -89,7 +89,7 @@ const handler = async (req: Request): Promise<Response> =>
             const openModels: AIModel[] = oj
                 .map((model: { tags: string, id: string, siblings: { rfilename: string; }[]; }) =>
                 {
-                    if (model.tags.includes("llama") || model.tags.includes("llama-2")) {
+                    if (model.id.endsWith(HF_MODEL_ENDS_WITH)) {
                         // create a map of quantization string to file name
                         // skip any models that don't have a quantization string
                         const quantizationMap = new Map<string, string>();
@@ -109,7 +109,7 @@ const handler = async (req: Request): Promise<Response> =>
                                 apiKey: null,
                                 items: model.siblings.map((s: { rfilename: string; }) =>
                                 {
-                                    if (s.rfilename.endsWith(".gguf")) {
+                                    if (s.rfilename.endsWith(HF_MODEL_FILE_EXTENSION)) {
                                         const quantization = s.rfilename.split(".")[s.rfilename.split(".").length - 2].substring(1);
                                         return {
                                             modelRepo: model.id,

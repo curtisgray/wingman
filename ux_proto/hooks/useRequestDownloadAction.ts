@@ -1,5 +1,5 @@
-import { useDownloadServer } from "./useDownloadServer";
-import { DownloadItem, DownloadedFileInfo } from "@/types/download";
+import { WINGMAN_SERVER_API } from "@/types/ai";
+import { DownloadItem } from "@/types/download";
 
 interface DownloadActionProps
 {
@@ -7,22 +7,15 @@ interface DownloadActionProps
     requestCancelDownload: (modelRepo: string, filePath: string) => Promise<void>;
     requestResetDownload: (modelRepo: string, filePath: string) => Promise<void>;
     requestRedownload: (modelRepo: string, filePath: string) => Promise<void>;
-    getDownloadedFileInfo: (modelRepo: string, filePath: string) => Promise<DownloadedFileInfo | undefined>;
 }
 
 export function useRequestDownloadAction(): DownloadActionProps
 {
-    // const { state: { isOnline } } = useContext(HomeContext);
-    const downloadServer = useDownloadServer();
-
     const requestDownload = async (modelRepo: string, filePath: string): Promise<DownloadItem | undefined> =>
     {
-        if (!downloadServer.isOnline) {
-            console.error("useRequestDownloadAction: requestDownload Not online");
-            return undefined;
-        }
         try {
-            const response = await fetch(encodeURI(`/api/download?modelRepo=${modelRepo}&filePath=${filePath}`));
+            const url = `${WINGMAN_SERVER_API}/downloads/enqueue?modelRepo=${encodeURI(modelRepo)}&filePath=${encodeURI(filePath)}`;
+            const response = await fetch(url);
             let downloadItem: DownloadItem | undefined = undefined;
             // ensure response is valid and that JSON data is of type ProgressData
             if (response.ok) {
@@ -50,11 +43,7 @@ export function useRequestDownloadAction(): DownloadActionProps
 
     const requestCancelDownload = async (modelRepo: string, filePath: string) =>
     {
-        if (!downloadServer.isOnline) {
-            console.error("useRequestDownloadAction: requestCancelDownload Not online");
-            return;
-        }
-        const url = `/api/download?cancel=true&modelRepo=${modelRepo}&filePath=${filePath}`;
+        const url = `${WINGMAN_SERVER_API}/downloads/cancel?modelRepo=${modelRepo}&filePath=${filePath}`;
         try {
             const response = await fetch(encodeURI(url));
             if (!response.ok) {
@@ -67,11 +56,7 @@ export function useRequestDownloadAction(): DownloadActionProps
 
     const requestResetDownload = async (modelRepo: string, filePath: string) =>
     {
-        if (!downloadServer.isOnline) {
-            console.error("useRequestDownloadAction: requestResetDownload Not online");
-            return;
-        }
-        const url = `/api/download?reset=true&modelRepo=${modelRepo}&filePath=${filePath}`;
+        const url = `${WINGMAN_SERVER_API}/downloads/reset?modelRepo=${modelRepo}&filePath=${filePath}`;
         try {
             const response = await fetch(encodeURI(url));
             if (!response.ok) {
@@ -84,11 +69,7 @@ export function useRequestDownloadAction(): DownloadActionProps
 
     const requestRedownload = async (modelRepo: string, filePath: string) =>
     {
-        if (!downloadServer.isOnline) {
-            console.error("useRequestDownloadAction: requestRedownload Not online");
-            return;
-        }
-        const url = `/api/download?reset=true&modelRepo=${modelRepo}&filePath=${filePath}`;
+        const url = `${WINGMAN_SERVER_API}/downloads/reset?modelRepo=${modelRepo}&filePath=${filePath}`;
         try {
             const response = await fetch(encodeURI(url));
             if (!response.ok) {
@@ -100,45 +81,10 @@ export function useRequestDownloadAction(): DownloadActionProps
         }
     };
 
-    const getDownloadedFileInfo = async (modelRepo: string, filePath: string): Promise<DownloadedFileInfo | undefined> =>
-    {
-        if (!downloadServer.isOnline) {
-            console.error("useRequestDownloadAction: getDownloadedFileInfo Not online");
-            return undefined;
-        }
-
-        try {
-            const response = await fetch(encodeURI(`/api/download?info&modelRepo=${modelRepo}&filePath=${filePath}`));
-            let downloadInfo: DownloadedFileInfo | undefined = undefined;
-            // ensure response is valid and that JSON data is of type DownloadedFileInfo
-            if (response.ok) {
-                if ((response.headers.get("content-type") ?? "") && ((response.headers.get("content-type")?.includes("application/json")) ?? false)) {
-                    try {
-                        const data = await response.json();
-                        if (data) {
-                            const item = data as DownloadedFileInfo;
-                            downloadInfo = item;
-                        }
-                    } catch (error) {
-                        console.error("useRequestDownloadAction: getDownloadedFileInfo Failed to parse JSON:", error);
-                    }
-                } else {
-                    console.error("useRequestDownloadAction: getDownloadedFileInfo Received non-JSON response:",
-                        response.headers.get("content-type"));
-                }
-            }
-            return downloadInfo;
-        } catch (error) {
-            console.error("useRequestDownloadAction: getDownloadedFileInfo Failed to start download:", error);
-            return undefined;
-        }
-    };
-
     return {
         requestDownload,
         requestCancelDownload,
         requestResetDownload,
         requestRedownload,
-        getDownloadedFileInfo,
     };
 }

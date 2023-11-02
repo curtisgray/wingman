@@ -7,6 +7,21 @@ tsParticles <https://github.com/tsparticles/react>
 Animated icon and button designs <https://dribbble.com/Ed117>
 Button that bursts colors onto the entire page <https://codepen.io/aaronmcg/pen/KmzNKB>
 
+### Wingman.cpp
+
+Copy wingman.cpp build output to wingman frontend folder.
+
+```powershell
+# Windows cuBLAS
+cp ~/source/repos/wingman.cpp/out/build/cuBLAS/bin/Debug/*.* ~/source/repos/wingman/ux_proto/server/wingman/Windows/cuBLAS/bin -Exclude '*.pdb','*.log'
+
+# Linux cuBLAS
+cp ~/source/repos/wingman.cpp/out/build/cuBLAS/bin/Debug/*.* ~/source/repos/wingman/ux_proto/server/wingman/Linux/cuBLAS/bin -Exclude '*.pdb','*.log'
+
+# Mac Metal
+cp ~/source/repos/wingman.cpp/out/build/cuBLAS/bin/Debug/*.* ~/source/repos/wingman/ux_proto/server/wingman/Darwin/bin -Exclude '*.pdb','*.log'
+```
+
 ## Huggingface Download Manager
 
 Act as an experienced full-stack software engineer and work with the team to build and maintain the Huggingface Download Manager. This is a web module that allows users to download models from the Huggingface model hub. It is built to integrate with an existing Next.js framework application that uses Tailwind CSS.

@@ -1,19 +1,15 @@
 import React from "react";
 import { DownloadButtonProps } from "@/types/download";
 import { useRequestDownloadAction } from "@/hooks/useRequestDownloadAction";
-import { useDownloadServer } from "@/hooks/useDownloadServer";
+import { useDownloadService } from "@/hooks/useDownloadService";
 
 const RedownloadButton = ({ modelRepo, filePath, className = undefined, children = undefined, hideIfDisabled = undefined }: DownloadButtonProps) =>
 {
     // const { state: { isOnline, downloadItems } } = useContext(HomeContext);
-    const downloadServer = useDownloadServer();
+    const downloadServer = useDownloadService();
     const downloadActions = useRequestDownloadAction();
     const handleRequestRedownload = () => downloadActions.requestRedownload(modelRepo, filePath);
-    const dupes = downloadServer.downloadItem.filter(e => e.modelRepo === modelRepo && e.filePath === filePath);
-    if (dupes.length > 1) {
-        throw new Error(`ResetDownloadButton: dupes.length === ${dupes.length}`);
-    }
-    const item = downloadServer.downloadItem.find(e => e.modelRepo === modelRepo && e.filePath === filePath);
+    const item = downloadServer.item;
 
     // only enable the button if the download item exists and the system is online
     const exists = item !== undefined;

@@ -8,7 +8,11 @@ import { useContext } from "react";
 import Select, { ActionMeta, SingleValue } from "react-select";
 import DownloadButton from "./DownloadButton";
 
-type ModelOption = { value: string; label: string | Element; };
+type ModelOption = {
+    value: string;
+    label: string | Element;
+    item?: DownloadableItem;
+};
 
 export const ModelSelect = () =>
 {
@@ -50,12 +54,10 @@ export const ModelSelect = () =>
         if (selectedConversation?.model?.items) {
             if (e.currentTarget.selectedOptions.length > 0) {
                 const option = e.currentTarget.selectedOptions[0];
-                const item: DownloadableItem = {
-                    modelRepo: selectedConversation.model.id,
-                    filePath: option.value,
-                    quantization: option.label,
-                };
-                selectedConversation.model.item = item;
+                const selectedQuant = option.label;
+                // select the model item from the model items list by the quantization, and assign it to the model.item
+                selectedConversation.model.item =
+                    selectedConversation.model.items.find((item) => item.quantization === selectedQuant);
             }
             // console.log(e.currentTarget.value);
         }
@@ -129,6 +131,8 @@ export const ModelSelect = () =>
                     value={{
                         value: selectedConversation?.model?.id,
                         label: modelDisplay(selectedConversation?.model),
+                        item: selectedConversation?.model?.items?.find(
+                            (item) => item.quantization === selectedConversation?.model?.item?.quantization)
                     } as ModelOption}
                     isSearchable={true}
                     hideSelectedOptions={true}
@@ -177,15 +181,16 @@ export const ModelSelect = () =>
                     </a>
                 </div>
             )}
-            {selectedConversation?.model !== undefined &&
+            {
+                selectedConversation?.model !== undefined &&
                 selectedConversation.model.item != undefined &&
                 Vendors[selectedConversation?.model?.vendor].isDownloadable &&
-                (((selectedConversation?.model?.isDownloaded) ?? false) ? (
-                    <span className="self-center m-2">Model is downloaded</span>
-                ) : (
-                    <DownloadButton modelRepo={selectedConversation.model.id}
-                        filePath={selectedConversation.model.item.filePath} />
-                ))}
+                    (((selectedConversation?.model?.item?.isDownloaded) ?? false) ? (
+                        <span className="self-center m-2">Model is downloaded</span>
+                    ) : (
+                        <DownloadButton modelRepo={selectedConversation.model.id}
+                            filePath={selectedConversation.model.item.filePath} />
+                    ))}
         </div>
     );
 };

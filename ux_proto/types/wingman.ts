@@ -9,7 +9,7 @@ export type WingmanServerAppItem = {
     created: number;
     updated: number;
 };
-export type WingmanItemStatus = "idle" | "queued" | "inferring" | "complete" | "error" | "cancelling" | "cancelled";
+export type WingmanItemStatus = "idle" | "queued" | "inferring" | "complete" | "error" | "cancelling" | "cancelled" | "unknown";
 export type WingmanProps = {
     alias: string;
 };

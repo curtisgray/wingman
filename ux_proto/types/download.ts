@@ -36,7 +36,7 @@ export type DownloadItem = DownloadProps & {
     created: number;
     updated: number;
 };
-export const isValidDownloadItem = (item: DownloadItem) => item.modelRepo && item.filePath;
+
 export type DownloadButtonProps = DownloadProps & {
     className?: string;
     disabled?: boolean;
@@ -45,8 +45,18 @@ export type DownloadButtonProps = DownloadProps & {
     showProgress?: boolean;
     showProgressText?: boolean;
     hideIfDisabled?: boolean;
+    onComplete?: (item: DownloadItem) => void;
+    onStarted?: (item: DownloadItem) => void;
+    onCancelled?: (item: DownloadItem) => void;
+    onProgress?: (value: number) => void;
+    autoActivate?: boolean;
     children?: React.ReactNode;
-    // downloadItem?: DownloadItem;
+};
+
+export const isValidDownloadItem = (item: DownloadItem) => item.modelRepo && item.filePath;
+export type WingmanWebSocket = {
+    lastMessage: string | undefined;
+    connectionStatus: ConnectionStatus;
 };
 export type DownloadMetricsProps = DownloadProps & {
     refreshInterval?: number;

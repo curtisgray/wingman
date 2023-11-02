@@ -1,39 +1,72 @@
-import { DownloadItem, DownloadServerAppItem } from "@/types/download";
+import { AIModel, AIModels } from "@/types/ai";
+import { ConnectionStatus, DownloadItem, DownloadServerAppItem } from "@/types/download";
+import React from "react";
 import { useEffect, useState } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 
 interface DownloadServerProps
 {
-    status: string;
+    isOnline: boolean;
     item: DownloadItem | undefined;
     serverStatus: DownloadServerAppItem;
-    requestShutdown: () => void;
+    status: ConnectionStatus;
+    refresh: () => Promise<void>;
+    models: AIModel[];
+    downloads: DownloadItem[];
 }
 
-export function useDownloadServer(
+export function useDownloadService(
     modelRepo: string | undefined = undefined,
     filePath: string | undefined = undefined): DownloadServerProps
 {
     const [item, setItem] = useState<DownloadItem>();
     const [serverStatus, setServerStatus] = useState<DownloadServerAppItem>({ isa: "DownloadServerAppItem", status: "unknown", created: Date.now(), updated: Date.now() });
-    // const [message, setMessage] = useState<MessageEvent | null>(null);
-    // const [status, setStatus] = useState<string>("");
-    // const [send, setSend] = useState<((data: string) => void) | undefined>();
-    // const [connectionState, setConnectionState] = useState<ReadyState>(ReadyState.UNINSTANTIATED);
+    const aiModels = Object.values(AIModels);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [models, setModels] = useState<AIModel[]>(aiModels);
+    const [downloads, setDownloads] = useState<DownloadItem[]>([]);
+
+    const getModels = async () =>
+    {
+        const response = await fetch("http://localhost:6568/api/models");
+        if (!response.ok) {
+            console.log(`error getting models: ${response.statusText}`);
+        } else {
+            console.log(`getModels response: ${response?.statusText}`);
+            const json = await response.json();
+            setModels(aiModels.concat(json.models));
+        }
+        return response;
+    };
+
+    const getDownloads = async () =>
+    {
+        const response = await fetch("http://localhost:6568/api/downloads");
+        if (!response.ok) {
+            console.log(`error getting downloads: ${response.statusText}`);
+        } else {
+            console.log(`getModels response: ${response?.statusText}`);
+            const json = await response.json();
+            setDownloads(json.downloads);
+        }
+        return response;
+    };
+
+    const refresh = async () =>
+    {
+        await getModels();
+        await getDownloads();
+    };
 
     const {
         lastMessage,
         readyState,
-        sendMessage,
     } = useWebSocket("ws://localhost:6568",
         {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             shouldReconnect: (_closeEvent) => true,
             reconnectAttempts: 9999999,
             reconnectInterval: 1000,
-            onOpen: console.debug,
-            onClose: console.debug,
-            onError: console.debug,
         });
     const connectionStatus = {
         [ReadyState.CONNECTING]: "🔄",
@@ -42,14 +75,6 @@ export function useDownloadServer(
         [ReadyState.CLOSED]: "❌",
         [ReadyState.UNINSTANTIATED]: "❓",
     }[readyState];
-
-
-    const requestShutdown = () =>
-    {
-        if (readyState === ReadyState.OPEN) {
-            sendMessage?.("shutdown");
-        }
-    };
 
     function onDownloadItemsEvent(value: DownloadItem)
     {
@@ -68,7 +93,7 @@ export function useDownloadServer(
 
     function onMessageEvent(message: string)
     {
-        if (message === "") {
+        if (message === undefined || message === "") {
             return;
         }
         const msg = JSON.parse(message);
@@ -81,9 +106,19 @@ export function useDownloadServer(
 
     useEffect(() =>
     {
-        onMessageEvent(lastMessage?.data ?? "");
+        onMessageEvent(lastMessage?.data as string);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastMessage]);
 
-    return { status: connectionStatus, item, serverStatus, requestShutdown };
+    useEffect(() =>
+    {
+        // refresh();
+    });
+
+    return {
+        status: connectionStatus as ConnectionStatus,
+        isOnline: readyState == ReadyState.OPEN,
+        item, serverStatus, refresh,
+        models, downloads
+    };
 }

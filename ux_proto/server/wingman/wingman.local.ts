@@ -87,7 +87,7 @@ export const startWingman = async (alias: string | "default", force: boolean = t
     const modelInfo = await getModelInfo();
     return new Promise<void>((resolve, reject) =>
     {
-        logger.silly(`${SERVER_NAME}: main: alias: ${alias}, force: ${force}`);
+        logger.silly(`${SERVER_NAME}::startWingman alias: ${alias}, force: ${force}`);
 
         // if the alias is already in the map, return an error
         if (childProcesses.has(alias)) {

@@ -59,21 +59,21 @@ export interface LlamaStatsSystem {
     model_alias: string;
     quantization: string;
     has_next_token: boolean;
-};
+}
 
 export const newLlamaStatsSystem = (): LlamaStatsSystem =>
 {
     return {
-        ctx_size: 0,
+        ctx_size: -1,
         cuda_str: "",
         gpu_name: "",
-        mem_required: 0,
-        offloaded: 0,
-        offloaded_total: 0,
-        offloading_repeating: 0,
-        offloading_nonrepeating: 0,
-        vram_per_layer_avg: 0,
-        vram_used: 0,
+        mem_required: -1,
+        offloaded: -1,
+        offloaded_total: -1,
+        offloading_repeating: -1,
+        offloading_nonrepeating: -1,
+        vram_per_layer_avg: -1,
+        vram_used: -1,
         model_path: "",
         model_file_name: "",
         model_name: "",
@@ -85,7 +85,7 @@ export const newLlamaStatsSystem = (): LlamaStatsSystem =>
 
 export interface LlamaStatsTensors {
     [key: string]: number;
-};
+}
 
 export const newLlamaStatsTensors = (): LlamaStatsTensors =>
 {
@@ -108,26 +108,26 @@ export interface LlamaStatsTimings {
     sample_time: number;
     time: number;
     total_time: number;
-};
+}
 
 export const newLlamaStatsTimings = (): LlamaStatsTimings =>
 {
     return {
-        load_time: 0,
-        predicted_count: 0,
-        predicted_ms: 0,
-        predicted_per_second: 0,
-        predicted_per_token_ms: 0,
-        prompt_count: 0,
-        prompt_ms: 0,
-        prompt_per_second: 0,
-        prompt_per_token_ms: 0,
-        sample_count: 0,
-        sample_per_second: 0,
-        sample_per_token_ms: 0,
-        sample_time: 0,
-        time: 0,
-        total_time: 0,
+        load_time: -1,
+        predicted_count: -1,
+        predicted_ms: -1,
+        predicted_per_second: -1,
+        predicted_per_token_ms: -1,
+        prompt_count: -1,
+        prompt_ms: -1,
+        prompt_per_second: -1,
+        prompt_per_token_ms: -1,
+        sample_count: -1,
+        sample_per_second: -1,
+        sample_per_token_ms: -1,
+        sample_time: -1,
+        time: -1,
+        total_time: -1,
     };
 };
 
@@ -137,7 +137,7 @@ export interface LlamaStats
     system: LlamaStatsSystem;
     tensors: LlamaStatsTensors;
     timings: LlamaStatsTimings;
-};
+}
 
 export const newLlamaStats = (): LlamaStats =>
 {

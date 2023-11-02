@@ -1,19 +1,15 @@
 import React from "react";
 import { ActiveDownloadItemStatuses, DownloadButtonProps } from "@/types/download";
 import { useRequestDownloadAction } from "@/hooks/useRequestDownloadAction";
-import { useDownloadServer } from "@/hooks/useDownloadServer";
+import { useDownloadService } from "@/hooks/useDownloadService";
 
 const CancelDownloadButton = ({ modelRepo, filePath, className = undefined, children = undefined, hideIfDisabled = undefined }: DownloadButtonProps) =>
 {
     // const { state: { isOnline, downloadItems } } = useContext(HomeContext);
-    const downloadServer = useDownloadServer();
+    const downloadServer = useDownloadService();
     const downloadActions = useRequestDownloadAction();
     const handleRequestCancelDownload = () => downloadActions.requestCancelDownload(modelRepo, filePath);
-    const dupes = downloadServer.downloadItem.filter(e => e.modelRepo === modelRepo && e.filePath === filePath);
-    if (dupes.length > 1) {
-        throw new Error("CancelDownloadButton: dupes.length === ${dupes.length}");
-    }
-    const item = downloadServer.downloadItem.find(e => e.modelRepo === modelRepo && e.filePath === filePath);
+    const item = downloadServer.item;
 
     // only enable the button if the download is in progress
     const isDownloading = item !== undefined && ActiveDownloadItemStatuses.includes(item.status);

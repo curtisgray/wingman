@@ -1,5 +1,5 @@
 import React from "react";
-import { useWingmanInference } from "@/hooks/useWingmanInference";
+import { useWingman } from "@/hooks/useWingman";
 // import prompts from "@/prompts";
 import drone from "@/prompts/drone.prompt.long.json";
 import reddit from "@/prompts/reddit.prompt.json";
@@ -14,7 +14,7 @@ interface WingmanRenderBoxProps
 
 const WingmanRenderBox = ({ className = "" }: WingmanRenderBoxProps) =>
 {
-    const { isGenerating, startGenerating, stopGenerating, latestItem: item } = useWingmanInference(6567);
+    const { isGenerating, startGenerating, stopGenerating, latestItem: item } = useWingman(6567);
     const [items, setItems] = useState<WingmanContent[]>([]);
     const messageEndRef = useRef<HTMLDivElement>(null);
     const [beAutoScrolling, setBeAutoScrolling] = useState(true);
