@@ -1,6 +1,7 @@
 import { ChildProcess } from "child_process";
 import path from "path";
 import os from "os";
+import { HF_MODEL_ENDS_WITH } from "@/utils/app/const";
 
 export type ConnectionStatus = "❓" | "🔄" | "✅" | "⏳" | "❌";
 export type DownloadServerAppItemStatus = "ready" | "starting" | "preparing" | "downloading" | "stopping" | "stopped" | "error" | "unknown";
@@ -54,9 +55,16 @@ export type DownloadButtonProps = DownloadProps & {
 };
 
 export const isValidDownloadItem = (item: DownloadItem) => item.modelRepo && item.filePath;
-export type WingmanWebSocket = {
+export type WingmanWebSocketMessage = {
     lastMessage: string | undefined;
     connectionStatus: ConnectionStatus;
+};
+export const newWingmanWebSocketMessage = (): WingmanWebSocketMessage =>
+{   
+    return {
+        lastMessage: undefined,
+        connectionStatus: "❓"
+    } as WingmanWebSocketMessage;
 };
 export type DownloadMetricsProps = DownloadProps & {
     refreshInterval?: number;
@@ -154,6 +162,44 @@ export type ChildProcessesMap = {
         controller: AbortController;
     };
 };
+
+// translate the following c++ code to typescript
+// add HF_MODEL_ENDS_WITH to the end of the modelRepo if it's not already there
+// std::string UnstripFormatFromModelRepo(const std:: string & modelRepo)
+// {
+//     if (modelRepo.empty()) {
+//         throw std:: runtime_error("modelRepo is required, but is empty");
+//     }
+//     if (modelRepo.ends_with(HF_MODEL_ENDS_WITH)) {
+//         return modelRepo;
+//     }
+//     return modelRepo + HF_MODEL_ENDS_WITH;
+// }
+export const UnstripFormatFromModelRepo = (modelRepo: string): string =>
+{
+    if (!modelRepo) throw new Error("modelRepo is required, but is empty");
+    if (modelRepo.endsWith(HF_MODEL_ENDS_WITH)) return modelRepo;
+    return modelRepo + HF_MODEL_ENDS_WITH;
+};
+
+// strip HF_MODEL_ENDS_WITH from the end of the modelRepo if it's there
+// std::string StripFormatFromModelRepo(const std:: string & modelRepo)
+// {
+//     if (modelRepo.empty()) {
+//         throw std:: runtime_error("modelRepo is required, but is empty");
+//     }
+//     if (modelRepo.ends_with(HF_MODEL_ENDS_WITH)) {
+//         return modelRepo.substr(0, modelRepo.size() - HF_MODEL_ENDS_WITH.size());
+//     }
+//     return modelRepo;
+// }
+export const StripFormatFromModelRepo = (modelRepo: string): string =>
+{
+    if (!modelRepo) throw new Error("modelRepo is required, but is empty");
+    if (modelRepo.endsWith(HF_MODEL_ENDS_WITH)) return modelRepo.substr(0, modelRepo.length - HF_MODEL_ENDS_WITH.length);
+    return modelRepo;
+};
+
 
 export const DIST_LEAF_DIR = "dist";
 export const DATA_LEAF_DIR = "data";

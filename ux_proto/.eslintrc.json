@@ -55,7 +55,8 @@
                 "beforeColon": false,
                 "afterColon": true
             }
-        ]
+        ],
+        "react-hooks/exhaustive-deps": ["off"]
     },
     "ignorePatterns": [
         "dist/*"

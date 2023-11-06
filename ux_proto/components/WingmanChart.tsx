@@ -1,22 +1,22 @@
-import { DownloadServerAppItem } from "@/types/download";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { DownloadProps, DownloadServerAppItem } from "@/types/download";
 import { WingmanItem, WingmanItemStatus, WingmanServerAppItem } from "@/types/wingman";
 import { LlamaStats, LlamaStatsTimings, LlamaStatsSystem, LlamaStatsMeta, newLlamaStatsTimings, newLlamaStatsSystem, newLlamaStatsMeta } from "@/types/llama_stats";
 import React, { useState, useEffect, ReactNode } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { LineChart, Line, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
+import { useWingman } from "@/hooks/useWingman";
 
-function precisionRound(value: number, precision: number)
-{
-    const factor = Math.pow(10, precision);
-    return Math.round(value * factor) / factor;
-}
 
 interface WingmanChartProps
 {
+    chosenModel?: DownloadProps;
+    showGraph?: boolean;
+    showHardware?: boolean;
     className?: string;
 }
 
-const WingmanChart = ({ className = "" }: WingmanChartProps) =>
+const WingmanChart = ({ showGraph = true, showHardware = false, className = "" }: WingmanChartProps) =>
 {
     const fractionDigits = 1;
     const chartColors = {
@@ -31,69 +31,92 @@ const WingmanChart = ({ className = "" }: WingmanChartProps) =>
         "offloaded": "text-lime-600",
         "offloaded_total": "text-gray-500",
     };
-    const [timeSeries, setTimeSeries] = useState<LlamaStats[]>([]);
-    const [metrics, setMetrics] = useState<LlamaStatsTimings>(() => newLlamaStatsTimings());
-    const [system, setSystem] = useState<LlamaStatsSystem>(() => newLlamaStatsSystem());
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [meta, setMeta] = useState<LlamaStatsMeta>(() => newLlamaStatsMeta());
-    const [lastTime, setLastTime] = useState<Date>(new Date());
-    const [pauseMetrics, setPauseMetrics] = useState<boolean>(false);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [downloadServiceStatus, setDownloadServiceStatus] = useState<DownloadServerAppItem|undefined>(undefined);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [wingmanServiceStatus, setWingmanServiceStatus] = useState<WingmanServerAppItem|undefined>(undefined);
-    const [wingmanStatus, setWingmanStatus] = useState<WingmanItemStatus>("unknown");
-    const [isInferring, setIsInferring] = useState<boolean>(false);
-    const {
-        lastMessage,
-        readyState,
-    } = useWebSocket("ws://localhost:6568",
-        {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            shouldReconnect: (_closeEvent) => true,
-            reconnectAttempts: 9999999,
-            reconnectInterval: 1000,
-        });
-    const connectionStatus = {
-        [ReadyState.CONNECTING]: "🔄",
-        [ReadyState.OPEN]: "✅",
-        [ReadyState.CLOSING]: "⏳",
-        [ReadyState.CLOSED]: "❌",
-        [ReadyState.UNINSTANTIATED]: "❓",
-    }[readyState];
+    // const [timeSeries, setTimeSeries] = useState<LlamaStats[]>([]);
+    // const [metrics, setMetrics] = useState<LlamaStatsTimings>(() => newLlamaStatsTimings());
+    // const [system, setSystem] = useState<LlamaStatsSystem>(() => newLlamaStatsSystem());
+    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // const [meta, setMeta] = useState<LlamaStatsMeta>(() => newLlamaStatsMeta());
+    // const [lastTime, setLastTime] = useState<Date>(new Date());
+    // const [pauseMetrics, setPauseMetrics] = useState<boolean>(false);
+    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // const [downloadServiceStatus, setDownloadServiceStatus] = useState<DownloadServerAppItem|undefined>(undefined);
+    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // const [wingmanServiceStatus, setWingmanServiceStatus] = useState<WingmanServerAppItem|undefined>(undefined);
+    // const [wingmanStatus, setWingmanStatus] = useState<WingmanItemStatus>("unknown");
+    // const [isInferring, setIsInferring] = useState<boolean>(false);
+    // const [isGenerating, setIsGenerating] = useState<boolean>(false);
 
-    useEffect(() =>
-    {
-        if (lastMessage?.data) {
-            const json = JSON.parse(lastMessage.data);
-            if (json.system) {
-                setSystem(json.system);
-            }
-            if (json.meta) {
-                setMeta(json.meta);
-            }
-            if (json.timings && json.system?.has_next_token && !pauseMetrics) {
-                const metrics = json.timings;
-                Object.keys(metrics).forEach(function (key) { metrics[key] = precisionRound(metrics[key], fractionDigits); });
-                setMetrics(metrics);
-                setTimeSeries([...timeSeries, metrics].slice(-1000));
-            }
-            if (json?.WingmanService) {
-                setWingmanServiceStatus(json.WingmanService);
-            }
-            if (json?.DownloadService) {
-                setDownloadServiceStatus(json.DownloadService);
-            }
-            if (json?.isa === "WingmanItem") {
-                const item = json as WingmanItem;
-                setWingmanStatus(item.status);
-                setIsInferring(item.status === "inferring");
-            }
 
-            const date = new Date();
-            setLastTime(date);
-        }
-    }, [timeSeries, lastMessage, pauseMetrics]);
+    // const {
+    //     lastMessage,
+    //     readyState,
+    // } = useWebSocket("ws://localhost:6568",
+    //     {
+    //         // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    //         shouldReconnect: (_closeEvent) => true,
+    //         reconnectAttempts: 9999999,
+    //         reconnectInterval: 1000,
+    //     });
+    // const connectionStatus = {
+    //     [ReadyState.CONNECTING]: "🔄",
+    //     [ReadyState.OPEN]: "✅",
+    //     [ReadyState.CLOSING]: "⏳",
+    //     [ReadyState.CLOSED]: "❌",
+    //     [ReadyState.UNINSTANTIATED]: "❓",
+    // }[readyState];
+
+    // useEffect(() =>
+    // {
+    //     if (lastMessage?.data) {
+    //         const json = JSON.parse(lastMessage.data);
+    //         if (json.system) {
+    //             setSystem(json.system);
+
+    //             if (json.system.has_next_token){
+    //                 setIsGenerating(true);
+    //             } else {
+    //                 setIsGenerating(false);
+    //             }
+    //         }
+    //         if (json.meta) {
+    //             setMeta(json.meta);
+    //         }
+    //         if (json.timings && !pauseMetrics) {
+    //             const metrics = json.timings;
+    //             Object.keys(metrics).forEach(function (key) { metrics[key] = precisionRound(metrics[key], fractionDigits); });
+    //             setMetrics(metrics);
+    //             setTimeSeries([...timeSeries, metrics].slice(-1000));
+    //         }
+    //         if (json?.WingmanService) {
+    //             setWingmanServiceStatus(json.WingmanService);
+    //         }
+    //         if (json?.DownloadService) {
+    //             setDownloadServiceStatus(json.DownloadService);
+    //         }
+    //         if (json?.isa === "WingmanItem" && json?.alias === chosenModel?.filePath) {
+    //             const item = json as WingmanItem;
+    //             setWingmanStatus(item.status);
+    //             setIsInferring(item.status === "inferring");
+    //         }
+    //         const date = new Date();
+    //         setLastTime(date);
+    //     }
+    // // }, [timeSeries, lastMessage, pauseMetrics]);
+    // }, [lastMessage, pauseMetrics]);
+
+    const lowStatCutOff = -1; // set to 0 to keep stats on screen, -1 to allow stats to disappear
+    const [showGraphMetrics, setShowGraphMetrics] = useState<boolean>(true);
+    const { 
+        status: connectionStatus, isOnline,
+        metrics, system, timeSeries,
+        toggleMetrics,
+        pauseMetrics
+    } = useWingman(6567, 6568);
+
+    const toggleGraphMetrics = () => {
+        setShowGraphMetrics(!showGraphMetrics);
+        // showGraph = !showGraph;
+    };
 
     const renderStat = (value: number|string, name: string, statColor: string): ReactNode =>
     {
@@ -119,38 +142,40 @@ const WingmanChart = ({ className = "" }: WingmanChartProps) =>
     {
         return (
             <>
-                <p>{`Inference Metrics (${wingmanStatus === "complete" ? "inactive" : wingmanStatus})`} <span title="Wingman is online">{connectionStatus}</span> <span>{system.cuda_str}</span></p>
-                <p>{system.gpu_name}</p>
-                <p><span>Last updated at {lastTime.toLocaleTimeString()}</span></p>
-                {isInferring &&
-                    <div className="text-xs">
-                        <div><span className={`${chartColors.model_alias} text-lg`}>{system.model_alias} {system.quantization ? system.quantization: ""} {system.has_next_token ? "🗣" : ""}</span></div>
-                        <div className="flex">
-                            {system.ctx_size > -1 &&
-                                renderStat(Number(system.ctx_size)?.toLocaleString(undefined, { minimumFractionDigits: 0 }), "MB Context", chartColors.context_length)
-                            }
-
-                            {system.mem_required > -1 &&
-                                <>
-                                    {renderStat(Number(system.mem_required)?.toLocaleString(undefined, { minimumFractionDigits: 0 }), "MB RAM", chartColors.vram_used)}
-                                </>
-                            }
-
-                            {system.vram_used > -1 &&
-                                <>
-                                    {renderStat(Number(system.vram_used)?.toLocaleString(undefined, { minimumFractionDigits: 0 }), "MB VRAM", chartColors.vram_used)}
-                                    {renderStat(`${system.offloaded} / ${system.offloaded_total}`, "Layers On GPU", chartColors.offloaded)}
-                                </>
-                            }
-                        </div>
-                    </div>
+                {/* <p>{`Inference Metrics (${wingmanStatus === "complete" ? "inactive" : wingmanStatus})`} <span title="Wingman is online">{connectionStatus}</span> <span>{system.cuda_str}</span></p> */}
+                {/* <p>Inference Metrics</p> */}
+                {showHardware &&
+                <p>{system.gpu_name}<span> {system.cuda_str}</span></p>
                 }
+                {/* <p><span>Last updated at {lastTime.toLocaleTimeString()}</span></p> */}
+                <div className="text-xs">
+                    {/* <div><span className={`${chartColors.model_alias} text-lg`}>{system.model_alias} {system.quantization ? system.quantization: ""} {system.has_next_token ? "🗣" : ""}</span></div> */}
+                    <div className="flex">
+                        {system.ctx_size > lowStatCutOff &&
+                            renderStat(Number(system.ctx_size)?.toLocaleString(undefined, { minimumFractionDigits: 0 }), "MB Context", chartColors.context_length)
+                        }
+
+                        {system.mem_required > lowStatCutOff &&
+                            <>
+                                {renderStat(Number(system.mem_required)?.toLocaleString(undefined, { minimumFractionDigits: 0 }), "MB RAM", chartColors.vram_used)}
+                            </>
+                        }
+
+                        {system.vram_used > lowStatCutOff &&
+                            <>
+                                {renderStat(Number(system.vram_used)?.toLocaleString(undefined, { minimumFractionDigits: 0 }), "MB VRAM", chartColors.vram_used)}
+                                {renderStat(`${system.offloaded} / ${system.offloaded_total}`, "Layers On GPU", chartColors.offloaded)}
+                            </>
+                        }
+                    </div>
+                </div>
             </>);
     };
 
     const renderHeader = (): ReactNode =>
     {
-        if (readyState === ReadyState.OPEN) {
+        // if (readyState === ReadyState.OPEN) {
+        if (isOnline) {
             return renderOnlineHeader();
         } else {
             return renderOfflineHeader();
@@ -161,6 +186,7 @@ const WingmanChart = ({ className = "" }: WingmanChartProps) =>
         <div className={`${className} text-center`}>
             <div className="flex flex-col items-center space-y-2">
                 {renderHeader()}
+                { showGraphMetrics &&
                 <ResponsiveContainer width="100%" height={220}>
                     <LineChart data={timeSeries} margin={{ top: 20, right: 0, left: 0, bottom: 10 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -173,26 +199,31 @@ const WingmanChart = ({ className = "" }: WingmanChartProps) =>
                         <Line yAxisId="right" type="monotone" connectNulls={true} name="Token Pred Time (ms)" dataKey="predicted_per_token_ms" stroke="#ffc658" />
                     </LineChart>
                 </ResponsiveContainer>
+                }
                 <div className="flex flex-row text-xs items-center">
-                    <input type="checkbox" className="m-2" disabled={system.has_next_token} checked={pauseMetrics} onChange={() => setPauseMetrics(!pauseMetrics)} />
+                    {/* <input type="checkbox" className="m-2" disabled={system.has_next_token} checked={pauseMetrics} onChange={() => setPauseMetrics(!pauseMetrics)} /> */}
+                    <input type="checkbox" className="m-2" checked={showGraphMetrics} onChange={() => toggleGraphMetrics()} />
+                    <span>Show Graph</span>
+
+                    <input type="checkbox" className="m-2" disabled={system.has_next_token} checked={pauseMetrics} onChange={() => toggleMetrics()} />
                     <span>Pause Graph</span>
                 </div>
                 <div className="flex flex-row text-xs">
                     <div>
-                        {metrics.predicted_per_second > -1 &&
-                            renderStat(metrics.predicted_per_second, "Token Rate", chartColors.predicted_per_second)
-                        }
-                        {metrics.predicted_per_token_ms > -1 &&
-                            renderStat(metrics.predicted_per_token_ms, "Token Time", chartColors.predicted_per_token_ms)
-                        }
+                        {/* {metrics.predicted_per_second > lowStatCutOff && */}
+                        {renderStat(metrics.predicted_per_second, "Token Rate", chartColors.predicted_per_second)}
+                        {/* } */}
+                        {/* {metrics.predicted_per_token_ms > lowStatCutOff && */}
+                        {renderStat(metrics.predicted_per_token_ms, "Token Time", chartColors.predicted_per_token_ms)}
+                        {/* } */}
                     </div>
                     <div>
-                        {metrics.sample_per_second > -1 &&
-                            renderStat(metrics.sample_per_second, "Sample Rate", chartColors.sample_per_second)
-                        }
-                        {metrics.sample_per_token_ms > -1 &&
-                            renderStat(metrics.sample_per_token_ms, "Sample Time", chartColors.sample_per_token_ms)
-                        }
+                        {/* {metrics.sample_per_second > lowStatCutOff && */}
+                        {renderStat(metrics.sample_per_second, "Sample Rate", chartColors.sample_per_second)}
+                        {/* } */}
+                        {/* {metrics.sample_per_token_ms > lowStatCutOff && */}
+                        {renderStat(metrics.sample_per_token_ms, "Sample Time", chartColors.sample_per_token_ms)}
+                        {/* } */}
                     </div>
                 </div>
             </div>

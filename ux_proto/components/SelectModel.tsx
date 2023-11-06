@@ -29,33 +29,60 @@ export type SelectModelProps = {
     isDisabled?: boolean;
     allowDownload?: boolean;
     autoActivate?: boolean;
+    iconSize?: number;
 };
 
 const SelectModelInternal = ({ chosenModel,
     defaultModelId = "", onChange = () => { }, onDownloadComplete = () => { }, onDownloadStart = () => { },
-    className = "", showDownloadedItemsOnly = false, isDisabled: disabled = false, allowDownload = true, autoActivate = false }: SelectModelProps) => {
+    className = "", showDownloadedItemsOnly = false, isDisabled: disabled = false,
+    allowDownload = true, autoActivate = false, iconSize = 24 }: SelectModelProps) => {
 
-    const [models, setModels] = React.useState<AIModel[]>(Object.values(AIModels));
-    const [model, setModel] = React.useState<AIModel | undefined>(undefined);
+    const [modelList, setModelList] = React.useState<AIModel[]>(Object.values(AIModels));
+    const [selectableModels, setSelectableModels] = React.useState<AIModel[]>([]);
 
     const [selectedModel, setSelectedModel] = React.useState<AIModel | undefined>(undefined);
     const [selectedQuantization, setSelectedQuantization] = React.useState<string | undefined>(undefined);
-    const [isLoading, setIsLoading] = React.useState<boolean>(false);
+    const [isLoadingModelList, setIsLoadingModelList] = React.useState<boolean>(false);
 
     const t = (text: string) => {
         return text;
     };
 
-    const iconSize = 24;
-
-    if (chosenModel !== undefined && model === undefined) {
-        const model = models.find((m) => m.id === chosenModel.modelRepo);
-        if (model !== undefined) {
-            setModel(model);
+    const refreshModelList = async () =>
+    {
+        try {
+            setIsLoadingModelList(true);
+            const response = await fetch("http://localhost:6568/api/models");
+            if (!response.ok) {
+                console.log(`error getting models: ${response.statusText}`);
+            } else {
+                console.log(`getModels response: ${response?.statusText}`);
+                const json = await response.json();
+                setModelList(json.models);
+            }
+            setIsLoadingModelList(false);
+            return response;
         }
-    }
+        catch (err) {
+            console.log(`exception getting models: ${err}`);
+            setIsLoadingModelList(false);
+        }
+    };
 
-    const selectableModels = showDownloadedItemsOnly ? models.filter((model) => model.items?.some((item) => item.isDownloaded)) : models;
+    const onQuantizationChange = (selectedModel: AIModel, quantization: string) => {
+        selectedModel.item = selectedModel.items?.find((item) => item.quantization === quantization);
+        setSelectedQuantization(quantization);
+        const filePath = selectedModel.item?.filePath as string;
+        onChange({modelRepo: selectedModel.id, filePath: filePath});
+    };
+
+    const handleDownloadComplete = (item: DownloadItem) => {
+        onDownloadComplete(item);
+    };
+
+    const handleDownloadStart = (item: DownloadItem) => {
+        onDownloadStart(item);
+    };
 
     const handleModelChange = (e: SingleValue<{ value: string | undefined; label: string | Element; }>,
         actionMeta: ActionMeta<{ value: string | undefined; label: string | Element; }>) => {
@@ -69,7 +96,7 @@ const SelectModelInternal = ({ chosenModel,
                     const downloadedItem = selectedModel.items.find((item) => item.isDownloaded);
                     const quantization = downloadedItem !== undefined ?
                         downloadedItem.quantization : selectedModel.items[0].quantization;
-                    onDownloadableItemChange(selectedModel, quantization);
+                    onQuantizationChange(selectedModel, quantization);
                 }
                 else
                     throw new Error("Model has no optimization (quantization) options");
@@ -84,57 +111,23 @@ const SelectModelInternal = ({ chosenModel,
         }
     };
 
-    const onDownloadableItemChange = (selectedModel: AIModel, quantization: string) => {
-        selectedModel.item = selectedModel.items?.find((item) => item.quantization === quantization);
-        setSelectedQuantization(quantization);
-        const filePath = selectedModel.item?.filePath as string;
-        onChange({modelRepo: selectedModel.id, filePath: filePath});
-    };
-
     const handleDownloadableItemChange = (e: SingleValue<{ value: string | undefined; label: string | Element; }>,
         actionMeta: ActionMeta<{ value: string | undefined; label: string | Element; }>) => {
         if (actionMeta.action === "select-option" && typeof onChange === "function") {
             if (selectedModel?.items) {
                 const quantization = e?.value;
                 if (quantization !== undefined) {
-                    onDownloadableItemChange(selectedModel, quantization);
+                    onQuantizationChange(selectedModel, quantization);
                 }
             }
         }
     };
 
-    const getModels = async () =>
-    {
-        try {
-            setIsLoading(true);
-            const response = await fetch("http://localhost:6568/api/models");
-            if (!response.ok) {
-                console.log(`error getting models: ${response.statusText}`);
-            } else {
-                console.log(`getModels response: ${response?.statusText}`);
-                const json = await response.json();
-                // const aiModels = Object.values(AIModels);
-                // setModels(aiModels.concat(json.models));
-                setModels(json.models);
-            }
-            setIsLoading(false);
-            return response;
-        }
-        catch (err) {
-            console.log(`exception getting models: ${err}`);
-            setIsLoading(false);
-        }
+    const handleRefreshModelList = async () => {
+        await refreshModelList();
     };
 
-    const handleRefreshModels = async () => {
-        await getModels();
-    };
-
-    useEffect(() => {
-        getModels();
-    }, []);
-
-    const modelVendor = (model: AIModel | undefined) => {
+    const displayModelVendor = (model: AIModel | undefined) => {
         if (!model) return "";
         // check if the vendor exists in the Vendors enum
         if (!Object.keys(Vendors).includes(model.vendor)) {
@@ -154,7 +147,7 @@ const SelectModelInternal = ({ chosenModel,
         }
     };
 
-    const modelDisplay = (model: AIModel | undefined) => {
+    const displayModel = (model: AIModel | undefined) => {
         if (model === undefined) return "";
         let name = <span>{model.name}</span>;
         if (model.items && model.items.length > 0) {
@@ -178,15 +171,7 @@ const SelectModelInternal = ({ chosenModel,
         else return <span>{name}</span>;
     };
 
-    const handleDownloadComplete = (item: DownloadItem) => {
-        onDownloadComplete(item);
-    };
-
-    const handleDownloadStart = (item: DownloadItem) => {
-        onDownloadStart(item);
-    };
-
-    const downloadDisplay = (model: AIModel | undefined) => {
+    const displayDownload = (model: AIModel | undefined) => {
         if (!allowDownload || model === undefined || model?.item === undefined || model?.vendor == undefined) return "";
         if (Vendors[model.vendor].isDownloadable) {
             if(model.item.isDownloaded) {
@@ -212,7 +197,7 @@ const SelectModelInternal = ({ chosenModel,
         return "";
     };
 
-    const quantizationDisplay = (item: DownloadableItem | undefined) => {
+    const displayQuantization = (item: DownloadableItem | undefined) => {
         if (item === undefined) return "";
 
         if (item.isDownloaded) {
@@ -229,77 +214,81 @@ const SelectModelInternal = ({ chosenModel,
         return <span>{item.quantizationName}</span>;
     };
 
-    const groupedModelList = Object.values(Vendors)
+    const optionsGroupedModels = Object.values(Vendors)
         .filter((vendor) => vendor.isEnabled)
         .map((vendor) => ({
             label: vendor.displayName,
             options: selectableModels
-                .filter((model) => model.vendor === vendor.name)
-                .map((model) => ({
-                    label: modelDisplay(model),
-                    value: model.id,
+                .filter((m) => m.vendor === vendor.name)
+                .map((mm) => ({
+                    label: displayModel(mm),
+                    value: mm.id,
                 } as ModelOption)),
         }));
 
-    const optimizationOptions = selectedModel?.items?.map((item: DownloadableItem) => ({
-        label: quantizationDisplay(item),
-        value: item.quantization,
-    } as QuantizationOption));
+    const optionsOptimizations = selectedModel?.items?.filter((item: DownloadableItem) => item.isDownloaded || !showDownloadedItemsOnly)
+        .map((item: DownloadableItem) => ({
+            label: displayQuantization(item),
+            value: item.quantization,
+        } as QuantizationOption));
 
     useEffect(() => {
-        if (model !== undefined) {
-            setSelectedModel(model);
-            if (model.item !== undefined)
-                onDownloadableItemChange(model, model.item.quantization);
-            else if (model.items && model.items.length > 0)
-                onDownloadableItemChange(model, model.items[0].quantization);
-            else
-                throw new Error("Model has no optimization (quantization) options");
+        handleRefreshModelList();
+    }, []);
+
+    useEffect(() => {
+        const selectable = showDownloadedItemsOnly ? modelList.filter((model) => model.items?.some((item) => item.isDownloaded)) : modelList;
+        setSelectableModels(selectable);
+        if (chosenModel !== undefined) {
+            const model = selectable.find((m) => m.id === chosenModel.modelRepo);
+            if (model !== undefined) {
+                if (model.items && model.items.length > 0)
+                    model.item = model.items?.find((item) => item.filePath === chosenModel.filePath);
+                setSelectedModel(model);
+            }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [model]);
+    }, [modelList, chosenModel, showDownloadedItemsOnly]);
 
     return (
         <div className={`${className}`}>
             <div className="flex flex-col w-full">
                 <label className="mb-2 text-left">
-                    {modelVendor(selectedModel)}
+                    {displayModelVendor(selectedModel)}
                 </label>
-                <div className="flex w-full rounded-lg space-x-2 items-center text-neutral-900 dark:text-white">
+                <div className="flex rounded-lg space-x-2 items-center text-neutral-900 dark:text-white">
                     <Select
-                        isLoading={isLoading}
+                        isLoading={isLoadingModelList}
                         placeholder={(t("Select a model").length > 0) || ""}
-                        options={groupedModelList}
+                        options={optionsGroupedModels}
                         value={{
-                            label: modelDisplay(selectedModel),
+                            label: displayModel(selectedModel),
                             value: selectedModel?.id,
                         } as ModelOption}
                         isSearchable={true}
                         hideSelectedOptions={true}
                         onChange={handleModelChange}
-                        className="model-select-container w-full"
+                        className="model-select-container w-9/12"
                         classNamePrefix="model-select"
                         instanceId={"model-select"}
                         isDisabled={disabled}
                     />
-                    <IconRefresh size={28} className="rounded-sm bg-white dark:bg-neutral-900 cursor-pointer" onClick={handleRefreshModels} />
+                    <IconRefresh size={28} className="rounded-sm bg-white dark:bg-neutral-900 cursor-pointer" onClick={handleRefreshModelList} />
                 </div>
                 {selectedModel?.vendor === Vendors.huggingface.name &&
                     (
-                        <div className="w-full flex flex-col mt-3 text-left rounded-lg text-neutral-900 dark:text-white">
-                            <label>{t("Model Optimization")}</label>
+                        <div className="flex mt-3 text-left rounded-lg text-neutral-900 dark:text-white">
                             <Select
-                                isLoading={isLoading}
-                                placeholder={(t("Select a model").length > 0) || ""}
-                                options={optimizationOptions}
+                                isLoading={isLoadingModelList}
+                                placeholder={(t("Select an optimization").length > 0) || ""}
+                                options={optionsOptimizations}
                                 value={{
-                                    label: quantizationDisplay(selectedModel?.item),
+                                    label: displayQuantization(selectedModel?.item),
                                     value: selectedQuantization,
                                 } as QuantizationOption}
                                 isSearchable={true}
                                 hideSelectedOptions={true}
                                 onChange={handleDownloadableItemChange}
-                                className="optimization-select-container"
+                                className="optimization-select-container w-4/12"
                                 classNamePrefix="optimization-select"
                                 instanceId={"optimization-select"}
                                 isDisabled={disabled}
@@ -319,7 +308,7 @@ const SelectModelInternal = ({ chosenModel,
                         </a>
                     </div>
                 )}
-                {downloadDisplay(selectedModel)}
+                {displayDownload(selectedModel)}
             </div>
         </div>
     );

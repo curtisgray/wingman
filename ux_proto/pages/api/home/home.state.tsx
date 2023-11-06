@@ -1,12 +1,12 @@
 import { AIModel, AIModelID } from "@/types/ai";
 import { Conversation } from "@/types/chat";
-import { DownloadItem, DownloadServerAppItem, WingmanWebSocket } from "@/types/download";
+import { DownloadItem, DownloadServerAppItem, WingmanWebSocketMessage } from "@/types/download";
 import { WingmanItem, WingmanServerAppItem } from "@/types/wingman";
 
 export interface HomeInitialState
 {
     isOnline: boolean;
-    lastWebSocketMessage: WingmanWebSocket | undefined;
+    lastWebSocketMessage: WingmanWebSocketMessage | undefined;
     downloadItems: DownloadItem[];
     wingmanItems: WingmanItem[];
     

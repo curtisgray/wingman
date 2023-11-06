@@ -31,6 +31,20 @@ const DownloadButton = ({ modelRepo, filePath,
         setDownloadLabel("Queued");
     };
 
+    const handleCancelDownload = () => {
+        setDisabled(false);
+        downloadActions.requestCancelDownload(modelRepo, filePath);
+        setDownloadLabel("Redownload");
+    };
+
+    const handleRequestOrCancelDownload = () => {
+        if (downloadStarted) {
+            handleCancelDownload();
+        } else {
+            handleRequestDownload();
+        }
+    };
+
     useEffect(() =>
     {
         if (lastWebSocketMessage?.lastMessage !== undefined) {
@@ -65,8 +79,8 @@ const DownloadButton = ({ modelRepo, filePath,
                         setDownloadStarted(true);
                         onStarted(downloadItem);
                     }
-                    setDownloadLabel("Downloading");
-                    setDisabled(true);
+                    setDownloadLabel("Cancel Download");
+                    setDisabled(false);
                     setProgress(downloadItem.progress);
                     setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
                     isDownloadingLocal = true;
@@ -78,6 +92,7 @@ const DownloadButton = ({ modelRepo, filePath,
                     setProgress(downloadItem.progress);
                     setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
                     isDownloadingLocal = false;
+                    setDownloadStarted(false);
                     onCancelled(downloadItem);
                     break;
                 case "error":
@@ -86,10 +101,12 @@ const DownloadButton = ({ modelRepo, filePath,
                 case "idle":
                     setDownloadLabel("Download");
                     setDisabled(true);
+                    setDownloadStarted(false);
                     break;
                 case "queued":
                     setDownloadLabel("Queued");
                     setDisabled(true);
+                    setDownloadStarted(false);
                     break;
                 default:
                     break;

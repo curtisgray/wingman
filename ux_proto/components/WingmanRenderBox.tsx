@@ -1,35 +1,38 @@
 import React from "react";
 import { useWingman } from "@/hooks/useWingman";
 // import prompts from "@/prompts";
-import drone from "@/prompts/drone.prompt.long.json";
-import reddit from "@/prompts/reddit.prompt.json";
-import { WingmanContent } from "@/types/wingman";
+import drone from "@/prompts/drone.prompt.long.xwin.json";
+import reddit from "@/prompts/reddit.prompt.xwin.json";
+// import { WingmanContent } from "@/types/wingman";
 import { useEffect, useRef, useState } from "react";
 import { useScrollDirection } from "react-use-scroll-direction";
+import { DownloadProps } from "@/types/download";
 
 interface WingmanRenderBoxProps
 {
+    chosenModel: DownloadProps;
     className?: string;
 }
 
-const WingmanRenderBox = ({ className = "" }: WingmanRenderBoxProps) =>
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const WingmanRenderBox = ({ chosenModel, className = "" }: WingmanRenderBoxProps) =>
 {
-    const { isGenerating, startGenerating, stopGenerating, latestItem: item } = useWingman(6567);
-    const [items, setItems] = useState<WingmanContent[]>([]);
+    // const [items, setItems] = useState<WingmanContent[]>([]);
     const messageEndRef = useRef<HTMLDivElement>(null);
     const [beAutoScrolling, setBeAutoScrolling] = useState(true);
     const { isScrollingUp } = useScrollDirection();
+    const { isGenerating, startGenerating, stopGenerating, items } = useWingman(6567, 6568);
 
     function sendDronePrompt()
     {
-        setItems([]);
+        // setItems([]);
         startGenerating(drone.prompt, 0);
         console.log("sent drone prompt");
     }
 
     function sendRedditPrompt()
     {
-        setItems([]);
+        // setItems([]);
         startGenerating(reddit.prompt, 0);
         console.log("sent drone prompt");
     }
@@ -49,14 +52,14 @@ const WingmanRenderBox = ({ className = "" }: WingmanRenderBoxProps) =>
         }
     }, [beAutoScrolling, isScrollingUp, items]);
 
-    useEffect(() =>
-    {
-        if (isGenerating) {
-            if (item !== undefined)
-                setItems([...items, item]);
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isGenerating, item]);
+    // useEffect(() =>
+    // {
+    //     if (isGenerating) {
+    //         if (latestItem !== undefined)
+    //             setItems([...items, latestItem]);
+    //     }
+    // // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [isGenerating, latestItem]);
 
     return (
         <div className={`${className} flex`}>

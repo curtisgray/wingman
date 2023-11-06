@@ -9,7 +9,7 @@ export type WingmanServerAppItem = {
     created: number;
     updated: number;
 };
-export type WingmanItemStatus = "idle" | "queued" | "inferring" | "complete" | "error" | "cancelling" | "cancelled" | "unknown";
+export type WingmanItemStatus = "queued" | "preparing" | "inferring" | "complete" | "error" | "cancelling" | "cancelled" | "unknown";
 export type WingmanProps = {
     alias: string;
 };
@@ -26,17 +26,18 @@ export type WingmanItem = WingmanProps & {
 export const createWingmanItem = (alias: string, modelRepo:string, filePath: string, force: boolean = false): WingmanItem =>
 {
     return {
+        isa: "WingmanItem",
         alias: alias,
         modelRepo: modelRepo,
         filePath: filePath,
         force: force,
-        status: "idle",
+        status: "unknown",
         created: Date.now(),
         updated: Date.now()
     } as WingmanItem;
 };
 export type WingmanContent = {
-    // isa: "WingmanContent";
+    isa: "WingmanContent";
     content: string;
     model: string;
     stop: boolean;

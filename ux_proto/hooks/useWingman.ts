@@ -1,6 +1,6 @@
-import { ConnectionStatus, DownloadServerAppItem } from "@/types/download";
+import { ConnectionStatus, DownloadServerAppItem, WingmanWebSocketMessage, newWingmanWebSocketMessage } from "@/types/download";
 import { LlamaStats, LlamaStatsTimings, newLlamaStatsTimings, LlamaStatsSystem, newLlamaStatsSystem, LlamaStatsMeta, newLlamaStatsMeta, LlamaStatsTensors, newLlamaStatsTensors } from "@/types/llama_stats";
-import { WingmanContent, WingmanItem, WingmanItemStatus, WingmanServerAppItem } from "@/types/wingman";
+import { WingmanContent, WingmanItem, WingmanItemStatus, WingmanServerAppItem, createWingmanItem } from "@/types/wingman";
 import { useContext, useEffect, useRef, useState } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { useRequestInferenceAction } from "./useRequestInferenceAction";
@@ -8,12 +8,19 @@ import HomeContext from "@/pages/api/home/home.context";
 
 interface WingmanProps
 {
+    alias: string;
+    modelRepo: string;
+    filePath: string;
     isGenerating: boolean;
     latestItem: WingmanContent | undefined;
-    start: (alias: string, modelRepo: string, filePath: string, gpuLayers: number) => Promise<WingmanItem | undefined>;
+    items: WingmanContent[];
+    forceChosenModel: (alias: string, modelRepo: string, filePath: string) => void;
+    activate: (alias: string, modelRepo: string, filePath: string, gpuLayers: number) => Promise<WingmanItem | undefined>;
+    deactivate: () => Promise<void>;
     startGenerating: (prompt: string, probabilties_to_return: number) => Promise<void>;
     stopGenerating: () => void;
     toggleMetrics: () => void;
+    pauseMetrics: boolean;
     timeSeries: LlamaStats[];
     meta: LlamaStatsMeta;
     system: LlamaStatsSystem;
@@ -22,10 +29,12 @@ interface WingmanProps
     lastTime: Date;
     isOnline: boolean;
     status: ConnectionStatus;
-    statusWingman: WingmanServerAppItem | undefined;
-    statusDownload: DownloadServerAppItem | undefined;
+    wingmanServerStatus: WingmanServerAppItem | undefined;
+    downloadServerStatus: DownloadServerAppItem | undefined;
     wingmanStatus: WingmanItemStatus;
     isInferring: boolean;
+    wingmanItem: WingmanItem;
+    lastWebSocketMessage: WingmanWebSocketMessage;
 }
 
 function precisionRound(value: number, precision: number)
@@ -34,24 +43,30 @@ function precisionRound(value: number, precision: number)
     return Math.round(value * factor) / factor;
 }
 
-export function useWingman(serverPort: number): WingmanProps
+// export function useWingman(inferencePort: number, monitorPort: number, onNewContent: (content: WingmanContent) => void = () => { }): WingmanProps;
+export function useWingman(inferencePort: number, monitorPort: number): WingmanProps
 {
-    const {
-        state: { lastWebSocketMessage, isOnline },
-    } = useContext(HomeContext);
+    // const {
+    //     state: { lastWebSocketMessage, isOnline },
+    // } = useContext(HomeContext);
 
     const fractionDigits = 1;
+    const [alias, setAlias] = useState<string>("");
+    const [modelRepo, setModelRepo] = useState<string>("");
+    const [filePath, setFilePath] = useState<string>("");
     const [status, setStatus] = useState<ConnectionStatus>("❓");
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
     const continueGenerating = useRef<boolean>(true);
     const [latestItem, setLatestItem] = useState<WingmanContent>();
+    const [items, setItems] = useState<WingmanContent[]>([]);
     const startGenerating = async (content: string, probabilities_to_return?: number): Promise<void> =>
         new Promise<void>((resolve, reject) =>
         {
             setLatestItem(undefined);
+            setItems([]);
             try {
                 const controller = new AbortController();
-                fetch(encodeURI(`http://localhost:${serverPort}/completion`), {
+                fetch(encodeURI(`http://localhost:${inferencePort}/completion`), {
                     method: "POST",
                     headers: {
                         "Content-Type": "text/event-stream"
@@ -95,7 +110,10 @@ export function useWingman(serverPort: number): WingmanProps
                                 continue;
                             }
                             const content = JSON.parse(data) as WingmanContent;
+                            // onNewContent(content);
                             setLatestItem(content);
+                            // setItems([...items, content]);
+                            setItems((items) => items.concat(content));
                             text = "";
                         }
                         setIsGenerating(false);
@@ -125,16 +143,38 @@ export function useWingman(serverPort: number): WingmanProps
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [wingmanServiceStatus, setWingmanServiceStatus] = useState<WingmanServerAppItem | undefined>(undefined);
     const [wingmanStatus, setWingmanStatus] = useState<WingmanItemStatus>("unknown");
+    const [wingmanItem, setWingmanItem] = useState<WingmanItem>(() => createWingmanItem("", "", ""));
     const [isInferring, setIsInferring] = useState<boolean>(false);
+    const [isOnline, setIsOnline] = useState<boolean>(false);
+    const [lastWebSocketMessage, setLastWebSocketMessage] = useState<WingmanWebSocketMessage>(() => newWingmanWebSocketMessage());
 
     const inferenceActions = useRequestInferenceAction();
-    const start = async (alias: string, modelRepo: string, filePath: string, gpuLayers: number): Promise<WingmanItem | undefined> =>
-        inferenceActions.requestStartInference(alias, modelRepo, filePath, gpuLayers);
+
+    const forceChosenModel = (alias: string, modelRepo: string, filePath: string): void =>
+    {
+        setAlias(alias);
+        setModelRepo(modelRepo);
+        setFilePath(filePath);
+    };
+
+    const activate = async (alias: string, modelRepo: string, filePath: string, gpuLayers: number): Promise<WingmanItem | undefined> =>{
+        forceChosenModel(alias, modelRepo, filePath);
+        return inferenceActions.requestStartInference(alias, modelRepo, filePath, gpuLayers);
+    };
+    const deactivate = async (): Promise<void> => {
+        if (alias === "") return Promise.reject("Alias is empty");
+        if (modelRepo === "") return Promise.reject("ModelRepo is empty");
+        if (filePath === "") return Promise.reject("FilePath is empty");
+        setAlias("");
+        setModelRepo("");
+        setFilePath("");
+        return inferenceActions.requestStopInference(alias);
+    };
    
     const {
         lastMessage,
         readyState,
-    } = useWebSocket("ws://localhost:6568",
+    } = useWebSocket(`ws://localhost:${monitorPort}`,
         {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             shouldReconnect: (_closeEvent) => true,
@@ -155,20 +195,31 @@ export function useWingman(serverPort: number): WingmanProps
             const json = JSON.parse(lastMessage.data);
             // if ((lastWebSocketMessage?.lastMessage) != null) {
             //     const json = JSON.parse(lastWebSocketMessage.lastMessage);
+            const message: WingmanWebSocketMessage = {
+                lastMessage: lastMessage.data,
+                connectionStatus: connectionStatus as ConnectionStatus,
+            };
+            setLastWebSocketMessage(message);
             if (json.meta) {
                 setMeta(json.meta);
             }
             if (json.system) {
                 setSystem(json.system);
+
+                // if (json.system.has_next_token){
+                //     setIsGenerating(true);
+                // } else {
+                //     setIsGenerating(false);
+                // }
             }
             if (json.tensors) {
                 setTensors(json.tensors);
             }
-            if (json.timings && json.system?.has_next_token && !pauseMetrics) {
+            if (json.timings && !pauseMetrics) {
                 const metrics = json.timings;
                 Object.keys(metrics).forEach(function (key) { metrics[key] = precisionRound(metrics[key], fractionDigits); });
                 setMetrics(metrics);
-                setTimeSeries([...timeSeries, metrics].slice(-1000));
+                setTimeSeries([...timeSeries, metrics].slice(-100));
             }
             if (json?.WingmanService) {
                 setWingmanServiceStatus(json.WingmanService);
@@ -176,36 +227,44 @@ export function useWingman(serverPort: number): WingmanProps
             if (json?.DownloadService) {
                 setDownloadServiceStatus(json.DownloadService);
             }
-            if (json?.isa === "WingmanItem") {
+            // return whichever wingman item is inferring
+            if (json?.isa === "WingmanItem" && json?.alias === alias) {
                 const item = json as WingmanItem;
                 setWingmanStatus(item.status);
                 setIsInferring(item.status === "inferring");
+                setWingmanItem(item);
             }
             const date = new Date();
             setLastTime(date);
         }
-        if (lastWebSocketMessage?.connectionStatus) {
-            setStatus(lastWebSocketMessage.connectionStatus);
-        } else {
-            setStatus("❓");
-        }
-    }, [timeSeries, lastMessage, pauseMetrics]);
+        // if (lastWebSocketMessage?.connectionStatus) {
+        //     setStatus(lastWebSocketMessage.connectionStatus);
+        // } else {
+        //     setStatus("❓");
+        // }
+    }, [lastMessage, pauseMetrics]);
+    // }, [timeSeries, lastMessage, pauseMetrics]);
     // }, [timeSeries, lastWebSocketMessage, pauseMetrics]);
 
     useEffect(() =>
     {
         setStatus(connectionStatus as ConnectionStatus);
-    }, [connectionStatus]);
+        setIsOnline(readyState === ReadyState.OPEN);
+    }, [readyState]);
 
     return {
         // status: connectionStatus as ConnectionStatus, isOnline: readyState === ReadyState.OPEN,
+        alias, modelRepo, filePath, forceChosenModel,
         status, isOnline,
         isGenerating,
         latestItem,
-        start, startGenerating, stopGenerating,
+        items,
+        activate, deactivate, startGenerating, stopGenerating,
+        pauseMetrics,
         toggleMetrics: () => setPauseMetrics(!pauseMetrics),
         timeSeries, meta, system, tensors, metrics, lastTime,
-        statusWingman: wingmanServiceStatus, statusDownload: downloadServiceStatus,
-        wingmanStatus, isInferring
+        wingmanServerStatus: wingmanServiceStatus, downloadServerStatus: downloadServiceStatus,
+        wingmanStatus, isInferring, wingmanItem,
+        lastWebSocketMessage,
     };
 }
