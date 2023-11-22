@@ -28,6 +28,7 @@ import {
     useState,
 } from "react";
 import toast from "react-hot-toast";
+import { SelectModel } from "./SelectModel";
 
 interface Props {
     stopConversationRef: MutableRefObject<boolean>;
@@ -58,6 +59,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     const [showSettings, setShowSettings] = useState<boolean>(false);
     const [showScrollDownButton, setShowScrollDownButton] =
         useState<boolean>(false);
+    const [showDownloadedItemsOnly, setShowDownloadedItemsOnly] = useState<boolean>(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -359,6 +361,31 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         };
     }, []);
 
+    const displayActivationButton = () =>
+    {
+        if (isModelChosen()) {
+            if (currentInferenceItem?.status === "inferring") {
+                return (
+                    <button className="text-center rounded h-12 mt-4 p-4 bg-neutral-50 text-xs font-medium uppercase text-neutral-800"
+                        onClick={handleStopInference}>{`deactivate (${currentInferenceItem.alias})`}</button>
+                );
+            } else if (currentInferenceItem?.status === "complete") {
+                return (
+                    <button className="text-center rounded h-12 mt-4 p-4 bg-neutral-50 text-xs font-medium uppercase text-neutral-800"
+                        onClick={handleStartInference}>activate</button>
+                );
+            } else {
+                return (
+                    <button className="text-center rounded h-12 mt-4 p-4 bg-neutral-50 text-xs font-medium uppercase text-neutral-800"
+                        onClick={handleStartInference}>{`${currentInferenceItem?.status}`}</button>
+                );
+            }
+        }
+        return (
+            <div></div>
+        );
+    };
+
     return (
         <div className="relative flex-1 overflow-hidden bg-white dark:bg-[#343541]">
             {!(apiKey || serverSideApiKeyIsSet) ? (
@@ -424,7 +451,13 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
 
                                     {models.length > 0 && (
                                         <div className="flex h-full flex-col space-y-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-600">
-                                            <ModelSelect />
+                                            {/* <ModelSelect /> */}
+                                            <div className="w-full text-gray-800 dark:text-gray-100 ">
+                                                <label className="mt-4 mb-0">Show downloaded items only
+                                                    <input type="checkbox" className="w-4 m-4" checked={showDownloadedItemsOnly} onChange={(e) => setShowDownloadedItemsOnly(e.target.checked)} />
+                                                </label>
+                                                <SelectModel showDownloadedItemsOnly={showDownloadedItemsOnly} />
+                                            </div>
 
                                             <SystemPrompt
                                                 conversation={

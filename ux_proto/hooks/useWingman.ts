@@ -1,41 +1,10 @@
 import { ConnectionStatus, DownloadServerAppItem, WingmanWebSocketMessage, newWingmanWebSocketMessage } from "@/types/download";
 import { LlamaStats, LlamaStatsTimings, newLlamaStatsTimings, LlamaStatsSystem, newLlamaStatsSystem, LlamaStatsMeta, newLlamaStatsMeta, LlamaStatsTensors, newLlamaStatsTensors } from "@/types/llama_stats";
-import { WingmanContent, WingmanItem, WingmanItemStatus, WingmanServerAppItem, createWingmanItem } from "@/types/wingman";
-import { useContext, useEffect, useRef, useState } from "react";
+import { WingmanContent, WingmanItem, WingmanItemStatus, WingmanServiceAppItem, WingmanStateProps, createWingmanItem } from "@/types/wingman";
+import { useEffect, useRef, useState } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { useRequestInferenceAction } from "./useRequestInferenceAction";
-import HomeContext from "@/pages/api/home/home.context";
 
-interface WingmanProps
-{
-    alias: string;
-    modelRepo: string;
-    filePath: string;
-    isGenerating: boolean;
-    latestItem: WingmanContent | undefined;
-    items: WingmanContent[];
-    forceChosenModel: (alias: string, modelRepo: string, filePath: string) => void;
-    activate: (alias: string, modelRepo: string, filePath: string, gpuLayers: number) => Promise<WingmanItem | undefined>;
-    deactivate: () => Promise<void>;
-    startGenerating: (prompt: string, probabilties_to_return: number) => Promise<void>;
-    stopGenerating: () => void;
-    toggleMetrics: () => void;
-    pauseMetrics: boolean;
-    timeSeries: LlamaStats[];
-    meta: LlamaStatsMeta;
-    system: LlamaStatsSystem;
-    tensors: LlamaStatsTensors;
-    metrics: LlamaStatsTimings;
-    lastTime: Date;
-    isOnline: boolean;
-    status: ConnectionStatus;
-    wingmanServerStatus: WingmanServerAppItem | undefined;
-    downloadServerStatus: DownloadServerAppItem | undefined;
-    wingmanStatus: WingmanItemStatus;
-    isInferring: boolean;
-    wingmanItem: WingmanItem;
-    lastWebSocketMessage: WingmanWebSocketMessage;
-}
 
 function precisionRound(value: number, precision: number)
 {
@@ -44,7 +13,7 @@ function precisionRound(value: number, precision: number)
 }
 
 // export function useWingman(inferencePort: number, monitorPort: number, onNewContent: (content: WingmanContent) => void = () => { }): WingmanProps;
-export function useWingman(inferencePort: number, monitorPort: number): WingmanProps
+export function useWingman(inferencePort: number, monitorPort: number): WingmanStateProps
 {
     // const {
     //     state: { lastWebSocketMessage, isOnline },
@@ -141,7 +110,7 @@ export function useWingman(inferencePort: number, monitorPort: number): WingmanP
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [downloadServiceStatus, setDownloadServiceStatus] = useState<DownloadServerAppItem | undefined>(undefined);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [wingmanServiceStatus, setWingmanServiceStatus] = useState<WingmanServerAppItem | undefined>(undefined);
+    const [wingmanServiceStatus, setWingmanServiceStatus] = useState<WingmanServiceAppItem | undefined>(undefined);
     const [wingmanStatus, setWingmanStatus] = useState<WingmanItemStatus>("unknown");
     const [wingmanItem, setWingmanItem] = useState<WingmanItem>(() => createWingmanItem("", "", ""));
     const [isInferring, setIsInferring] = useState<boolean>(false);
@@ -263,7 +232,7 @@ export function useWingman(inferencePort: number, monitorPort: number): WingmanP
         pauseMetrics,
         toggleMetrics: () => setPauseMetrics(!pauseMetrics),
         timeSeries, meta, system, tensors, metrics, lastTime,
-        wingmanServerStatus: wingmanServiceStatus, downloadServerStatus: downloadServiceStatus,
+        wingmanServiceStatus: wingmanServiceStatus, downloadServiceStatus: downloadServiceStatus,
         wingmanStatus, isInferring, wingmanItem,
         lastWebSocketMessage,
     };

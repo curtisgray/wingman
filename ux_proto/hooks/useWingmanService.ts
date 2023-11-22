@@ -1,6 +1,6 @@
 import HomeContext from "@/pages/api/home/home.context";
 import { ConnectionStatus } from "@/types/download";
-import { WingmanItem, WingmanServerAppItem } from "@/types/wingman";
+import { WingmanItem, WingmanServiceAppItem } from "@/types/wingman";
 import { useContext, useEffect, useState } from "react";
 // import useWebSocket, { ReadyState } from "react-use-websocket";
 
@@ -8,7 +8,7 @@ interface WingmanServerProps
 {
     isOnline: boolean;
     item: WingmanItem | undefined;
-    serverStatus: WingmanServerAppItem;
+    serverStatus: WingmanServiceAppItem;
     status: ConnectionStatus;
     start: (alias: string, modelRepo: string, filePath: string) => Promise<void>;
 }
@@ -22,7 +22,7 @@ export function useWingmanService(
     } = useContext(HomeContext);
 
     const [item, setItem] = useState<WingmanItem>();
-    const [serverStatus, setServerStatus] = useState<WingmanServerAppItem>({ isa: "WingmanServerAppItem", status: "unknown", alias: "unknown", modelRepo: "", filePath: "", created: Date.now(), updated: Date.now() });
+    const [serverStatus, setServerStatus] = useState<WingmanServiceAppItem>({ isa: "WingmanServerAppItem", status: "unknown", alias: "unknown", modelRepo: "", filePath: "", created: Date.now(), updated: Date.now() });
     const [status, setStatus] = useState<ConnectionStatus>("❓");
 
     const start = async (alias: string, modelRepo: string, filePath: string, force: boolean = false): Promise<void> =>
@@ -68,7 +68,7 @@ export function useWingmanService(
         }
     }
 
-    function onServerStatusEvent(value: WingmanServerAppItem)
+    function onServerStatusEvent(value: WingmanServiceAppItem)
     {
         setServerStatus(value);
     }

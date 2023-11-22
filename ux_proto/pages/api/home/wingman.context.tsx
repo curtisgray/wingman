@@ -1,11 +1,11 @@
 import { Dispatch, createContext } from "react";
 import { ActionType } from "@/hooks/useCreateReducer";
-import { WingmanInitialState } from "./wingman.state";
+import { WingmanStateProps } from "@/types/wingman";
 
 export interface WingmanContextProps
 {
-    state: WingmanInitialState;
-    dispatch: Dispatch<ActionType<WingmanInitialState>>;
+    state: WingmanStateProps;
+    dispatch: Dispatch<ActionType<WingmanStateProps>>;
 }
 
 const WingmanContext = createContext<WingmanContextProps>(undefined!);

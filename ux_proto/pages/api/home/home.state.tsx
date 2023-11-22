@@ -1,7 +1,7 @@
 import { AIModel, AIModelID } from "@/types/ai";
 import { Conversation } from "@/types/chat";
 import { DownloadItem, DownloadServerAppItem, WingmanWebSocketMessage } from "@/types/download";
-import { WingmanItem, WingmanServerAppItem } from "@/types/wingman";
+import { WingmanItem, WingmanServiceAppItem } from "@/types/wingman";
 
 export interface HomeInitialState
 {
@@ -11,7 +11,7 @@ export interface HomeInitialState
     wingmanItems: WingmanItem[];
     
     downloadServiceStatus: DownloadServerAppItem;
-    inferenceServiceStatus: WingmanServerAppItem;
+    inferenceServiceStatus: WingmanServiceAppItem;
 
     models: AIModel[];
     conversations: Conversation[];
@@ -43,7 +43,7 @@ const initialConversation: Conversation = {
     temperature: 1,
     folderId: null
 };
-export const initialState: HomeInitialState = {
+export const initialHomeState: HomeInitialState = {
     isOnline: false,
     lastWebSocketMessage: undefined,
     downloadItems: [],

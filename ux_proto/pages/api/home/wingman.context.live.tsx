@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Dispatch, createContext, useEffect, useRef, useState } from "react";
 import { ActionType, useCreateReducer } from "@/hooks/useCreateReducer";
-import { WingmanInitialState, initialWingmanState } from "./wingman.state";
+import { initialWingmanState } from "./wingman.state";
 import { ConnectionStatus } from "@/types/download";
-import { WingmanContent, WingmanItem } from "@/types/wingman";
+import { WingmanContent, WingmanItem, WingmanStateProps } from "@/types/wingman";
 import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 
 export interface WingmanContextProps
 {
-    state: WingmanInitialState;
-    dispatch: Dispatch<ActionType<WingmanInitialState>>;
+    state: WingmanStateProps;
+    dispatch: Dispatch<ActionType<WingmanStateProps>>;
 
     forceChosenModel: (alias: string, modelRepo: string, filePath: string) => void;
     activate: (alias: string, modelRepo: string, filePath: string, gpuLayers: number) => Promise<WingmanItem | undefined>;
@@ -29,9 +29,9 @@ function precisionRound(value: number, precision: number)
 }
 
 // export function useWingman(inferencePort: number, monitorPort: number, onNewContent: (content: WingmanContent) => void = () => { }): WingmanProps;
-function useWingmanContext(inferencePort: number, monitorPort: number)
+export function useWingmanContext(inferencePort: number, monitorPort: number)
 {
-    const contextValue = useCreateReducer<WingmanInitialState>({
+    const contextValue = useCreateReducer<WingmanStateProps>({
         initialState: initialWingmanState,
     });
     const {
@@ -232,6 +232,5 @@ function useWingmanContext(inferencePort: number, monitorPort: number)
     // };
     return contextValue;
 }
-
 
 export default WingmanContext;

@@ -33,6 +33,10 @@ import Head from "next/head";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { v4 as uuidv4 } from "uuid";
+import { useWingman } from "@/hooks/useWingman";
+import { WingmanItem, WingmanStateProps } from "@/types/wingman";
+import { initialWingmanState } from "./wingman.state";
+import { DownloadProps } from "@/types/download";
 
 interface Props {
     serverSideApiKeyIsSet: boolean;
@@ -45,10 +49,17 @@ const Home = ({
     serverSidePluginKeysSet,
     defaultModelId,
 }: Props) => {
+    const inferencePort = 6567;
+    const monitorPort = 6568;
+
     const { t } = useTranslation("chat");
     const { getModels } = useApiService();
     const { getModelsError } = useErrorService();
     const [initialRender, setInitialRender] = useState<boolean>(true);
+    const [currentInferenceItem, setCurrentInferenceItem] = useState<WingmanItem | undefined>(undefined);
+    const [chosenModel, setChosenModel] = useState<DownloadProps>({modelRepo: "", filePath: ""});
+
+    const isModelChosen = () => chosenModel !== undefined;
 
     const contextValue = useCreateReducer<HomeInitialState>({
         initialState,
@@ -66,6 +77,85 @@ const Home = ({
         },
         dispatch,
     } = contextValue;
+
+    const wingmanContextValue = useCreateReducer<WingmanStateProps>({
+        initialState: initialWingmanState,
+    });
+
+    const {
+        dispatch: wingmanDispatch,
+    } = wingmanContextValue;
+
+    const {
+        alias,
+        modelRepo,
+        filePath,
+        isGenerating,
+        latestItem,
+        items,
+        pauseMetrics,
+        timeSeries,
+        meta,
+        system,
+        tensors,
+        metrics,
+        lastTime,
+        isOnline,
+        status: connectionStatus,
+        wingmanServiceStatus,
+        downloadServiceStatus,
+        wingmanStatus,
+        isInferring,
+        wingmanItem,
+        lastWebSocketMessage: lastWSMessage,
+
+        forceChosenModel,
+        activate,
+        deactivate,
+        startGenerating,
+        stopGenerating,
+        toggleMetrics,
+    } = useWingman(inferencePort, monitorPort);
+
+    function onInferenceItemsEvent(value: WingmanItem)
+    {
+        setCurrentInferenceItem(value);
+    }
+
+    useEffect(() =>
+    {
+        wingmanDispatch({ field: "alias", value: alias });
+        wingmanDispatch({ field: "modelRepo", value: modelRepo });
+        wingmanDispatch({ field: "filePath", value: filePath });
+        wingmanDispatch({ field: "isGenerating", value: isGenerating });
+        wingmanDispatch({ field: "latestItem", value: latestItem });
+        wingmanDispatch({ field: "items", value: items });
+        wingmanDispatch({ field: "pauseMetrics", value: pauseMetrics });
+        wingmanDispatch({ field: "timeSeries", value: timeSeries });
+        wingmanDispatch({ field: "meta", value: meta });
+        wingmanDispatch({ field: "tensors", value: tensors });
+        wingmanDispatch({ field: "system", value: system });
+        wingmanDispatch({ field: "metrics", value: metrics });
+        wingmanDispatch({ field: "lastTime", value: lastTime });
+        wingmanDispatch({ field: "isOnline", value: isOnline });
+        wingmanDispatch({ field: "status", value: connectionStatus });
+        wingmanDispatch({ field: "wingmanServiceStatus", value: wingmanServiceStatus });
+        wingmanDispatch({ field: "downloadServiceStatus", value: downloadServiceStatus });
+        wingmanDispatch({ field: "wingmanStatus", value: wingmanStatus });
+        wingmanDispatch({ field: "isInferring", value: isInferring });
+        wingmanDispatch({ field: "wingmanItem", value: wingmanItem });
+        wingmanDispatch({ field: "lastWebSocketMessage", value: lastWSMessage });
+
+        wingmanDispatch({ field: "forceChosenModel", value: forceChosenModel });
+        wingmanDispatch({ field: "activate", value: activate });
+        wingmanDispatch({ field: "deactivate", value: deactivate });
+        wingmanDispatch({ field: "startGenerating", value: startGenerating });
+        wingmanDispatch({ field: "stopGenerating", value: stopGenerating });
+        wingmanDispatch({ field: "toggleMetrics", value: toggleMetrics });
+        if (isModelChosen() && wingmanItem.alias === chosenModel?.filePath){
+            onInferenceItemsEvent(wingmanItem);
+        }
+    }, [alias, modelRepo, filePath, isGenerating, latestItem, items, pauseMetrics, timeSeries, meta, system, tensors, metrics, lastTime, isOnline, connectionStatus, wingmanServiceStatus, downloadServiceStatus, wingmanStatus, isInferring, wingmanItem, lastWSMessage, forceChosenModel, activate, deactivate, startGenerating, stopGenerating, toggleMetrics]);
 
     const stopConversationRef = useRef<boolean>(false);
 

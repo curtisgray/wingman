@@ -4,18 +4,20 @@ import HomeContext from "./api/home/home.context";
 
 import WingmanChart from "@/components/WingmanChart";
 import { SelectModel } from "@/components/SelectModel";
-import { ConnectionStatus, DownloadProps, StripFormatFromModelRepo, WingmanWebSocketMessage } from "@/types/download";
-import { HomeInitialState, initialState } from "./api/home/home.state";
+import { DownloadProps, StripFormatFromModelRepo } from "@/types/download";
+import { HomeInitialState, initialHomeState } from "./api/home/home.state";
 import { useCreateReducer } from "@/hooks/useCreateReducer";
 import WingmanRenderBox from "@/components/WingmanRenderBox";
 import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
-import { WingmanItem } from "@/types/wingman";
+import { WingmanItem, WingmanStateProps } from "@/types/wingman";
 import { useWingman } from "@/hooks/useWingman";
+import { initialWingmanState } from "./api/home/wingman.state";
+import WingmanContext from "./api/home/wingman.context";
 
 export default function Home()
 {
+    const inferencePort = 6567;
     const monitorPort = 6568;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [showDownloadedItemsOnly, setShowDownloadedItemsOnly] = useState<boolean>(false);
     const [chosenModel, setChosenModel] = useState<DownloadProps>({modelRepo: "", filePath: ""});
     const [currentInferenceItem, setCurrentInferenceItem] = useState<WingmanItem | undefined>(undefined);
@@ -23,68 +25,91 @@ export default function Home()
     const [showDownloads, setShowDownloads] = useState<boolean>(true);
     const [showHeader, setShowHeader] = useState<boolean>(true);
 
-    const contextValue = useCreateReducer<HomeInitialState>({
-        initialState,
-    });
-    // const [lastTime, setLastTime] = useState<Date>(new Date());
-    // const [system, setSystem] = useState<LlamaStatsSystem>(() => newLlamaStatsSystem());
-    // const [wingmanStatus, setWingmanStatus] = useState<WingmanItemStatus>("unknown");
-    // const [isInferring, setIsInferring] = useState<boolean>(false);
-    // const [wingmanItem, setWingmanItem] = useState<WingmanItem | undefined>(undefined);
-
     const inferenceActions = useRequestInferenceAction();
     const isModelChosen = () => chosenModel !== undefined;
 
+    const homeContextValue = useCreateReducer<HomeInitialState>({
+        initialState: initialHomeState,
+    });
+
     const {
+        dispatch: homeDispatch,
+    } = homeContextValue;
+
+    const wingmanContextValue = useCreateReducer<WingmanStateProps>({
+        initialState: initialWingmanState,
+    });
+
+    const {
+        dispatch: wingmanDispatch,
+    } = wingmanContextValue;
+
+    const {
+        alias,
+        modelRepo,
+        filePath,
+        isGenerating,
+        latestItem,
+        items,
+        pauseMetrics,
+        timeSeries,
+        meta,
         system,
-        isOnline,
-        wingmanStatus,
+        tensors,
+        metrics,
         lastTime,
+        isOnline,
         status: connectionStatus,
+        wingmanServiceStatus,
+        downloadServiceStatus,
+        wingmanStatus,
+        isInferring,
         wingmanItem,
-        forceChosenModel,
         lastWebSocketMessage: lastWSMessage,
-    } = useWingman(6567, 6568);
 
-    const {
-        // state: {
-        //     // isOnline,
-        //     // lastWebSocketMessage,
-        //     // downloadItems,
-        //     // wingmanItems,
-            
-        //     // downloadServiceStatus,
-        //     // inferenceServiceStatus,
+        forceChosenModel,
+        activate,
+        deactivate,
+        startGenerating,
+        stopGenerating,
+        toggleMetrics,
+    } = useWingman(inferencePort, monitorPort);
 
-        //     // models,
-        // },
-        dispatch,
-    } = contextValue;
-    // const {
-    //     lastMessage,
-    //     readyState,
-    // } = useWebSocket(`ws://localhost:${monitorPort}`,
-    //     {
-    //         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    //         shouldReconnect: (_closeEvent) => true,
-    //         reconnectAttempts: 9999999,
-    //         reconnectInterval: 1000,
-    //     });
-    // const connectionStatus = {
-    //     [ReadyState.CONNECTING]: "🔄",
-    //     [ReadyState.OPEN]: "✅",
-    //     [ReadyState.CLOSING]: "⏳",
-    //     [ReadyState.CLOSED]: "❌",
-    //     [ReadyState.UNINSTANTIATED]: "❓",
-    // }[readyState];
+    useEffect(() =>
+    {
+        wingmanDispatch({ field: "alias", value: alias });
+        wingmanDispatch({ field: "modelRepo", value: modelRepo });
+        wingmanDispatch({ field: "filePath", value: filePath });
+        wingmanDispatch({ field: "isGenerating", value: isGenerating });
+        wingmanDispatch({ field: "latestItem", value: latestItem });
+        wingmanDispatch({ field: "items", value: items });
+        wingmanDispatch({ field: "pauseMetrics", value: pauseMetrics });
+        wingmanDispatch({ field: "timeSeries", value: timeSeries });
+        wingmanDispatch({ field: "meta", value: meta });
+        wingmanDispatch({ field: "tensors", value: tensors });
+        wingmanDispatch({ field: "system", value: system });
+        wingmanDispatch({ field: "metrics", value: metrics });
+        wingmanDispatch({ field: "lastTime", value: lastTime });
+        wingmanDispatch({ field: "isOnline", value: isOnline });
+        wingmanDispatch({ field: "status", value: connectionStatus });
+        wingmanDispatch({ field: "wingmanServiceStatus", value: wingmanServiceStatus });
+        wingmanDispatch({ field: "downloadServiceStatus", value: downloadServiceStatus });
+        wingmanDispatch({ field: "wingmanStatus", value: wingmanStatus });
+        wingmanDispatch({ field: "isInferring", value: isInferring });
+        wingmanDispatch({ field: "wingmanItem", value: wingmanItem });
+        wingmanDispatch({ field: "lastWebSocketMessage", value: lastWSMessage });
+
+        wingmanDispatch({ field: "forceChosenModel", value: forceChosenModel });
+        wingmanDispatch({ field: "activate", value: activate });
+        wingmanDispatch({ field: "deactivate", value: deactivate });
+        wingmanDispatch({ field: "startGenerating", value: startGenerating });
+        wingmanDispatch({ field: "stopGenerating", value: stopGenerating });
+        wingmanDispatch({ field: "toggleMetrics", value: toggleMetrics });
+    }, [alias, modelRepo, filePath, isGenerating, latestItem, items, pauseMetrics, timeSeries, meta, system, tensors, metrics, lastTime, isOnline, connectionStatus, wingmanServiceStatus, downloadServiceStatus, wingmanStatus, isInferring, wingmanItem, lastWSMessage, forceChosenModel, activate, deactivate, startGenerating, stopGenerating, toggleMetrics]);
 
     function onInferenceItemsEvent(value: WingmanItem)
     {
-        // if (value.status === "inferring"){
         setCurrentInferenceItem(value);
-        // } else {
-        //     setCurrentInferenceItem(undefined);
-        // }
     }
 
     const handleModelChange = (model: DownloadProps | undefined) =>
@@ -135,7 +160,6 @@ export default function Home()
 
     const renderHeader = (): ReactNode =>
     {
-        // if (readyState === ReadyState.OPEN) {
         if (isOnline) {
             return renderOnlineHeader();
         } else {
@@ -184,8 +208,8 @@ export default function Home()
         if (isModelChosen() && wingmanItem.alias === chosenModel?.filePath){
             onInferenceItemsEvent(wingmanItem);
         }
-        dispatch({ field: "lastWebSocketMessage", value: lastWSMessage });
-    }, [wingmanItem, lastWSMessage]);
+        // homeDispatch({ field: "lastWebSocketMessage", value: lastWSMessage });
+    }, [wingmanItem]);
 
     // useEffect(() =>
     // {
@@ -194,7 +218,7 @@ export default function Home()
     //             lastMessage: lastMessage.data,
     //             connectionStatus: connectionStatus as ConnectionStatus,
     //         };
-    //         dispatch({ field: "lastWebSocketMessage", value: message });
+    //         homeDispatch({ field: "lastWebSocketMessage", value: message });
     //         const json = JSON.parse(lastMessage.data);
     //         if (json?.isa === "WingmanItem") {
     //             if (isModelChosen() && json.alias === chosenModel?.filePath){
@@ -219,22 +243,22 @@ export default function Home()
     const showGraph = false;
     return (
         <HomeContext.Provider value={{
-            ...contextValue,
+            ...homeContextValue,
             handleUpdateConversation: () => {}
         }}>
             <main className={"flex flex-col justify-center h-screen w-screen items-center text-white bg-slate-900"}>
                 <p className="pb-4 text-2xl uppercase">Wingman<span> (LOCAL)</span></p>
                 <div>
                     <label>
-                        <input type="checkbox" className="w-4 m-4" checked={showMetrics} onChange={(e) => {setShowMetrics(!showMetrics)}} />
+                        <input type="checkbox" className="w-4 m-4" checked={showMetrics} onChange={(e) => setShowMetrics(!showMetrics)} />
                         Show Metrics
                     </label>
                     <label>
-                        <input type="checkbox" className="w-4 m-4" checked={showDownloads} onChange={(e) => {setShowDownloads(!showDownloads)}} />
+                        <input type="checkbox" className="w-4 m-4" checked={showDownloads} onChange={(e) => setShowDownloads(!showDownloads)} />
                         Show Downloads
                     </label>
                     <label>
-                        <input type="checkbox" className="w-4 m-4" checked={showHeader} onChange={(e) => {setShowHeader(!showHeader)}} />
+                        <input type="checkbox" className="w-4 m-4" checked={showHeader} onChange={(e) => setShowHeader(!showHeader)} />
                         Show Header
                     </label>
                 </div>
@@ -249,10 +273,14 @@ export default function Home()
                         onChange={handleModelChange} />
                     {displayActivationButton()}
                 </>}
-                {showMetrics && <>
-                    <WingmanChart className="w-3/5 m-4" showGraph={showGraph} chosenModel={chosenModel} />
-                </>}
-                <WingmanRenderBox className="w-3/5 h-96 m-4" chosenModel={chosenModel} />
+                <WingmanContext.Provider value={{
+                    ...wingmanContextValue,
+                }}>
+                    {showMetrics && <>
+                        <WingmanChart className="w-3/5 m-4" showGraph={showGraph} chosenModel={chosenModel} />
+                    </>}
+                    <WingmanRenderBox className="w-3/5 h-96 m-4" chosenModel={chosenModel} />
+                </WingmanContext.Provider>
             </main>
         </HomeContext.Provider>
     );

@@ -1,9 +1,9 @@
 import React, { useContext, useEffect, useState } from "react";
 import { DownloadButtonProps, DownloadItem } from "@/types/download";
 import { HF_MODEL_ENDS_WITH } from "@/utils/app/const";
-import HomeContext from "@/pages/api/home/home.context";
 import { useRequestDownloadAction } from "@/hooks/useRequestDownloadAction";
 import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
+import WingmanContext from "@/pages/api/home/wingman.context";
 
 const DownloadButton = ({ modelRepo, filePath,
     showRepoName = true, showFileName = true, showProgress = true, showProgressText = true,
@@ -12,7 +12,7 @@ const DownloadButton = ({ modelRepo, filePath,
 {
     const {
         state: { lastWebSocketMessage },
-    } = useContext(HomeContext);
+    } = useContext(WingmanContext);
 
     const downloadActions = useRequestDownloadAction();
     const inferenceActions = useRequestInferenceAction();
@@ -117,7 +117,7 @@ const DownloadButton = ({ modelRepo, filePath,
 
     return (
         <button type="button" disabled={disabled}
-            onClick={handleRequestDownload}
+            onClick={handleRequestOrCancelDownload}
             className={className == undefined ? "flex flex-col bg-blue-500 hover:bg-blue-700 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded" : className}>
             {
                 children == undefined ?

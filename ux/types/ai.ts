@@ -1,18 +1,32 @@
 import huggingfaceImage from "@/assets/huggingface.png";
 import openaiLightImage from "@/assets/openai-white.png";
-import openaiDarkImage from "@/assets/openai-black.png";
+import { StaticImageData } from "next/image";
 
 export interface VendorInfo
 {
+    isa: "VendorInfo";
     name: string;
     displayName: string;
-    logo: any;
+    logo: StaticImageData;
     isDownloadable: boolean;
     isEnabled: boolean;
 }
 
+export interface DownloadableItem
+{
+    isa: "DownloadableItem";
+    modelRepo: string;
+    modelRepoName: string;
+    filePath: string;
+    quantization: string;
+    quantizationName: string;
+    isDownloaded: boolean;
+    location: string;
+}
+
 export interface AIModel
 {
+    isa: "AIModel";
     id: string;
     name: string;
     maxLength: number; // maximum length of a message
@@ -20,8 +34,8 @@ export interface AIModel
     vendor: string;
     location?: string;
     apiKey?: string;
-    quantizations?: string[];
-    isDownloaded?: boolean;
+    items?: DownloadableItem[];
+    item?: DownloadableItem;
 }
 
 export enum AIModelID
@@ -31,6 +45,7 @@ export enum AIModelID
     GPT_3_5_AZ = "gpt-35-turbo",
     GPT_4 = "gpt-4",
     GPT_4_32K = "gpt-4-32k",
+    GPT_OFFLINE = "gpt-offline",
 }
 
 // in case the `DEFAULT_MODEL` environment variable is not set or set to an unsupported model
@@ -38,13 +53,15 @@ export const fallbackModelID = AIModelID.GPT_3_5;
 
 export const Vendors: Record<string, VendorInfo> = {
     openai: {
+        isa: "VendorInfo",
         name: "openai",
         displayName: "OpenAI",
         logo: openaiLightImage,
         isDownloadable: false,
-        isEnabled: true,
+        isEnabled: false,
     },
     huggingface: {
+        isa: "VendorInfo",
         name: "huggingface",
         displayName: "HuggingFace",
         logo: huggingfaceImage,
@@ -54,7 +71,16 @@ export const Vendors: Record<string, VendorInfo> = {
 };
 
 export const AIModels: Record<AIModelID, AIModel> = {
+    [AIModelID.GPT_OFFLINE]: {
+        isa: "AIModel",
+        id: AIModelID.GPT_OFFLINE,
+        name: "OFFLINE",
+        maxLength: 0,
+        tokenLimit: 0,
+        vendor: Vendors.openai.name,
+    },
     [AIModelID.GPT_3_5]: {
+        isa: "AIModel",
         id: AIModelID.GPT_3_5,
         name: "GPT-3.5",
         maxLength: 4 * 3 * 1024,
@@ -62,6 +88,7 @@ export const AIModels: Record<AIModelID, AIModel> = {
         vendor: Vendors.openai.name,
     },
     [AIModelID.GPT_3_5_16K]: {
+        isa: "AIModel",
         id: AIModelID.GPT_3_5_16K,
         name: "GPT-3.5-16K",
         maxLength: 16 * 3 * 1024,
@@ -69,6 +96,7 @@ export const AIModels: Record<AIModelID, AIModel> = {
         vendor: Vendors.openai.name,
     },
     [AIModelID.GPT_3_5_AZ]: {
+        isa: "AIModel",
         id: AIModelID.GPT_3_5_AZ,
         name: "GPT-3.5",
         maxLength: 4 * 3 * 1024,
@@ -76,6 +104,7 @@ export const AIModels: Record<AIModelID, AIModel> = {
         vendor: Vendors.openai.name,
     },
     [AIModelID.GPT_4]: {
+        isa: "AIModel",
         id: AIModelID.GPT_4,
         name: "GPT-4",
         maxLength: 8 * 3 * 1024,
@@ -83,6 +112,7 @@ export const AIModels: Record<AIModelID, AIModel> = {
         vendor: Vendors.openai.name,
     },
     [AIModelID.GPT_4_32K]: {
+        isa: "AIModel",
         id: AIModelID.GPT_4_32K,
         name: "GPT-4-32K",
         maxLength: 32 * 3 * 1024,
@@ -90,3 +120,13 @@ export const AIModels: Record<AIModelID, AIModel> = {
         vendor: Vendors.openai.name,
     },
 };
+
+export const AIModelList = (): AIModel[] => {
+    return Object.values(AIModels);
+};
+
+export const WINGMAN_PORT = 6568;
+export const WINGMAN_SERVER = `http://localhost:${WINGMAN_PORT}`;
+export const WINGMAN_SERVER_API = `${WINGMAN_SERVER}/api`;
+export const WINGMAN_INFERENCE_PORT = 6567;
+export const WINGMAN_INFERENCE_SERVER = `http://localhost:${WINGMAN_INFERENCE_PORT}`;

@@ -35,6 +35,8 @@
         "react-select": "^5.7.4",
         "react-syntax-highlighter": "^15.5.0",
         "react-textarea-autosize": "^8.5.2",
+        "react-use-websocket": "^4.5.0",
+        "recharts": "^2.9.3",
         "rehype-mathjax": "^4.0.2",
         "remark-gfm": "^3.0.1",
         "remark-math": "^5.1.1",

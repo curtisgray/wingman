@@ -1,12 +1,9 @@
-import React from "react";
-import { useWingman } from "@/hooks/useWingman";
-// import prompts from "@/prompts";
+import React, { useContext } from "react";
 import drone from "@/prompts/drone.prompt.long.xwin.json";
 import reddit from "@/prompts/reddit.prompt.xwin.json";
-// import { WingmanContent } from "@/types/wingman";
-import { useEffect, useRef, useState } from "react";
-import { useScrollDirection } from "react-use-scroll-direction";
+import { useRef } from "react";
 import { DownloadProps } from "@/types/download";
+import WingmanContext from "@/pages/api/home/wingman.context";
 
 interface WingmanRenderBoxProps
 {
@@ -19,9 +16,17 @@ const WingmanRenderBox = ({ chosenModel, className = "" }: WingmanRenderBoxProps
 {
     // const [items, setItems] = useState<WingmanContent[]>([]);
     const messageEndRef = useRef<HTMLDivElement>(null);
-    const [beAutoScrolling, setBeAutoScrolling] = useState(true);
-    const { isScrollingUp } = useScrollDirection();
-    const { isGenerating, startGenerating, stopGenerating, items } = useWingman(6567, 6568);
+    // const [beAutoScrolling, setBeAutoScrolling] = useState(true);
+    // const { isScrollingUp } = useScrollDirection();
+    // const { isGenerating, startGenerating, stopGenerating, items } = useWingman(6567, 6568);
+    const {
+        state: { 
+            items,
+            isGenerating,
+            startGenerating,
+            stopGenerating,
+        },
+    } = useContext(WingmanContext);
 
     function sendDronePrompt()
     {
@@ -37,20 +42,20 @@ const WingmanRenderBox = ({ chosenModel, className = "" }: WingmanRenderBoxProps
         console.log("sent drone prompt");
     }
 
-    const scrollToBottom = () =>
-    {
-        messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
+    // const scrollToBottom = () =>
+    // {
+    //     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    // };
 
-    useEffect(() =>
-    {
-        if (isScrollingUp) {
-            setBeAutoScrolling(false);
-        }
-        if (beAutoScrolling) {
-            scrollToBottom();
-        }
-    }, [beAutoScrolling, isScrollingUp, items]);
+    // useEffect(() =>
+    // {
+    //     if (isScrollingUp) {
+    //         setBeAutoScrolling(false);
+    //     }
+    //     if (beAutoScrolling) {
+    //         scrollToBottom();
+    //     }
+    // }, [beAutoScrolling, isScrollingUp, items]);
 
     // useEffect(() =>
     // {

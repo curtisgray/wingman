@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { DownloadProps, DownloadServerAppItem } from "@/types/download";
-import { WingmanItem, WingmanItemStatus, WingmanServerAppItem } from "@/types/wingman";
-import { LlamaStats, LlamaStatsTimings, LlamaStatsSystem, LlamaStatsMeta, newLlamaStatsTimings, newLlamaStatsSystem, newLlamaStatsMeta } from "@/types/llama_stats";
-import React, { useState, useEffect, ReactNode } from "react";
-import useWebSocket, { ReadyState } from "react-use-websocket";
+import { DownloadProps } from "@/types/download";
+import React, { useState, ReactNode, useContext } from "react";
 import { LineChart, Line, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { useWingman } from "@/hooks/useWingman";
+import WingmanContext from "@/pages/api/home/wingman.context";
 
 
 interface WingmanChartProps
@@ -31,91 +29,29 @@ const WingmanChart = ({ showGraph = true, showHardware = false, className = "" }
         "offloaded": "text-lime-600",
         "offloaded_total": "text-gray-500",
     };
-    // const [timeSeries, setTimeSeries] = useState<LlamaStats[]>([]);
-    // const [metrics, setMetrics] = useState<LlamaStatsTimings>(() => newLlamaStatsTimings());
-    // const [system, setSystem] = useState<LlamaStatsSystem>(() => newLlamaStatsSystem());
-    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // const [meta, setMeta] = useState<LlamaStatsMeta>(() => newLlamaStatsMeta());
-    // const [lastTime, setLastTime] = useState<Date>(new Date());
-    // const [pauseMetrics, setPauseMetrics] = useState<boolean>(false);
-    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // const [downloadServiceStatus, setDownloadServiceStatus] = useState<DownloadServerAppItem|undefined>(undefined);
-    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // const [wingmanServiceStatus, setWingmanServiceStatus] = useState<WingmanServerAppItem|undefined>(undefined);
-    // const [wingmanStatus, setWingmanStatus] = useState<WingmanItemStatus>("unknown");
-    // const [isInferring, setIsInferring] = useState<boolean>(false);
-    // const [isGenerating, setIsGenerating] = useState<boolean>(false);
-
-
-    // const {
-    //     lastMessage,
-    //     readyState,
-    // } = useWebSocket("ws://localhost:6568",
-    //     {
-    //         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    //         shouldReconnect: (_closeEvent) => true,
-    //         reconnectAttempts: 9999999,
-    //         reconnectInterval: 1000,
-    //     });
-    // const connectionStatus = {
-    //     [ReadyState.CONNECTING]: "🔄",
-    //     [ReadyState.OPEN]: "✅",
-    //     [ReadyState.CLOSING]: "⏳",
-    //     [ReadyState.CLOSED]: "❌",
-    //     [ReadyState.UNINSTANTIATED]: "❓",
-    // }[readyState];
-
-    // useEffect(() =>
-    // {
-    //     if (lastMessage?.data) {
-    //         const json = JSON.parse(lastMessage.data);
-    //         if (json.system) {
-    //             setSystem(json.system);
-
-    //             if (json.system.has_next_token){
-    //                 setIsGenerating(true);
-    //             } else {
-    //                 setIsGenerating(false);
-    //             }
-    //         }
-    //         if (json.meta) {
-    //             setMeta(json.meta);
-    //         }
-    //         if (json.timings && !pauseMetrics) {
-    //             const metrics = json.timings;
-    //             Object.keys(metrics).forEach(function (key) { metrics[key] = precisionRound(metrics[key], fractionDigits); });
-    //             setMetrics(metrics);
-    //             setTimeSeries([...timeSeries, metrics].slice(-1000));
-    //         }
-    //         if (json?.WingmanService) {
-    //             setWingmanServiceStatus(json.WingmanService);
-    //         }
-    //         if (json?.DownloadService) {
-    //             setDownloadServiceStatus(json.DownloadService);
-    //         }
-    //         if (json?.isa === "WingmanItem" && json?.alias === chosenModel?.filePath) {
-    //             const item = json as WingmanItem;
-    //             setWingmanStatus(item.status);
-    //             setIsInferring(item.status === "inferring");
-    //         }
-    //         const date = new Date();
-    //         setLastTime(date);
-    //     }
-    // // }, [timeSeries, lastMessage, pauseMetrics]);
-    // }, [lastMessage, pauseMetrics]);
 
     const lowStatCutOff = -1; // set to 0 to keep stats on screen, -1 to allow stats to disappear
     const [showGraphMetrics, setShowGraphMetrics] = useState<boolean>(true);
-    const { 
-        status: connectionStatus, isOnline,
-        metrics, system, timeSeries,
-        toggleMetrics,
-        pauseMetrics
-    } = useWingman(6567, 6568);
+    // const { 
+    //     status: connectionStatus, isOnline,
+    //     metrics, system, timeSeries,
+    //     toggleMetrics,
+    //     pauseMetrics
+    // } = useWingman(6567, 6568);
+    const {
+        state: { 
+            status: connectionStatus,
+            isOnline,
+            metrics,
+            system,
+            timeSeries,
+            toggleMetrics,
+            pauseMetrics
+        },
+    } = useContext(WingmanContext);
 
     const toggleGraphMetrics = () => {
         setShowGraphMetrics(!showGraphMetrics);
-        // showGraph = !showGraph;
     };
 
     const renderStat = (value: number|string, name: string, statColor: string): ReactNode =>
@@ -130,7 +66,6 @@ const WingmanChart = ({ showGraph = true, showHardware = false, className = "" }
 
     const renderOfflineHeader = (): ReactNode =>
     {
-        //🔄
         return (
             <>
                 <p>Inference Metrics <span title="Wingman is offline">{connectionStatus}</span></p>
@@ -142,14 +77,10 @@ const WingmanChart = ({ showGraph = true, showHardware = false, className = "" }
     {
         return (
             <>
-                {/* <p>{`Inference Metrics (${wingmanStatus === "complete" ? "inactive" : wingmanStatus})`} <span title="Wingman is online">{connectionStatus}</span> <span>{system.cuda_str}</span></p> */}
-                {/* <p>Inference Metrics</p> */}
                 {showHardware &&
                 <p>{system.gpu_name}<span> {system.cuda_str}</span></p>
                 }
-                {/* <p><span>Last updated at {lastTime.toLocaleTimeString()}</span></p> */}
                 <div className="text-xs">
-                    {/* <div><span className={`${chartColors.model_alias} text-lg`}>{system.model_alias} {system.quantization ? system.quantization: ""} {system.has_next_token ? "🗣" : ""}</span></div> */}
                     <div className="flex">
                         {system.ctx_size > lowStatCutOff &&
                             renderStat(Number(system.ctx_size)?.toLocaleString(undefined, { minimumFractionDigits: 0 }), "MB Context", chartColors.context_length)
@@ -174,7 +105,6 @@ const WingmanChart = ({ showGraph = true, showHardware = false, className = "" }
 
     const renderHeader = (): ReactNode =>
     {
-        // if (readyState === ReadyState.OPEN) {
         if (isOnline) {
             return renderOnlineHeader();
         } else {
@@ -210,20 +140,12 @@ const WingmanChart = ({ showGraph = true, showHardware = false, className = "" }
                 </div>
                 <div className="flex flex-row text-xs">
                     <div>
-                        {/* {metrics.predicted_per_second > lowStatCutOff && */}
                         {renderStat(metrics.predicted_per_second, "Token Rate", chartColors.predicted_per_second)}
-                        {/* } */}
-                        {/* {metrics.predicted_per_token_ms > lowStatCutOff && */}
                         {renderStat(metrics.predicted_per_token_ms, "Token Time", chartColors.predicted_per_token_ms)}
-                        {/* } */}
                     </div>
                     <div>
-                        {/* {metrics.sample_per_second > lowStatCutOff && */}
                         {renderStat(metrics.sample_per_second, "Sample Rate", chartColors.sample_per_second)}
-                        {/* } */}
-                        {/* {metrics.sample_per_token_ms > lowStatCutOff && */}
                         {renderStat(metrics.sample_per_token_ms, "Sample Time", chartColors.sample_per_token_ms)}
-                        {/* } */}
                     </div>
                 </div>
             </div>
