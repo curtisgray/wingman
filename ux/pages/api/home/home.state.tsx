@@ -5,7 +5,7 @@ import { AIModel, AIModelID } from "@/types/ai";
 import { PluginKey } from "@/types/plugin";
 import { Prompt } from "@/types/prompt";
 
-export interface HomeInitialState {
+export interface HomeStateProps {
     apiKey: string;
     pluginKeys: PluginKey[];
     loading: boolean;
@@ -29,7 +29,7 @@ export interface HomeInitialState {
     serverSidePluginKeysSet: boolean;
 }
 
-export const initialState: HomeInitialState = {
+export const initialState: HomeStateProps = {
     apiKey: "",
     loading: false,
     pluginKeys: [],

@@ -44,9 +44,9 @@ export const ModelSelect = () => {
     };
 
     const handleQuantChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        if (selectedConversation?.model?.quantizations) {
-            const quant = selectedConversation?.model?.quantizations.find(
-                (quant) => quant === e.target.value
+        if (selectedConversation?.model?.items) {
+            const quant = selectedConversation?.model?.items.find(
+                (item) => item.quantization === e.target.value
             );
         }
     };
@@ -135,14 +135,14 @@ export const ModelSelect = () => {
                         }
                         onChange={handleQuantChange}
                     >
-                        {selectedConversation?.model?.quantizations?.map(
-                            (quant) => (
+                        {selectedConversation?.model?.items?.map(
+                            (item) => (
                                 <option
-                                    key={quant}
-                                    value={quant}
+                                    key={item.quantization}
+                                    value={item.quantizationName}
                                     className="dark:bg-[#343541] dark:text-white"
                                 >
-                                    {quant}
+                                    {item.quantizationName}
                                 </option>
                             )
                         )}
@@ -163,7 +163,7 @@ export const ModelSelect = () => {
             )}
             {selectedConversation?.model?.vendor !== undefined &&
                 Vendors[selectedConversation?.model?.vendor].isDownloadable &&
-                (selectedConversation?.model?.isDownloaded ? (
+                (selectedConversation?.model?.item ? (
                     <span className="self-center m-2">Model is downloaded</span>
                 ) : (
                     <button

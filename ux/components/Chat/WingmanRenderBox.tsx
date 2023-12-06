@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
-import drone from "@/prompts/drone.prompt.long.xwin.json";
-import reddit from "@/prompts/reddit.prompt.xwin.json";
+// import drone from "@/prompts/drone.prompt.long.xwin.json";
+// import reddit from "@/prompts/reddit.prompt.xwin.json";
 import { useRef } from "react";
 import { DownloadProps } from "@/types/download";
 import WingmanContext from "@/pages/api/home/wingman.context";
@@ -11,7 +11,6 @@ interface WingmanRenderBoxProps
     className?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const WingmanRenderBox = ({ chosenModel, className = "" }: WingmanRenderBoxProps) =>
 {
     // const [items, setItems] = useState<WingmanContent[]>([]);
@@ -28,19 +27,19 @@ const WingmanRenderBox = ({ chosenModel, className = "" }: WingmanRenderBoxProps
         },
     } = useContext(WingmanContext);
 
-    function sendDronePrompt()
-    {
-        // setItems([]);
-        startGenerating(drone.prompt, 0);
-        console.log("sent drone prompt");
-    }
+    // function sendDronePrompt()
+    // {
+    //     // setItems([]);
+    //     startGenerating(drone.prompt, 0);
+    //     console.log("sent drone prompt");
+    // }
 
-    function sendRedditPrompt()
-    {
-        // setItems([]);
-        startGenerating(reddit.prompt, 0);
-        console.log("sent drone prompt");
-    }
+    // function sendRedditPrompt()
+    // {
+    //     // setItems([]);
+    //     startGenerating(reddit.prompt, 0);
+    //     console.log("sent drone prompt");
+    // }
 
     // const scrollToBottom = () =>
     // {
@@ -75,10 +74,10 @@ const WingmanRenderBox = ({ chosenModel, className = "" }: WingmanRenderBoxProps
                     </p>
                 </div>
                 {isGenerating === false && <div className="grid items-center">
-                    <button className="text-center rounded h-12 p-4 bg-neutral-50 text-xs font-medium uppercase leading-normal text-neutral-800"
+                    {/* <button className="text-center rounded h-12 p-4 bg-neutral-50 text-xs font-medium uppercase leading-normal text-neutral-800"
                         onClick={sendDronePrompt}>drone</button>
                     <button className="text-center rounded h-12 p-4 bg-neutral-50 text-xs font-medium uppercase leading-normal text-neutral-800"
-                        onClick={sendRedditPrompt}>reddit</button>
+                        onClick={sendRedditPrompt}>reddit</button> */}
                 </div>}
                 {isGenerating === true && <div className="grid items-center">
                     <button className="text-center rounded h-12 p-4 bg-neutral-50 text-xs font-medium uppercase leading-normal text-neutral-800"

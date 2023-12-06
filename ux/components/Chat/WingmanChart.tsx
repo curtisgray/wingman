@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { DownloadProps } from "@/types/download";
 import React, { useState, ReactNode, useContext } from "react";
 import { LineChart, Line, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
@@ -32,12 +31,6 @@ const WingmanChart = ({ showGraph = true, showHardware = false, className = "" }
 
     const lowStatCutOff = -1; // set to 0 to keep stats on screen, -1 to allow stats to disappear
     const [showGraphMetrics, setShowGraphMetrics] = useState<boolean>(true);
-    // const { 
-    //     status: connectionStatus, isOnline,
-    //     metrics, system, timeSeries,
-    //     toggleMetrics,
-    //     pauseMetrics
-    // } = useWingman(6567, 6568);
     const {
         state: { 
             status: connectionStatus,

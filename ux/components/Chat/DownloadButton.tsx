@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useContext, useEffect, useState } from "react";
 import { DownloadButtonProps, DownloadItem } from "@/types/download";
 import { HF_MODEL_ENDS_WITH } from "@/utils/app/const";
@@ -21,7 +22,7 @@ const DownloadButton = ({ modelRepo, filePath,
     const [isDownloading, setIsDownloading] = useState<boolean>(false);
     const [progress, setProgress] = useState<number>(0);
     const [progressText, setProgressText] = useState<string>("");
-    const [downloadLabel, setDownloadLabel] = useState<string>("Download");
+    const [downloadLabel, setDownloadLabel] = useState<string>(autoActivate ? "Download & Switch": "Download");
     const [disabled, setDisabled] = useState<boolean>(false);
     const [downloadStarted, setDownloadStarted] = useState<boolean>(false);
     
@@ -34,7 +35,7 @@ const DownloadButton = ({ modelRepo, filePath,
     const handleCancelDownload = () => {
         setDisabled(false);
         downloadActions.requestCancelDownload(modelRepo, filePath);
-        setDownloadLabel("Redownload");
+        setDownloadLabel(autoActivate ? "Redownload & Switch": "Redownload");
     };
 
     const handleRequestOrCancelDownload = () => {
@@ -65,7 +66,7 @@ const DownloadButton = ({ modelRepo, filePath,
         if (downloadItem !== undefined) {
             switch (downloadItem.status) {
                 case "complete":
-                    setDownloadLabel("Downloaded");
+                    setDownloadLabel(autoActivate ? "Switching...": "Downloaded");
                     setDisabled(true);
                     setProgress(downloadItem.progress);
                     setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
@@ -79,7 +80,7 @@ const DownloadButton = ({ modelRepo, filePath,
                         setDownloadStarted(true);
                         onStarted(downloadItem);
                     }
-                    setDownloadLabel("Cancel Download");
+                    setDownloadLabel(autoActivate ? "Cancel Download & Switch": "Cancel Download");
                     setDisabled(false);
                     setProgress(downloadItem.progress);
                     setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
@@ -87,7 +88,7 @@ const DownloadButton = ({ modelRepo, filePath,
                     onProgress(downloadItem.progress);
                     break;
                 case "cancelled":
-                    setDownloadLabel("Redownload");
+                    setDownloadLabel(autoActivate ? "Redownload & Switch": "Redownload");
                     setDisabled(false);
                     setProgress(downloadItem.progress);
                     setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
@@ -99,7 +100,7 @@ const DownloadButton = ({ modelRepo, filePath,
                     setDownloadLabel("Error");
                     break;
                 case "idle":
-                    setDownloadLabel("Download");
+                    setDownloadLabel(autoActivate ? "Download & Switch": "Download");
                     setDisabled(true);
                     setDownloadStarted(false);
                     break;

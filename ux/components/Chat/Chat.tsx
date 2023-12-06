@@ -29,6 +29,7 @@ import {
 } from "react";
 import toast from "react-hot-toast";
 import { SelectModel } from "./SelectModel";
+import { DownloadProps } from "@/types/download";
 
 interface Props {
     stopConversationRef: MutableRefObject<boolean>;
@@ -361,29 +362,46 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         };
     }, []);
 
-    const displayActivationButton = () =>
-    {
-        if (isModelChosen()) {
-            if (currentInferenceItem?.status === "inferring") {
-                return (
-                    <button className="text-center rounded h-12 mt-4 p-4 bg-neutral-50 text-xs font-medium uppercase text-neutral-800"
-                        onClick={handleStopInference}>{`deactivate (${currentInferenceItem.alias})`}</button>
-                );
-            } else if (currentInferenceItem?.status === "complete") {
-                return (
-                    <button className="text-center rounded h-12 mt-4 p-4 bg-neutral-50 text-xs font-medium uppercase text-neutral-800"
-                        onClick={handleStartInference}>activate</button>
-                );
-            } else {
-                return (
-                    <button className="text-center rounded h-12 mt-4 p-4 bg-neutral-50 text-xs font-medium uppercase text-neutral-800"
-                        onClick={handleStartInference}>{`${currentInferenceItem?.status}`}</button>
-                );
+    // const displayActivationButton = () =>
+    // {
+    //     if (isModelChosen()) {
+    //         if (currentInferenceItem?.status === "inferring") {
+    //             return (
+    //                 <button className="text-center rounded h-12 mt-4 p-4 bg-neutral-50 text-xs font-medium uppercase text-neutral-800"
+    //                     onClick={handleStopInference}>{`deactivate (${currentInferenceItem.alias})`}</button>
+    //             );
+    //         } else if (currentInferenceItem?.status === "complete") {
+    //             return (
+    //                 <button className="text-center rounded h-12 mt-4 p-4 bg-neutral-50 text-xs font-medium uppercase text-neutral-800"
+    //                     onClick={handleStartInference}>activate</button>
+    //             );
+    //         } else {
+    //             return (
+    //                 <button className="text-center rounded h-12 mt-4 p-4 bg-neutral-50 text-xs font-medium uppercase text-neutral-800"
+    //                     onClick={handleStartInference}>{`${currentInferenceItem?.status}`}</button>
+    //             );
+    //         }
+    //     }
+    //     return (
+    //         <div></div>
+    //     );
+    // };
+
+    const handleChangeModel = (model: DownloadProps) => {
+        if (selectedConversation && models.length > 0) {
+            const m = models.find((m) => m.id === model.modelRepo);
+            if (!m || !(m.items !== undefined && m.items.length > 0)) {
+                return;
             }
+            const item = m.items?.find((item) => item.filePath === model.filePath);
+            m.item = item;
+            handleUpdateConversation(selectedConversation, {
+                key: "model",
+                value: m,
+            });
+            return true;
         }
-        return (
-            <div></div>
-        );
+        return false;
     };
 
     return (
@@ -456,7 +474,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                                                 <label className="mt-4 mb-0">Show downloaded items only
                                                     <input type="checkbox" className="w-4 m-4" checked={showDownloadedItemsOnly} onChange={(e) => setShowDownloadedItemsOnly(e.target.checked)} />
                                                 </label>
-                                                <SelectModel showDownloadedItemsOnly={showDownloadedItemsOnly} />
+                                                <SelectModel autoActivate={true} showDownloadedItemsOnly={showDownloadedItemsOnly}
+                                                    onChange={(model) => handleChangeModel(model)} />
                                             </div>
 
                                             <SystemPrompt

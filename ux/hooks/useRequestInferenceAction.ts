@@ -26,16 +26,16 @@ export function useRequestInferenceAction(): InferenceActionProps
                             wingmanItem = item;
                         }
                     } catch (error) {
-                        console.error("useRequestDownloadAction: requestDownload Failed to parse JSON:", error);
+                        console.error("useRequestDownloadAction: requestStartInference Failed to parse JSON:", error);
                     }
                 } else {
-                    console.error("useRequestDownloadAction: requestDownload Received non-JSON response:",
+                    console.error("useRequestDownloadAction: requestStartInference Received non-JSON response:",
                         response.headers.get("content-type"));
                 }
             }
             return wingmanItem;
         } catch (error) {
-            console.error("useRequestDownloadAction: requestDownload Failed to start download:", error);
+            console.error("useRequestDownloadAction: requestStartInference Failed to start download:", error);
             return undefined;
         }
     };
@@ -46,10 +46,26 @@ export function useRequestInferenceAction(): InferenceActionProps
         try {
             const response = await fetch(encodeURI(url));
             if (!response.ok) {
-                console.error("useRequestDownloadAction: requestCancelDownload Received non-OK response:", response.status, response.statusText);
+                console.error("useRequestDownloadAction: requestStopInference Received non-OK response:", response.status, response.statusText);
             }
         } catch (error) {
-            console.error("useRequestDownloadAction: requestCancelDownload Exception Failed to cancel download:", error);
+            console.error("useRequestDownloadAction: requestStopInference Exception Failed to cancel download:", error);
+        }
+    };
+
+    const requestInferenceStatus = async (alias: string|undefined = undefined) =>
+    {
+        let url = `${WINGMAN_SERVER_API}/inference/status`;
+        if (alias) {
+            url = `${WINGMAN_SERVER_API}/inference/status?alias=${encodeURI(alias)}`;
+        }
+        try {
+            const response = await fetch(encodeURI(url));
+            if (!response.ok) {
+                console.error("requestInferenceStatus: requestInferenceStatus Received non-OK response:", response.status, response.statusText);
+            }
+        } catch (error) {
+            console.error("requestInferenceStatus: requestInferenceStatus Exception Failed to cancel download:", error);
         }
     };
 

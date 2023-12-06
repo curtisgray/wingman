@@ -1,10 +1,10 @@
 import { ConnectionStatus, DownloadServerAppItem as DownloadServiceAppItem, WingmanWebSocketMessage } from "./download";
 import { LlamaStats, LlamaStatsMeta, LlamaStatsSystem, LlamaStatsTensors, LlamaStatsTimings } from "./llama_stats";
 
-export type WingmanServerAppItemStatus = "ready" | "starting" | "preparing" | "running" | "stopping" | "stopped" | "error" | "unknown";
+export type WingmanServiceAppItemStatus = "ready" | "starting" | "preparing" | "inferring" | "stopping" | "stopped" | "error" | "unknown";
 export type WingmanServiceAppItem = {
-    isa: "WingmanServerAppItem";
-    status: WingmanServerAppItemStatus;
+    isa: "WingmanServiceAppItem";
+    status: WingmanServiceAppItemStatus;
     alias: string;
     modelRepo: string;
     filePath: string;

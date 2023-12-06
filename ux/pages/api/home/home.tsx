@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import HomeContext from "./home.context";
-import { HomeInitialState, initialState } from "./home.state";
+import WingmanContext from "./wingman.context";
+import { HomeStateProps, initialState } from "./home.state";
 import { Chat } from "@/components/Chat/Chat";
 import { Chatbar } from "@/components/Chatbar/Chatbar";
 import { Navbar } from "@/components/Mobile/Navbar";
@@ -61,7 +62,7 @@ const Home = ({
 
     const isModelChosen = () => chosenModel !== undefined;
 
-    const contextValue = useCreateReducer<HomeInitialState>({
+    const contextValue = useCreateReducer<HomeStateProps>({
         initialState,
     });
 
@@ -162,7 +163,7 @@ const Home = ({
     const { data, error, refetch } = useQuery(
         ["GetModels", apiKey, serverSideApiKeyIsSet],
         ({ signal }) => {
-            if (!apiKey && !serverSideApiKeyIsSet) return null;
+            // if (!apiKey && !serverSideApiKeyIsSet) return null;
 
             return getModels(
                 {
@@ -466,50 +467,56 @@ const Home = ({
     ]);
 
     return (
-        <HomeContext.Provider
+        <WingmanContext.Provider
             value={{
-                ...contextValue,
-                handleNewConversation,
-                handleCreateFolder,
-                handleDeleteFolder,
-                handleUpdateFolder,
-                handleSelectConversation,
-                handleUpdateConversation,
-                handleDuplicateConversation,
+                ...wingmanContextValue,
             }}
         >
-            <Head>
-                <title>Wingman</title>
-                <meta name="description" content="The convienent chat UI." />
-                <meta
-                    name="viewport"
-                    content="height=device-height ,width=device-width, initial-scale=1, user-scalable=no"
-                />
-                <link rel="icon" href="/favicon.ico" />
-            </Head>
-            {selectedConversation && (
-                <main
-                    className={`flex h-screen w-screen flex-col text-sm text-black dark:text-white ${lightMode}`}
-                >
-                    <div className="fixed top-0 w-full sm:hidden">
-                        <Navbar
-                            selectedConversation={selectedConversation}
-                            onNewConversation={handleNewConversation}
-                        />
-                    </div>
-
-                    <div className="flex h-full w-full pt-[48px] sm:pt-0">
-                        <Chatbar />
-
-                        <div className="flex flex-1">
-                            <Chat stopConversationRef={stopConversationRef} />
+            <HomeContext.Provider
+                value={{
+                    ...contextValue,
+                    handleNewConversation,
+                    handleCreateFolder,
+                    handleDeleteFolder,
+                    handleUpdateFolder,
+                    handleSelectConversation,
+                    handleUpdateConversation,
+                    handleDuplicateConversation,
+                }}
+            >
+                <Head>
+                    <title>Wingman</title>
+                    <meta name="description" content="The convienent chat UI." />
+                    <meta
+                        name="viewport"
+                        content="height=device-height ,width=device-width, initial-scale=1, user-scalable=no"
+                    />
+                    <link rel="icon" href="/favicon.ico" />
+                </Head>
+                {selectedConversation && (
+                    <main
+                        className={`flex h-screen w-screen flex-col text-sm text-black dark:text-white ${lightMode}`}
+                    >
+                        <div className="fixed top-0 w-full sm:hidden">
+                            <Navbar
+                                selectedConversation={selectedConversation}
+                                onNewConversation={handleNewConversation}
+                            />
                         </div>
 
-                        <Promptbar />
-                    </div>
-                </main>
-            )}
-        </HomeContext.Provider>
+                        <div className="flex h-full w-full pt-[48px] sm:pt-0">
+                            <Chatbar />
+
+                            <div className="flex flex-1">
+                                <Chat stopConversationRef={stopConversationRef} />
+                            </div>
+
+                            <Promptbar />
+                        </div>
+                    </main>
+                )}
+            </HomeContext.Provider>
+        </WingmanContext.Provider>
     );
 };
 export default Home;

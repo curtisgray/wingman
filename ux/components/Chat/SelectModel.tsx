@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useContext, useEffect } from "react";
 import { AIModel, AIModels, DownloadableItem, Vendors } from "@/types/ai";
 import { IconCircleCheck, IconExternalLink, IconRefresh } from "@tabler/icons-react";
 import Image from "next/image";
@@ -6,6 +7,8 @@ import Select, { ActionMeta, SingleValue } from "react-select";
 import DownloadButton from "./DownloadButton";
 import { DownloadItem, DownloadProps } from "@/types/download";
 import { useTranslation } from "next-i18next";
+import HomeContext from "@/pages/api/home/home.context";
+import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 
 export type ModelOption = {
     value: string;
@@ -21,8 +24,7 @@ export type QuantizationOption = {
 
 export type SelectModelProps = {
     chosenModel?: DownloadProps;
-    defaultModelId?: string;
-    onChange?: (model: DownloadProps) => void;
+    onChange?: (model: DownloadProps) => boolean; // return false to cancel the change
     onDownloadComplete?: (item: DownloadItem) => void;
     onDownloadStart?: (item: DownloadItem) => void;
     className?: string;
@@ -34,7 +36,7 @@ export type SelectModelProps = {
 };
 
 const SelectModelInternal = ({ chosenModel,
-    defaultModelId = "", onChange = () => { }, onDownloadComplete = () => { }, onDownloadStart = () => { },
+    onChange = () => true, onDownloadComplete = () => { }, onDownloadStart = () => { },
     className = "", showDownloadedItemsOnly = false, isDisabled: disabled = false,
     allowDownload = true, autoActivate = false, iconSize = 24 }: SelectModelProps) => {
 
@@ -47,20 +49,30 @@ const SelectModelInternal = ({ chosenModel,
 
     const { t } = useTranslation("chat");
 
+    const inferenceActions = useRequestInferenceAction();
+
+    const {
+        state: { selectedConversation, models, defaultModelId },
+        handleUpdateConversation,
+        dispatch: homeDispatch,
+    } = useContext(HomeContext);
+
     const refreshModelList = async () =>
     {
         try {
             setIsLoadingModelList(true);
-            const response = await fetch("http://localhost:6568/api/models");
-            if (!response.ok) {
-                console.log(`error getting models: ${response.statusText}`);
-            } else {
-                console.log(`getModels response: ${response?.statusText}`);
-                const json = await response.json();
-                setModelList(json.models);
-            }
+            // const response = await fetch("http://localhost:6568/api/models");
+            // if (!response.ok) {
+            //     console.log(`error getting models: ${response.statusText}`);
+            // } else {
+            //     console.log(`getModels response: ${response?.statusText}`);
+            //     const json = await response.json();
+            //     setModelList(json.models);
+            // }
+
+            setModelList(models);
             setIsLoadingModelList(false);
-            return response;
+            // return response;
         }
         catch (err) {
             console.log(`exception getting models: ${err}`);
@@ -69,10 +81,28 @@ const SelectModelInternal = ({ chosenModel,
     };
 
     const onQuantizationChange = (selectedModel: AIModel, quantization: string) => {
-        selectedModel.item = selectedModel.items?.find((item) => item.quantization === quantization);
-        setSelectedQuantization(quantization);
-        const filePath = selectedModel.item?.filePath as string;
-        onChange({modelRepo: selectedModel.id, filePath: filePath});
+        const item = selectedModel.items?.find((item) => item.quantization === quantization);
+        let success = false;
+        if (item) {
+            selectedModel.item = item;
+            setSelectedQuantization(quantization);
+            const modelRepo = selectedModel.id;
+            const filePath = selectedModel.item?.filePath as string;
+            if (onChange({modelRepo: modelRepo, filePath: filePath})) {
+                if (selectedConversation) {
+                    handleUpdateConversation(selectedConversation, {
+                        key: "model",
+                        value: selectedModel,
+                    });
+                    // activate the model
+                    inferenceActions.requestStartInference(selectedModel.name, modelRepo, filePath, -1);
+                    success = true;
+                }
+            }
+        }
+        if (!success) {
+            setSelectedQuantization(undefined);
+        }
     };
 
     const handleDownloadComplete = (item: DownloadItem) => {
@@ -90,15 +120,7 @@ const SelectModelInternal = ({ chosenModel,
             setSelectedModel(selectedModel);
             const vendor = Vendors[selectedModel.vendor];
             if (vendor.isDownloadable) {
-                if (selectedModel.items && selectedModel.items.length > 0) {
-                    // look for the first item that is downloaded
-                    const downloadedItem = selectedModel.items.find((item) => item.isDownloaded);
-                    const quantization = downloadedItem !== undefined ?
-                        downloadedItem.quantization : selectedModel.items[0].quantization;
-                    onQuantizationChange(selectedModel, quantization);
-                }
-                else
-                    throw new Error("Model has no optimization (quantization) options");
+                // do nothing until the user selects a quantization
             } else {
                 // onChange({selectedModel.modelRepo, selectedModel.filePath});
                 const downloadProps: DownloadProps = {
@@ -228,6 +250,17 @@ const SelectModelInternal = ({ chosenModel,
 
     useEffect(() => {
         handleRefreshModelList();
+        let success = false;
+        if (selectedConversation && selectedConversation.model) {
+            setSelectedModel(selectedConversation.model);
+            if (selectedConversation.model.item) {
+                setSelectedQuantization(selectedConversation.model.item.quantization);
+                success = onChange({modelRepo: selectedConversation.model.id, filePath: selectedConversation.model.item.filePath});
+            }
+        }
+        if (!success) {
+            setSelectedQuantization(undefined);
+        }
     }, []);
 
     useEffect(() => {
