@@ -2,12 +2,12 @@ import { newLlamaStatsMeta, newLlamaStatsSystem, newLlamaStatsTensors, newLlamaS
 import { WingmanStateProps, createWingmanItem } from "@/types/wingman";
 
 export const initialWingmanState: WingmanStateProps = {
-    alias: "",
-    modelRepo: "",
-    filePath: "",
-    isGenerating: false,
-    latestItem: undefined,
-    items: [],
+    // alias: "",
+    // modelRepo: "",
+    // filePath: "",
+    // isGenerating: false,
+    // latestItem: undefined,
+    // items: [],
     pauseMetrics: false,
     timeSeries: [],
     meta: newLlamaStatsMeta(),
@@ -19,18 +19,20 @@ export const initialWingmanState: WingmanStateProps = {
     status: "❓",
     wingmanServiceStatus: undefined,
     downloadServiceStatus: undefined,
-    wingmanStatus: "unknown",
-    isInferring: false,
-    wingmanItem: createWingmanItem("", "", ""),
+    // wingmanStatus: "unknown",
+    // isInferring: false,
+    // wingmanItem: createWingmanItem("", "", ""),
+    wingmanItems: [],
+    currentWingmanInferenceItem: undefined,
     lastWebSocketMessage: {
         lastMessage: undefined,
         connectionStatus: "❓"
     },
 
-    forceChosenModel: () => { },
-    activate: async () => { return new Promise(() => { }); },
-    deactivate: async () => { return new Promise(() => { }); },
-    startGenerating: async () => { return new Promise(() => { }); },
-    stopGenerating: () => { },
-    toggleMetrics: () => { },
+    // forceChosenModel: () => { },
+    // activate: async () => { return new Promise(() => { }); },
+    // deactivate: async () => { return new Promise(() => { }); },
+    // startGenerating: async () => { return new Promise(() => { }); },
+    // stopGenerating: () => { },
+    // toggleMetrics: () => { },
 };

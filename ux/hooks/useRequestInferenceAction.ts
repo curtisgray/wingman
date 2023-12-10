@@ -1,14 +1,20 @@
 import { WINGMAN_SERVER_API } from "@/types/ai";
-import { WingmanItem } from "@/types/wingman";
+import { WingmanContent, WingmanItem } from "@/types/wingman";
+import { useRef, useState } from "react";
 
 interface InferenceActionProps
 {
     requestStartInference: (alias: string, modelRepo: string, filePath: string, gpuLayers: number) => Promise<WingmanItem | undefined>;
     requestStopInference: (alias: string) => Promise<void>;
     // requestRestartInference: (alias: string) => Promise<void>;
+    startGenerating: (content: string, probabilities_to_return?: number) => Promise<void>;
+    stopGenerating: () => void;
+    latestItem: WingmanContent | undefined;
+    items: WingmanContent[];
+    isGenerating: boolean;
 }
 
-export function useRequestInferenceAction(): InferenceActionProps
+export function useRequestInferenceAction(inferencePort = 6567): InferenceActionProps
 {
     const requestStartInference = async (alias: string, modelRepo: string, filePath: string, gpuLayers: number = -1): Promise<WingmanItem | undefined> =>
     {
@@ -79,9 +85,91 @@ export function useRequestInferenceAction(): InferenceActionProps
     //     }
     // };
 
+    const continueGenerating = useRef<boolean>(true);
+    const [latestItem, setLatestItem] = useState<WingmanContent>();
+    const [items, setItems] = useState<WingmanContent[]>([]);
+    const [isGenerating, setIsGenerating] = useState<boolean>(false);
+
+    const startGenerating = async (content: string, probabilities_to_return?: number): Promise<void> =>
+        new Promise<void>((resolve, reject) =>
+        {
+            setLatestItem(undefined);
+            setItems([]);
+            try {
+                const controller = new AbortController();
+                fetch(encodeURI(`http://localhost:${inferencePort}/completion`), {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "text/event-stream"
+                    },
+                    signal: controller.signal,
+                    body: JSON.stringify({ prompt: content, n_keep: -1, stream: true, n_probs: probabilities_to_return ?? 0 })
+                }).then(async response =>
+                {
+                    if (!response.ok) {
+                        throw new Error(`Server responded with ${response.statusText}`);
+                    }
+                    const data = response.body;
+
+                    if (data === null) {
+                        const errorString = "Response body is null";
+                        console.error(errorString);
+                        reject(new Error(errorString));
+                    } else {
+                        const reader = data.getReader();
+                        const decoder = new TextDecoder();
+                        let done = false;
+                        let text = "";
+                        setIsGenerating(true);
+                        continueGenerating.current = true;
+                        while (!done) {
+                            if (!continueGenerating.current) {
+                                controller.abort();
+                                done = true;
+                                break;
+                            }
+                            const { value, done: doneReading } = await reader.read();
+                            done = doneReading;
+                            const chunkValue = decoder.decode(value);
+                            if (chunkValue === "") {
+                                continue;
+                            }
+                            // grab everything between "data: " and "\n\n"
+                            text += chunkValue;
+                            const data = text.split("data: ")[1]?.split("\n\n")[0];
+                            if (data === undefined) {
+                                continue;
+                            }
+                            const content = JSON.parse(data) as WingmanContent;
+                            // onNewContent(content);
+                            setLatestItem(content);
+                            // setItems([...items, content]);
+                            setItems((items) => items.concat(content));
+                            text = "";
+                        }
+                        setIsGenerating(false);
+                        resolve();
+                    }
+                });
+            } catch (error) {
+                const errorString = new Error(`Error in sendPrompt: ${error}`);
+                console.error(errorString);
+                return Promise.reject(errorString);
+            }
+        });
+    const stopGenerating = (): void =>
+    {
+        continueGenerating.current = false;
+    };
+
     return {
         requestStartInference,
         requestStopInference,
         // requestRestartInference,
+        startGenerating,
+        stopGenerating,
+        latestItem,
+        items,
+        isGenerating
     };
 }

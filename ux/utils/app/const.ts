@@ -23,3 +23,5 @@ export const HF_MODEL_FILE_EXTENSION = ".gguf";
 export const HF_THEBLOKE_MODELS_URL = process.env.HF_THEBLOKE_MODELS_URL || "https://huggingface.co/api/models?author=TheBloke&search=" + HF_MODEL_ENDS_WITH + "&sort=lastModified&direction=-1&full=full";
 export const HF_THEBLOKE_MODEL_URL = process.env.HF_THEBLOKE_MODEL_URL || "https://huggingface.co/TheBloke";
 export const HF_WINGMAN_MODELS_URL = "http://localhost:6568/api/models";
+export const HF_WINGMAN_DOWNLOADS_URL = "http://localhost:6568/api/downloads";
+export const HF_WINGMAN_INFERENCE_URL = "http://localhost:6568/api/inference";

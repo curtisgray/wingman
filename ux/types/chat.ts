@@ -20,6 +20,7 @@ export interface Conversation {
     name: string;
     messages: Message[];
     model: AIModel;
+    inferringAlias: string;
     prompt: string;
     temperature: number;
     folderId: string | null;

@@ -1,3 +1,4 @@
+import { AIModel } from "@/types/ai";
 import { HomeStateProps } from "./home.state";
 import { ActionType } from "@/hooks/useCreateReducer";
 import { Conversation } from "@/types/chat";
@@ -18,6 +19,8 @@ export interface HomeContextProps {
         data: KeyValuePair
     ) => void;
     handleDuplicateConversation: (conversation: Conversation) => void;
+    handleDeleteConversation: (conversation: Conversation) => void;
+    handleChangeModel: (model: AIModel | undefined) => void;
 }
 
 const HomeContext = createContext<HomeContextProps>(undefined!);

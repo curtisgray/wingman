@@ -9,6 +9,9 @@ import { DownloadItem, DownloadProps } from "@/types/download";
 import { useTranslation } from "next-i18next";
 import HomeContext from "@/pages/api/home/home.context";
 import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
+import WingmanInferenceStatus from "./WingmanInferenceStatus";
+import { Conversation } from "@/types/chat";
+import WingmanContext from "@/pages/api/home/wingman.context";
 
 export type ModelOption = {
     value: string;
@@ -23,22 +26,20 @@ export type QuantizationOption = {
 };
 
 export type SelectModelProps = {
-    chosenModel?: DownloadProps;
-    onChange?: (model: DownloadProps) => boolean; // return false to cancel the change
+    onValidateChange?: (model: DownloadProps) => boolean; // return false to cancel the change
     onDownloadComplete?: (item: DownloadItem) => void;
     onDownloadStart?: (item: DownloadItem) => void;
     className?: string;
     showDownloadedItemsOnly?: boolean;
     isDisabled?: boolean;
     allowDownload?: boolean;
-    autoActivate?: boolean;
+    autoDownload?: boolean;
     iconSize?: number;
 };
 
-const SelectModelInternal = ({ chosenModel,
-    onChange = () => true, onDownloadComplete = () => { }, onDownloadStart = () => { },
+const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete = () => { }, onDownloadStart = () => { },
     className = "", showDownloadedItemsOnly = false, isDisabled: disabled = false,
-    allowDownload = true, autoActivate = false, iconSize = 24 }: SelectModelProps) => {
+    allowDownload = true, autoDownload = true, iconSize = 24 }: SelectModelProps) => {
 
     const [modelList, setModelList] = React.useState<AIModel[]>(Object.values(AIModels));
     const [selectableModels, setSelectableModels] = React.useState<AIModel[]>([]);
@@ -46,33 +47,21 @@ const SelectModelInternal = ({ chosenModel,
     const [selectedModel, setSelectedModel] = React.useState<AIModel | undefined>(undefined);
     const [selectedQuantization, setSelectedQuantization] = React.useState<string | undefined>(undefined);
     const [isLoadingModelList, setIsLoadingModelList] = React.useState<boolean>(false);
+    const [isChangingModel, setIsChangingModel] = React.useState<boolean>(false);
 
     const { t } = useTranslation("chat");
 
-    const inferenceActions = useRequestInferenceAction();
-
     const {
-        state: { selectedConversation, models, defaultModelId },
-        handleUpdateConversation,
-        dispatch: homeDispatch,
+        state: { models, globalModel, defaultModelId },
+        handleChangeModel,
     } = useContext(HomeContext);
 
     const refreshModelList = async () =>
     {
         try {
             setIsLoadingModelList(true);
-            // const response = await fetch("http://localhost:6568/api/models");
-            // if (!response.ok) {
-            //     console.log(`error getting models: ${response.statusText}`);
-            // } else {
-            //     console.log(`getModels response: ${response?.statusText}`);
-            //     const json = await response.json();
-            //     setModelList(json.models);
-            // }
-
             setModelList(models);
             setIsLoadingModelList(false);
-            // return response;
         }
         catch (err) {
             console.log(`exception getting models: ${err}`);
@@ -85,18 +74,17 @@ const SelectModelInternal = ({ chosenModel,
         let success = false;
         if (item) {
             selectedModel.item = item;
-            setSelectedQuantization(quantization);
             const modelRepo = selectedModel.id;
             const filePath = selectedModel.item?.filePath as string;
-            if (onChange({modelRepo: modelRepo, filePath: filePath})) {
-                if (selectedConversation) {
-                    handleUpdateConversation(selectedConversation, {
-                        key: "model",
-                        value: selectedModel,
-                    });
-                    // activate the model
-                    inferenceActions.requestStartInference(selectedModel.name, modelRepo, filePath, -1);
-                    success = true;
+            if (success = onValidateChange({modelRepo: modelRepo, filePath: filePath})) {
+                setSelectedQuantization(quantization);
+                // handleChangeModel(selectedModel);
+                // if the model is already downloaded, then send call handleChangeModel
+                //   otherwise, wait for the download to complete, then call handleChangeModel
+                if (item.isDownloaded) {
+                    handleChangeModel(selectedModel);
+                } else {
+                    setIsChangingModel(true);
                 }
             }
         }
@@ -106,6 +94,8 @@ const SelectModelInternal = ({ chosenModel,
     };
 
     const handleDownloadComplete = (item: DownloadItem) => {
+        setIsChangingModel(false);
+        handleChangeModel(selectedModel);
         onDownloadComplete(item);
     };
 
@@ -113,9 +103,9 @@ const SelectModelInternal = ({ chosenModel,
         onDownloadStart(item);
     };
 
-    const handleModelChange = (e: SingleValue<{ value: string | undefined; label: string | Element; }>,
+    const handleChangeSelectedModel = (e: SingleValue<{ value: string | undefined; label: string | Element; }>,
         actionMeta: ActionMeta<{ value: string | undefined; label: string | Element; }>) => {
-        if (actionMeta.action === "select-option" && typeof onChange === "function") {
+        if (actionMeta.action === "select-option" && typeof onValidateChange === "function") {
             const selectedModel = selectableModels.find((m) => m.id === e?.value) as AIModel;
             setSelectedModel(selectedModel);
             const vendor = Vendors[selectedModel.vendor];
@@ -127,14 +117,14 @@ const SelectModelInternal = ({ chosenModel,
                     modelRepo: selectedModel.id,
                     filePath: "",
                 };
-                onChange(downloadProps);
+                onValidateChange(downloadProps);
             }
         }
     };
 
     const handleDownloadableItemChange = (e: SingleValue<{ value: string | undefined; label: string | Element; }>,
         actionMeta: ActionMeta<{ value: string | undefined; label: string | Element; }>) => {
-        if (actionMeta.action === "select-option" && typeof onChange === "function") {
+        if (actionMeta.action === "select-option" && typeof onValidateChange === "function") {
             if (selectedModel?.items) {
                 const quantization = e?.value;
                 if (quantization !== undefined) {
@@ -206,7 +196,7 @@ const SelectModelInternal = ({ chosenModel,
                         showProgressText={true}
                         onComplete={handleDownloadComplete}
                         onStarted={handleDownloadStart}
-                        autoActivate={autoActivate} />
+                        autoStart={autoDownload} />
                 </div>;
             }
         }
@@ -249,39 +239,66 @@ const SelectModelInternal = ({ chosenModel,
         } as QuantizationOption));
 
     useEffect(() => {
-        handleRefreshModelList();
-        let success = false;
-        if (selectedConversation && selectedConversation.model) {
-            setSelectedModel(selectedConversation.model);
-            if (selectedConversation.model.item) {
-                setSelectedQuantization(selectedConversation.model.item.quantization);
-                success = onChange({modelRepo: selectedConversation.model.id, filePath: selectedConversation.model.item.filePath});
-            }
-        }
-        if (!success) {
-            setSelectedQuantization(undefined);
-        }
-    }, []);
-
-    useEffect(() => {
         const selectable = showDownloadedItemsOnly ? modelList.filter((model) => model.items?.some((item) => item.isDownloaded)) : modelList;
         setSelectableModels(selectable);
-        if (chosenModel !== undefined) {
-            const model = selectable.find((m) => m.id === chosenModel.modelRepo);
-            if (model !== undefined) {
-                if (model.items && model.items.length > 0)
-                    model.item = model.items?.find((item) => item.filePath === chosenModel.filePath);
-                setSelectedModel(model);
+    }, [modelList, showDownloadedItemsOnly]);
+
+    useEffect(() => {
+        handleRefreshModelList();
+        // let success = false;
+        if (globalModel !== undefined) {
+            if (globalModel.item === undefined) {
+                // whenever the globalModel changes, the globalModel.item must be, otherwise
+                //   something has gone wrong in setting the global model
+                //   so reset the controls
+                setSelectedModel(undefined);
+                setSelectedQuantization(undefined);
+                return;
+            }
+            // at startup, set the controls to match the global model
+            setSelectedModel(globalModel);
+            // if (selectedQuantization !== globalModel.item.quantization) {
+                setSelectedQuantization(globalModel.item.quantization);
+                // success = onValidateChange({modelRepo: globalModel.item.modelRepo, filePath: globalModel.item.filePath});
+            // }
+        }
+        // if (!success) {
+        //     setSelectedQuantization(undefined);
+        // }
+    }, []);
+
+    // keep the selected model in sync with the global model
+    useEffect(() => {
+        if (globalModel !== undefined) {
+            if (globalModel.item === undefined) {
+                // whenever the globalModel changes, the globalModel.item must be, otherwise
+                //   something has gone wrong in setting the global model
+                //   so reset the controls
+                setSelectedModel(undefined);
+                setSelectedQuantization(undefined);
+                return;
+            }
+            setSelectedModel(globalModel);
+            if (selectedQuantization !== globalModel.item.quantization) {
+                // globalModel has changed, so update the controls to match
+                setSelectedQuantization(globalModel.item.quantization);
             }
         }
-    }, [modelList, chosenModel, showDownloadedItemsOnly]);
+    }, [globalModel]);
 
     return (
         <div className={`${className}`}>
             <div className="flex flex-col w-full">
-                <label className="mb-2 text-left">
-                    {displayModelVendor(selectedModel)}
-                </label>
+                <div className="flex space-x-4">
+                    <label className="mb-2 text-left">
+                        {displayModelVendor(selectedModel)}
+                    </label>
+                    <span className="flex-grow"></span>
+                    {selectedModel?.vendor === Vendors.huggingface.name &&
+                    (
+                        <WingmanInferenceStatus className="px-8" showTitle={false} showModel={false} />
+                    )}
+                </div>
                 <div className="flex rounded-lg space-x-2 items-center">
                     <Select
                         isLoading={isLoadingModelList}
@@ -293,35 +310,33 @@ const SelectModelInternal = ({ chosenModel,
                         } as ModelOption}
                         isSearchable={true}
                         hideSelectedOptions={true}
-                        onChange={handleModelChange}
+                        onChange={handleChangeSelectedModel}
                         className="model-select-container w-full text-neutral-900"
                         classNamePrefix="model-select"
                         instanceId={"model-select"}
                         isDisabled={disabled}
                     />
+                    {selectedModel?.vendor === Vendors.huggingface.name &&
+                    (
+                        <Select
+                            isLoading={isLoadingModelList}
+                            placeholder={(t("Select an optimization").length > 0) || ""}
+                            options={optionsOptimizations}
+                            value={{
+                                label: displayQuantization(selectedModel?.item),
+                                value: selectedQuantization,
+                            } as QuantizationOption}
+                            isSearchable={true}
+                            hideSelectedOptions={true}
+                            onChange={handleDownloadableItemChange}
+                            className="optimization-select-container w-4/12 text-neutral-900"
+                            classNamePrefix="optimization-select"
+                            instanceId={"optimization-select"}
+                            isDisabled={disabled}
+                        />
+                    )}
                     <IconRefresh size={28} className="rounded-sm cursor-pointer" onClick={handleRefreshModelList} />
                 </div>
-                {selectedModel?.vendor === Vendors.huggingface.name &&
-                    (
-                        <div className="flex mt-3 text-left rounded-lg">
-                            <Select
-                                isLoading={isLoadingModelList}
-                                placeholder={(t("Select an optimization").length > 0) || ""}
-                                options={optionsOptimizations}
-                                value={{
-                                    label: displayQuantization(selectedModel?.item),
-                                    value: selectedQuantization,
-                                } as QuantizationOption}
-                                isSearchable={true}
-                                hideSelectedOptions={true}
-                                onChange={handleDownloadableItemChange}
-                                className="optimization-select-container w-4/12 text-neutral-900"
-                                classNamePrefix="optimization-select"
-                                instanceId={"optimization-select"}
-                                isDisabled={disabled}
-                            />
-                        </div>
-                    )}
                 {selectedModel?.vendor === Vendors.openai.name && (
                     <div className="w-full mt-3 text-left flex items-center">
                         <a

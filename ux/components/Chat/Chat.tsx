@@ -387,21 +387,22 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     //     );
     // };
 
-    const handleChangeModel = (model: DownloadProps) => {
-        if (selectedConversation && models.length > 0) {
-            const m = models.find((m) => m.id === model.modelRepo);
-            if (!m || !(m.items !== undefined && m.items.length > 0)) {
-                return;
-            }
-            const item = m.items?.find((item) => item.filePath === model.filePath);
-            m.item = item;
-            handleUpdateConversation(selectedConversation, {
-                key: "model",
-                value: m,
-            });
-            return true;
-        }
-        return false;
+    const handleValidateChangeModel = (model: DownloadProps): boolean => {
+        // if (selectedConversation && models.length > 0) {
+        //     const m = models.find((m) => m.id === model.modelRepo);
+        //     if (!m || !(m.items !== undefined && m.items.length > 0)) {
+        //         return false;
+        //     }
+        //     const item = m.items?.find((item) => item.filePath === model.filePath);
+        //     m.item = item;
+        //     // handleUpdateConversation(selectedConversation, {
+        //     //     key: "model",
+        //     //     value: m,
+        //     // });
+        //     return true;
+        // }
+        // return false;
+        return true;
     };
 
     return (
@@ -474,8 +475,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                                                 <label className="mt-4 mb-0">Show downloaded items only
                                                     <input type="checkbox" className="w-4 m-4" checked={showDownloadedItemsOnly} onChange={(e) => setShowDownloadedItemsOnly(e.target.checked)} />
                                                 </label>
-                                                <SelectModel autoActivate={true} showDownloadedItemsOnly={showDownloadedItemsOnly}
-                                                    onChange={(model) => handleChangeModel(model)} />
+                                                <SelectModel autoDownload={true} showDownloadedItemsOnly={showDownloadedItemsOnly}
+                                                    onValidateChange={(model) => handleValidateChangeModel(model)} />
                                             </div>
 
                                             <SystemPrompt

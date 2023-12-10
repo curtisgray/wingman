@@ -13,6 +13,7 @@ export interface HomeStateProps {
     messageIsStreaming: boolean;
     modelError: ErrorMessage | null;
     models: AIModel[];
+    globalModel: AIModel | undefined;
     folders: FolderInterface[];
     conversations: Conversation[];
     selectedConversation: Conversation | undefined;
@@ -37,6 +38,7 @@ export const initialState: HomeStateProps = {
     messageIsStreaming: false,
     modelError: null,
     models: [],
+    globalModel: undefined,
     folders: [],
     conversations: [],
     selectedConversation: undefined,

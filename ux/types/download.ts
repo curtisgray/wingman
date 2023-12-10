@@ -1,7 +1,7 @@
 import { ChildProcess } from "child_process";
 import path from "path";
 import os from "os";
-import { HF_MODEL_ENDS_WITH } from "@/utils/app/const";
+import { HF_MODEL_ENDS_WITH, HF_MODEL_FILE_EXTENSION } from "@/utils/app/const";
 
 export type ConnectionStatus = "❓" | "🔄" | "✅" | "⏳" | "❌";
 export type DownloadServerAppItemStatus = "ready" | "starting" | "preparing" | "downloading" | "stopping" | "stopped" | "error" | "unknown";
@@ -50,7 +50,7 @@ export type DownloadButtonProps = DownloadProps & {
     onStarted?: (item: DownloadItem) => void;
     onCancelled?: (item: DownloadItem) => void;
     onProgress?: (value: number) => void;
-    autoActivate?: boolean;
+    autoStart?: boolean;
     children?: React.ReactNode;
 };
 
@@ -163,18 +163,6 @@ export type ChildProcessesMap = {
     };
 };
 
-// translate the following c++ code to typescript
-// add HF_MODEL_ENDS_WITH to the end of the modelRepo if it's not already there
-// std::string UnstripFormatFromModelRepo(const std:: string & modelRepo)
-// {
-//     if (modelRepo.empty()) {
-//         throw std:: runtime_error("modelRepo is required, but is empty");
-//     }
-//     if (modelRepo.ends_with(HF_MODEL_ENDS_WITH)) {
-//         return modelRepo;
-//     }
-//     return modelRepo + HF_MODEL_ENDS_WITH;
-// }
 export const UnstripFormatFromModelRepo = (modelRepo: string): string =>
 {
     if (!modelRepo) throw new Error("modelRepo is required, but is empty");
@@ -182,17 +170,6 @@ export const UnstripFormatFromModelRepo = (modelRepo: string): string =>
     return modelRepo + HF_MODEL_ENDS_WITH;
 };
 
-// strip HF_MODEL_ENDS_WITH from the end of the modelRepo if it's there
-// std::string StripFormatFromModelRepo(const std:: string & modelRepo)
-// {
-//     if (modelRepo.empty()) {
-//         throw std:: runtime_error("modelRepo is required, but is empty");
-//     }
-//     if (modelRepo.ends_with(HF_MODEL_ENDS_WITH)) {
-//         return modelRepo.substr(0, modelRepo.size() - HF_MODEL_ENDS_WITH.size());
-//     }
-//     return modelRepo;
-// }
 export const StripFormatFromModelRepo = (modelRepo: string): string =>
 {
     if (!modelRepo) throw new Error("modelRepo is required, but is empty");
@@ -200,6 +177,85 @@ export const StripFormatFromModelRepo = (modelRepo: string): string =>
     return modelRepo;
 };
 
+
+// translate c++ to js
+// inline std::string quantizationNameFromQuantization(const std:: string & quantization)
+// {
+//     std::string quantizationName;
+//     // parse q. remove 'Q' from the beginning. Replace '_' with '.' if the next character is a number, otherwise replace with ' '.
+//     for (size_t i = 1; i < quantization.size(); i++) {
+//         if (quantization[i] == '_') {
+//             if (i + 1 < quantization.size() && std:: isdigit(quantization[i + 1])) {
+//                 quantizationName += '.';
+//             } else {
+//                 quantizationName += ' ';
+//             }
+//         } else {
+//             quantizationName += quantization[i];
+//         }
+//     }
+//     return quantizationName;
+// }
+
+export const quantizationNameFromQuantization = (quantization: string): string =>
+{
+    let quantizationName = "";
+    for (let i = 1; i < quantization.length; i++)
+    {
+        if (quantization[i] === "_")
+        {
+            if (i + 1 < quantization.length && !isNaN(parseInt(quantization[i + 1])))
+            {
+                quantizationName += ".";
+            }
+            else
+            {
+                quantizationName += " ";
+            }
+        }
+        else
+        {
+            quantizationName += quantization[i];
+        }
+    }
+    return quantizationName;
+};
+
+export type Quantization = {
+    isa: "Quantization";
+    quantization: string;
+    quantizationName: string;
+}
+
+export const quantizationFromFilePath = (filePath: string): Quantization =>
+{
+    // translate c++ to js
+    // quantization is the next to last part of the filePath
+    // const auto parts = util:: splitString(filePathPart, '.');
+	// 	auto quantPosition = 1;
+    // check if the extension is HF_MODEL_FILE_EXTENSION. if so, set quantPosition to 1
+    // std::string ext = curl:: HF_MODEL_FILE_EXTENSION;
+    // if (parts[parts.size() - 1] == util:: stringLeftTrim(ext, ".")) {
+    //     quantPosition = 2;
+    // }
+    // const auto & q = parts[parts.size() - quantPosition];
+    // std::string quantization = util:: quantizationNameFromQuantization(q);
+
+    const parts = filePath.split(".");
+    let quantPosition = 1;
+    const ext = HF_MODEL_FILE_EXTENSION.slice(1);
+    if (parts[parts.length - 1] === ext)
+    {
+        quantPosition = 2;
+    }
+    const q = parts[parts.length - quantPosition];
+    const quantization = quantizationNameFromQuantization(q);
+    return {
+        isa: "Quantization",
+        quantization: quantization,
+        quantizationName: quantization
+    } as Quantization;
+};
 
 export const DIST_LEAF_DIR = "dist";
 export const DATA_LEAF_DIR = "data";

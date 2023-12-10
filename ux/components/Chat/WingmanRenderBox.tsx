@@ -4,6 +4,7 @@ import React, { useContext } from "react";
 import { useRef } from "react";
 import { DownloadProps } from "@/types/download";
 import WingmanContext from "@/pages/api/home/wingman.context";
+import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 
 interface WingmanRenderBoxProps
 {
@@ -11,21 +12,22 @@ interface WingmanRenderBoxProps
     className?: string;
 }
 
-const WingmanRenderBox = ({ chosenModel, className = "" }: WingmanRenderBoxProps) =>
+// const WingmanRenderBox = ({ chosenModel, className = "" }: WingmanRenderBoxProps) =>
+const WingmanRenderBox = ({ className = "" }: WingmanRenderBoxProps) =>
 {
     // const [items, setItems] = useState<WingmanContent[]>([]);
     const messageEndRef = useRef<HTMLDivElement>(null);
     // const [beAutoScrolling, setBeAutoScrolling] = useState(true);
     // const { isScrollingUp } = useScrollDirection();
     // const { isGenerating, startGenerating, stopGenerating, items } = useWingman(6567, 6568);
-    const {
-        state: { 
-            items,
-            isGenerating,
-            startGenerating,
-            stopGenerating,
-        },
-    } = useContext(WingmanContext);
+    // const {
+    //     // state: { 
+    //     //     items,
+    //     //     isGenerating,
+    //     // },
+    // } = useContext(WingmanContext);
+
+    const { startGenerating, stopGenerating, items, isGenerating } = useRequestInferenceAction();
 
     // function sendDronePrompt()
     // {

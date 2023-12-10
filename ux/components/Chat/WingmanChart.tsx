@@ -38,9 +38,9 @@ const WingmanChart = ({ showGraph = true, showHardware = false, className = "" }
             metrics,
             system,
             timeSeries,
-            toggleMetrics,
             pauseMetrics
         },
+        handleToggleMetrics
     } = useContext(WingmanContext);
 
     const toggleGraphMetrics = () => {
@@ -128,7 +128,7 @@ const WingmanChart = ({ showGraph = true, showHardware = false, className = "" }
                     <input type="checkbox" className="m-2" checked={showGraphMetrics} onChange={() => toggleGraphMetrics()} />
                     <span>Show Graph</span>
 
-                    <input type="checkbox" className="m-2" disabled={system.has_next_token} checked={pauseMetrics} onChange={() => toggleMetrics()} />
+                    <input type="checkbox" className="m-2" disabled={system.has_next_token} checked={pauseMetrics} onChange={() => handleToggleMetrics()} />
                     <span>Pause Graph</span>
                 </div>
                 <div className="flex flex-row text-xs">

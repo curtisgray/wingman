@@ -12,7 +12,7 @@ import useApiService from "@/services/useApiService";
 import { Conversation } from "@/types/chat";
 import { KeyValuePair } from "@/types/data";
 import { FolderInterface, FolderType } from "@/types/folder";
-import { AIModelID, AIModels, fallbackModelID } from "@/types/ai";
+import { AIModel, AIModelID, AIModels, DownloadableItem, fallbackModelID } from "@/types/ai";
 import { Prompt } from "@/types/prompt";
 import {
     cleanConversationHistory,
@@ -35,9 +35,10 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 import { useWingman } from "@/hooks/useWingman";
-import { WingmanItem, WingmanStateProps } from "@/types/wingman";
+import { WingmanItem, WingmanStateProps, hasActiveStatus } from "@/types/wingman";
 import { initialWingmanState } from "./wingman.state";
 import { DownloadProps } from "@/types/download";
+import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 
 interface Props {
     serverSideApiKeyIsSet: boolean;
@@ -50,19 +51,14 @@ const Home = ({
     serverSidePluginKeysSet,
     defaultModelId,
 }: Props) => {
-    const inferencePort = 6567;
+    // const inferencePort = 6567;
     const monitorPort = 6568;
 
     const { t } = useTranslation("chat");
     const { getModels } = useApiService();
     const { getModelsError } = useErrorService();
-    const [initialRender, setInitialRender] = useState<boolean>(true);
-    const [currentInferenceItem, setCurrentInferenceItem] = useState<WingmanItem | undefined>(undefined);
-    const [chosenModel, setChosenModel] = useState<DownloadProps>({modelRepo: "", filePath: ""});
 
-    const isModelChosen = () => chosenModel !== undefined;
-
-    const contextValue = useCreateReducer<HomeStateProps>({
+    const homeContextValue = useCreateReducer<HomeStateProps>({
         initialState,
     });
 
@@ -75,25 +71,29 @@ const Home = ({
             selectedConversation,
             prompts,
             temperature,
+            globalModel,
         },
-        dispatch,
-    } = contextValue;
+        dispatch: homeDispatch,
+    } = homeContextValue;
 
     const wingmanContextValue = useCreateReducer<WingmanStateProps>({
         initialState: initialWingmanState,
     });
 
     const {
+        // state: {
+        //     currentWingmanInferenceItem
+        // },
         dispatch: wingmanDispatch,
     } = wingmanContextValue;
 
     const {
-        alias,
-        modelRepo,
-        filePath,
-        isGenerating,
-        latestItem,
-        items,
+        // alias,
+        // modelRepo,
+        // filePath,
+        // isGenerating,
+        // latestItem,
+        // items,
         pauseMetrics,
         timeSeries,
         meta,
@@ -105,32 +105,29 @@ const Home = ({
         status: connectionStatus,
         wingmanServiceStatus,
         downloadServiceStatus,
-        wingmanStatus,
-        isInferring,
-        wingmanItem,
+        wingmanItems,
+        currentWingmanInferenceItem,
         lastWebSocketMessage: lastWSMessage,
 
-        forceChosenModel,
-        activate,
-        deactivate,
-        startGenerating,
-        stopGenerating,
-        toggleMetrics,
-    } = useWingman(inferencePort, monitorPort);
+        // forceChosenModel,
+        // activate,
+        // deactivate,
 
-    function onInferenceItemsEvent(value: WingmanItem)
-    {
-        setCurrentInferenceItem(value);
-    }
+        // startGenerating,
+        // stopGenerating,
+        // toggleMetrics,
+    // } = useWingman(inferencePort, monitorPort);
+    } = useWingman(monitorPort);
+    const inferenceActions = useRequestInferenceAction();
 
     useEffect(() =>
     {
-        wingmanDispatch({ field: "alias", value: alias });
-        wingmanDispatch({ field: "modelRepo", value: modelRepo });
-        wingmanDispatch({ field: "filePath", value: filePath });
-        wingmanDispatch({ field: "isGenerating", value: isGenerating });
-        wingmanDispatch({ field: "latestItem", value: latestItem });
-        wingmanDispatch({ field: "items", value: items });
+        // wingmanDispatch({ field: "alias", value: alias });
+        // wingmanDispatch({ field: "modelRepo", value: modelRepo });
+        // wingmanDispatch({ field: "filePath", value: filePath });
+        // wingmanDispatch({ field: "isGenerating", value: isGenerating });
+        // wingmanDispatch({ field: "latestItem", value: latestItem });
+        // wingmanDispatch({ field: "items", value: items });
         wingmanDispatch({ field: "pauseMetrics", value: pauseMetrics });
         wingmanDispatch({ field: "timeSeries", value: timeSeries });
         wingmanDispatch({ field: "meta", value: meta });
@@ -142,25 +139,30 @@ const Home = ({
         wingmanDispatch({ field: "status", value: connectionStatus });
         wingmanDispatch({ field: "wingmanServiceStatus", value: wingmanServiceStatus });
         wingmanDispatch({ field: "downloadServiceStatus", value: downloadServiceStatus });
-        wingmanDispatch({ field: "wingmanStatus", value: wingmanStatus });
-        wingmanDispatch({ field: "isInferring", value: isInferring });
-        wingmanDispatch({ field: "wingmanItem", value: wingmanItem });
+        wingmanDispatch({ field: "wingmanItems", value: wingmanItems });
+        wingmanDispatch({ field: "currentWingmanInferenceItem", value: currentWingmanInferenceItem });
         wingmanDispatch({ field: "lastWebSocketMessage", value: lastWSMessage });
 
-        wingmanDispatch({ field: "forceChosenModel", value: forceChosenModel });
-        wingmanDispatch({ field: "activate", value: activate });
-        wingmanDispatch({ field: "deactivate", value: deactivate });
-        wingmanDispatch({ field: "startGenerating", value: startGenerating });
-        wingmanDispatch({ field: "stopGenerating", value: stopGenerating });
-        wingmanDispatch({ field: "toggleMetrics", value: toggleMetrics });
-        if (isModelChosen() && wingmanItem.alias === chosenModel?.filePath){
-            onInferenceItemsEvent(wingmanItem);
-        }
-    }, [alias, modelRepo, filePath, isGenerating, latestItem, items, pauseMetrics, timeSeries, meta, system, tensors, metrics, lastTime, isOnline, connectionStatus, wingmanServiceStatus, downloadServiceStatus, wingmanStatus, isInferring, wingmanItem, lastWSMessage, forceChosenModel, activate, deactivate, startGenerating, stopGenerating, toggleMetrics]);
+        // wingmanDispatch({ field: "forceChosenModel", value: forceChosenModel });
+        // wingmanDispatch({ field: "activate", value: activate });
+        // wingmanDispatch({ field: "deactivate", value: deactivate });
+        // wingmanDispatch({ field: "startGenerating", value: startGenerating });
+        // wingmanDispatch({ field: "stopGenerating", value: stopGenerating });
+        // wingmanDispatch({ field: "toggleMetrics", value: toggleMetrics });
+
+        // const wingmanItem = wingmanItems.find((item) => item.status === "inferring");
+        // if (wingmanItem && isModelChosen() && wingmanItem.alias === chosenModel?.filePath){
+        //     onInferenceItemsEvent(wingmanItem);
+        // }
+    }, [
+        // isGenerating, latestItem, items,
+        pauseMetrics, timeSeries, meta, system, tensors, metrics,
+        lastTime, isOnline, connectionStatus, wingmanServiceStatus,
+        downloadServiceStatus, lastWSMessage, currentWingmanInferenceItem?.alias]);
 
     const stopConversationRef = useRef<boolean>(false);
 
-    const { data, error, refetch } = useQuery(
+    const { data: models, error } = useQuery(
         ["GetModels", apiKey, serverSideApiKeyIsSet],
         ({ signal }) => {
             // if (!apiKey && !serverSideApiKeyIsSet) return null;
@@ -176,17 +178,17 @@ const Home = ({
     );
 
     useEffect(() => {
-        if (data) dispatch({ field: "models", value: data });
-    }, [data, dispatch]);
+        if (models) homeDispatch({ field: "models", value: models });
+    }, [models, homeDispatch]);
 
     useEffect(() => {
-        dispatch({ field: "modelError", value: getModelsError(error) });
-    }, [dispatch, error, getModelsError]);
+        homeDispatch({ field: "modelError", value: getModelsError(error) });
+    }, [homeDispatch, error, getModelsError]);
 
     // FETCH MODELS ----------------------------------------------
 
     const handleSelectConversation = (conversation: Conversation) => {
-        dispatch({
+        homeDispatch({
             field: "selectedConversation",
             value: conversation,
         });
@@ -205,13 +207,13 @@ const Home = ({
 
         const updatedFolders = [...folders, newFolder];
 
-        dispatch({ field: "folders", value: updatedFolders });
+        homeDispatch({ field: "folders", value: updatedFolders });
         saveFolders(updatedFolders);
     };
 
     const handleDeleteFolder = (folderId: string) => {
         const updatedFolders = folders.filter((f) => f.id !== folderId);
-        dispatch({ field: "folders", value: updatedFolders });
+        homeDispatch({ field: "folders", value: updatedFolders });
         saveFolders(updatedFolders);
 
         const updatedConversations: Conversation[] = conversations.map((c) => {
@@ -225,7 +227,7 @@ const Home = ({
             return c;
         });
 
-        dispatch({ field: "conversations", value: updatedConversations });
+        homeDispatch({ field: "conversations", value: updatedConversations });
         saveConversations(updatedConversations);
 
         const updatedPrompts: Prompt[] = prompts.map((p) => {
@@ -239,7 +241,7 @@ const Home = ({
             return p;
         });
 
-        dispatch({ field: "prompts", value: updatedPrompts });
+        homeDispatch({ field: "prompts", value: updatedPrompts });
         savePrompts(updatedPrompts);
     };
 
@@ -255,7 +257,7 @@ const Home = ({
             return f;
         });
 
-        dispatch({ field: "folders", value: updatedFolders });
+        homeDispatch({ field: "folders", value: updatedFolders });
 
         saveFolders(updatedFolders);
     };
@@ -275,6 +277,7 @@ const Home = ({
                 maxLength: AIModels[defaultModelId].maxLength,
                 tokenLimit: AIModels[defaultModelId].tokenLimit,
             },
+            inferringAlias: "",
             prompt: DEFAULT_SYSTEM_PROMPT,
             temperature: lastConversation?.temperature ?? DEFAULT_TEMPERATURE,
             folderId: null,
@@ -282,13 +285,13 @@ const Home = ({
 
         const updatedConversations = [...conversations, newConversation];
 
-        dispatch({ field: "selectedConversation", value: newConversation });
-        dispatch({ field: "conversations", value: updatedConversations });
+        homeDispatch({ field: "selectedConversation", value: newConversation });
+        homeDispatch({ field: "conversations", value: updatedConversations });
 
         saveConversation(newConversation);
         saveConversations(updatedConversations);
 
-        dispatch({ field: "loading", value: false });
+        homeDispatch({ field: "loading", value: false });
     };
 
     const handleUpdateConversation = (
@@ -305,8 +308,8 @@ const Home = ({
             conversations
         );
 
-        dispatch({ field: "selectedConversation", value: single });
-        dispatch({ field: "conversations", value: all });
+        homeDispatch({ field: "selectedConversation", value: single });
+        homeDispatch({ field: "conversations", value: all });
     };
 
     const handleDuplicateConversation = (conversation: Conversation) => {
@@ -315,6 +318,7 @@ const Home = ({
             name: `${conversation.name} (copy)`,
             messages: conversation.messages,
             model: conversation.model,
+            inferringAlias: conversation.inferringAlias,
             prompt: conversation.prompt,
             temperature: conversation.temperature,
             folderId: conversation.folderId,
@@ -322,39 +326,73 @@ const Home = ({
 
         const updatedConversations = [...conversations, conversationCopy];
 
-        dispatch({ field: "selectedConversation", value: conversationCopy });
-        dispatch({ field: "conversations", value: updatedConversations });
+        homeDispatch({ field: "selectedConversation", value: conversationCopy });
+        homeDispatch({ field: "conversations", value: updatedConversations });
 
         saveConversation(conversationCopy);
         saveConversations(updatedConversations);
 
-        dispatch({ field: "loading", value: false });
+        homeDispatch({ field: "loading", value: false });
+    };
+
+    const handleChangeModel = (model: AIModel | undefined) => {
+        // if the model and global model are the same, do nothing
+        if (model && globalModel && model.id === globalModel.id && model.item?.filePath === globalModel.item?.filePath) {
+            // BUG: whenever this method is called, globalModel and model are already the same. Suspect
+            //  that the globalModel is not being set correctly in the first place. Perhaps the globalModel
+            //  is being set to a reference to the model, rather than a copy of the model? Shouldn't matter
+            //  since the model being passed should be different from the globalModel
+            // return;
+        }
+        if (model && model.item === undefined) {
+            throw new Error(`'model' is defined as ${model.id}, but 'model.item' is undefined. Something has gone wrong within the application.`);
+        }
+        homeDispatch({ field: "globalModel", value: model });
+
+        if (model) {
+            if (selectedConversation) {
+                handleUpdateConversation(selectedConversation, {
+                    key: "model",
+                    value: model,
+                });
+            }
+            inferenceActions.requestStartInference(model.item!.filePath, model.id, model.item!.filePath, -1);
+        }
+    };
+
+    const handleStartGenerating = async (prompt: string, probabilties_to_return: number) => {
+    };
+
+    const handleStopGenerating = () => {
+    };
+
+    const handleToggleMetrics = () => {
     };
 
     // EFFECTS  --------------------------------------------
 
     useEffect(() => {
         if (window.innerWidth < 640) {
-            dispatch({ field: "showChatbar", value: false });
+            homeDispatch({ field: "showChatbar", value: false });
         }
     }, [selectedConversation]);
 
     useEffect(() => {
         defaultModelId &&
-            dispatch({ field: "defaultModelId", value: defaultModelId });
+            homeDispatch({ field: "defaultModelId", value: defaultModelId });
         serverSideApiKeyIsSet &&
-            dispatch({
+            homeDispatch({
                 field: "serverSideApiKeyIsSet",
                 value: serverSideApiKeyIsSet,
             });
         serverSidePluginKeysSet &&
-            dispatch({
+            homeDispatch({
                 field: "serverSidePluginKeysSet",
                 value: serverSidePluginKeysSet,
             });
     }, [
         defaultModelId,
-        dispatch,
+        homeDispatch,
         serverSideApiKeyIsSet,
         serverSidePluginKeysSet,
     ]);
@@ -364,7 +402,7 @@ const Home = ({
     useEffect(() => {
         const settings = getSettings();
         if (settings.theme) {
-            dispatch({
+            homeDispatch({
                 field: "lightMode",
                 value: settings.theme,
             });
@@ -373,34 +411,34 @@ const Home = ({
         const apiKey = localStorage.getItem("apiKey");
 
         if (serverSideApiKeyIsSet) {
-            dispatch({ field: "apiKey", value: "" });
+            homeDispatch({ field: "apiKey", value: "" });
 
             localStorage.removeItem("apiKey");
         } else if (apiKey) {
-            dispatch({ field: "apiKey", value: apiKey });
+            homeDispatch({ field: "apiKey", value: apiKey });
         }
 
         const pluginKeys = localStorage.getItem("pluginKeys");
         if (serverSidePluginKeysSet) {
-            dispatch({ field: "pluginKeys", value: [] });
+            homeDispatch({ field: "pluginKeys", value: [] });
             localStorage.removeItem("pluginKeys");
         } else if (pluginKeys) {
-            dispatch({ field: "pluginKeys", value: pluginKeys });
+            homeDispatch({ field: "pluginKeys", value: pluginKeys });
         }
 
         if (window.innerWidth < 640) {
-            dispatch({ field: "showChatbar", value: false });
-            dispatch({ field: "showPromptbar", value: false });
+            homeDispatch({ field: "showChatbar", value: false });
+            homeDispatch({ field: "showPromptbar", value: false });
         }
 
         const showChatbar = localStorage.getItem("showChatbar");
         if (showChatbar) {
-            dispatch({ field: "showChatbar", value: showChatbar === "true" });
+            homeDispatch({ field: "showChatbar", value: showChatbar === "true" });
         }
 
         const showPromptbar = localStorage.getItem("showPromptbar");
         if (showPromptbar) {
-            dispatch({
+            homeDispatch({
                 field: "showPromptbar",
                 value: showPromptbar === "true",
             });
@@ -408,12 +446,12 @@ const Home = ({
 
         const folders = localStorage.getItem("folders");
         if (folders) {
-            dispatch({ field: "folders", value: JSON.parse(folders) });
+            homeDispatch({ field: "folders", value: JSON.parse(folders) });
         }
 
         const prompts = localStorage.getItem("prompts");
         if (prompts) {
-            dispatch({ field: "prompts", value: JSON.parse(prompts) });
+            homeDispatch({ field: "prompts", value: JSON.parse(prompts) });
         }
 
         const conversationHistory = localStorage.getItem("conversationHistory");
@@ -424,7 +462,7 @@ const Home = ({
                 parsedConversationHistory
             );
 
-            dispatch({
+            homeDispatch({
                 field: "conversations",
                 value: cleanedConversationHistory,
             });
@@ -438,13 +476,13 @@ const Home = ({
                 parsedSelectedConversation
             );
 
-            dispatch({
+            homeDispatch({
                 field: "selectedConversation",
                 value: cleanedSelectedConversation,
             });
         } else {
             const lastConversation = conversations[conversations.length - 1];
-            dispatch({
+            homeDispatch({
                 field: "selectedConversation",
                 value: {
                     id: uuidv4(),
@@ -460,21 +498,85 @@ const Home = ({
         }
     }, [
         defaultModelId,
-        dispatch,
+        homeDispatch,
         serverSideApiKeyIsSet,
         serverSidePluginKeysSet,
         t,
     ]);
 
+    useEffect(() => {
+        if (globalModel) {
+            if (globalModel.item === undefined) {
+                // ON INITIAL LOAD: if globalModel is defined, but item is not, then we need to reset the model globally
+                homeDispatch({ field: "globalModel", value: undefined });
+            } else {
+                inferenceActions.requestStartInference(
+                    globalModel.item!.filePath, globalModel.id, globalModel.item!.filePath, -1);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        if (globalModel !== undefined) {
+            if (globalModel.item === undefined) {
+                // whenever the globalModel changes, the globalModel.item must be, otherwise
+                //   something has gone wrong in setting the global model
+                //   so throw an error
+                throw new Error(`'globalModel' is defined as ${globalModel.id}, but 'globalModel.item' is undefined. Something has gone wrong within the application.`);
+            } else {
+                inferenceActions.requestStartInference(
+                    globalModel.item!.filePath, globalModel.id, globalModel.item!.filePath, -1);
+            }
+        }
+    }, [globalModel]);
+
+    useEffect(() => {
+        // keep the globalModel in sync with the currentWingmanInferenceItem which is coming
+        //   from the wingman websocket
+        if (currentWingmanInferenceItem) {
+            // if the currentWingmanInferenceItem.alias is the same as the globalModel, then do nothing
+            if (globalModel?.id === currentWingmanInferenceItem?.alias) {
+                return;
+            }
+            // find the model that matches the currentWingmanInferenceItem and see if it matches the globalModel
+            //   find the model by searching all model items for the one that matches the currentWingmanInferenceItem
+            if (models === undefined) {
+                return;
+            }
+            let model: AIModel | undefined = undefined;
+            for (const m of models) {
+                if (m.items !== undefined && m.items.length > 0) {
+                    const mi = m.items.find((mi: DownloadableItem) => mi.filePath === currentWingmanInferenceItem?.filePath);
+                    if (mi !== undefined) {
+                        m.item = mi;
+                        model = m;
+                        break;
+                    }
+                }
+            }
+
+            if (model) {
+                if (globalModel?.id !== model.id) {
+                    // if the globalModel is not the same as the model that matches the currentWingmanInferenceItem,
+                    //   then we need to change the globalModel to match the currentWingmanInferenceItem
+                    homeDispatch({ field: "globalModel", value: model });
+                }
+            }
+        }
+    }, [currentWingmanInferenceItem?.alias, models]);
+
     return (
         <WingmanContext.Provider
             value={{
                 ...wingmanContextValue,
+                handleStartGenerating,
+                handleStopGenerating,
+                handleToggleMetrics,
             }}
         >
             <HomeContext.Provider
                 value={{
-                    ...contextValue,
+                    ...homeContextValue,
                     handleNewConversation,
                     handleCreateFolder,
                     handleDeleteFolder,
@@ -482,6 +584,8 @@ const Home = ({
                     handleSelectConversation,
                     handleUpdateConversation,
                     handleDuplicateConversation,
+                    handleDeleteConversation: () => {},
+                    handleChangeModel,
                 }}
             >
                 <Head>

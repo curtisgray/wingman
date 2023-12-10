@@ -38,6 +38,15 @@ export interface AIModel
     item?: DownloadableItem;
 }
 
+export interface AIModelInstance
+{
+    isa: "AIModelInstance";
+    alias: string;
+    model: AIModel;
+    address: string;
+    port: number;
+}
+
 export enum AIModelID
 {
     GPT_3_5 = "gpt-3.5-turbo",
