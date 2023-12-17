@@ -9,8 +9,9 @@ const CancelDownloadButton = ({ modelRepo, filePath, className = undefined, chil
 {
     // const { state: { isOnline, downloadItems } } = useContext(HomeContext);
     const {
-        state: { lastWebSocketMessage },
+        state: { downloadItems },
     } = useContext(WingmanContext);
+
     const downloadActions = useRequestDownloadAction();
     const handleRequestCancelDownload = () => downloadActions.requestCancelDownload(modelRepo, filePath);
     
@@ -23,20 +24,12 @@ const CancelDownloadButton = ({ modelRepo, filePath, className = undefined, chil
 
     useEffect(() =>
     {
-        if (lastWebSocketMessage?.lastMessage !== undefined) {
-            const message = lastWebSocketMessage.lastMessage;
-            if (message === undefined || message === "") {
-                return;
-            }
-            const msg = JSON.parse(message);
-            if (msg?.isa === "DownloadItem") {
-                const di = msg as DownloadItem;
-                if (di.modelRepo === modelRepo && di.filePath === filePath) {
-                    setDownloadItem(di);
-                }
+        if (downloadItems !== undefined) {
+            const di = downloadItems.find((item) => item.modelRepo === modelRepo && item.filePath === filePath);
+            if (di !== undefined) {
+                setDownloadItem(di);
             }
         }
-
         let isDownloadingLocal = false;
         if (downloadItem !== undefined) {
             switch (downloadItem.status) {
@@ -76,7 +69,7 @@ const CancelDownloadButton = ({ modelRepo, filePath, className = undefined, chil
             }
             setIsDownloading(isDownloadingLocal);
         }
-    }, [lastWebSocketMessage]);
+    }, [downloadItems]);
     
     // only enable the button if the download is in progress
     const isVisible = hideIfDisabled !== undefined ? !disabled : true;

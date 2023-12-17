@@ -8,9 +8,8 @@ import DownloadButton from "./DownloadButton";
 import { DownloadItem, DownloadProps } from "@/types/download";
 import { useTranslation } from "next-i18next";
 import HomeContext from "@/pages/api/home/home.context";
-import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 import WingmanInferenceStatus from "./WingmanInferenceStatus";
-import { Conversation } from "@/types/chat";
+import { useImmer } from "use-immer";
 import WingmanContext from "@/pages/api/home/wingman.context";
 
 export type ModelOption = {
@@ -44,8 +43,8 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
     const [modelList, setModelList] = React.useState<AIModel[]>(Object.values(AIModels));
     const [selectableModels, setSelectableModels] = React.useState<AIModel[]>([]);
 
-    const [selectedModel, setSelectedModel] = React.useState<AIModel | undefined>(undefined);
-    const [selectedQuantization, setSelectedQuantization] = React.useState<string | undefined>(undefined);
+    const [selectedModel, setSelectedModel] = useImmer<AIModel | undefined>(undefined);
+    const [selectedQuantization, setSelectedQuantization] = useImmer<string | undefined>(undefined);
     const [isLoadingModelList, setIsLoadingModelList] = React.useState<boolean>(false);
     const [isChangingModel, setIsChangingModel] = React.useState<boolean>(false);
 
@@ -55,6 +54,10 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
         state: { models, globalModel, defaultModelId },
         handleChangeModel,
     } = useContext(HomeContext);
+
+    // const {
+    //     state: { currentWingmanInferenceItem },
+    // } = useContext(WingmanContext);
 
     const refreshModelList = async () =>
     {
@@ -73,16 +76,22 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
         const item = selectedModel.items?.find((item) => item.quantization === quantization);
         let success = false;
         if (item) {
-            selectedModel.item = item;
-            const modelRepo = selectedModel.id;
-            const filePath = selectedModel.item?.filePath as string;
+            // selectedModel.item = item;
+            // setSelectedModel(draft => {
+            //     if (draft)
+            //         draft.item = item;
+            // });
+            const draftModel = {...selectedModel};
+            draftModel.item = item;
+            const modelRepo = draftModel.id;
+            const filePath = item?.filePath as string;
             if (success = onValidateChange({modelRepo: modelRepo, filePath: filePath})) {
+                setSelectedModel(draftModel);
                 setSelectedQuantization(quantization);
-                // handleChangeModel(selectedModel);
                 // if the model is already downloaded, then send call handleChangeModel
                 //   otherwise, wait for the download to complete, then call handleChangeModel
                 if (item.isDownloaded) {
-                    handleChangeModel(selectedModel);
+                    handleChangeModel(draftModel);
                 } else {
                     setIsChangingModel(true);
                 }
@@ -124,7 +133,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
 
     const handleDownloadableItemChange = (e: SingleValue<{ value: string | undefined; label: string | Element; }>,
         actionMeta: ActionMeta<{ value: string | undefined; label: string | Element; }>) => {
-        if (actionMeta.action === "select-option" && typeof onValidateChange === "function") {
+        if (actionMeta.action === "select-option") {
             if (selectedModel?.items) {
                 const quantization = e?.value;
                 if (quantization !== undefined) {
@@ -269,7 +278,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
 
     // keep the selected model in sync with the global model
     useEffect(() => {
-        if (globalModel !== undefined) {
+        if (globalModel !== undefined && !isChangingModel) {
             if (globalModel.item === undefined) {
                 // whenever the globalModel changes, the globalModel.item must be, otherwise
                 //   something has gone wrong in setting the global model
@@ -294,10 +303,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                         {displayModelVendor(selectedModel)}
                     </label>
                     <span className="flex-grow"></span>
-                    {selectedModel?.vendor === Vendors.huggingface.name &&
-                    (
-                        <WingmanInferenceStatus className="px-8" showTitle={false} showModel={false} />
-                    )}
+                    <WingmanInferenceStatus className="px-8" showTitle={false} showModel={false} />
                 </div>
                 <div className="flex rounded-lg space-x-2 items-center">
                     <Select

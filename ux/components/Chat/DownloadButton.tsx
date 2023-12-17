@@ -11,7 +11,7 @@ const DownloadButton = ({ modelRepo, filePath,
     className = undefined, children = undefined, autoStart = false }: DownloadButtonProps) =>
 {
     const {
-        state: { lastWebSocketMessage },
+        state: { downloadItems },
     } = useContext(WingmanContext);
 
     const downloadActions = useRequestDownloadAction();
@@ -23,6 +23,7 @@ const DownloadButton = ({ modelRepo, filePath,
     const [progress, setProgress] = useState<number>(0);
     const [progressText, setProgressText] = useState<string>("");
     const [downloadLabel, setDownloadLabel] = useState<string>("Download");
+    const [downloadStatus, setDownloadStatus] = useState<string>("Docked");
     const [disabled, setDisabled] = useState<boolean>(false);
     
     const handleRequestDownload = () => {
@@ -47,17 +48,23 @@ const DownloadButton = ({ modelRepo, filePath,
 
     useEffect(() =>
     {
-        if (lastWebSocketMessage?.lastMessage !== undefined) {
-            const message = lastWebSocketMessage.lastMessage;
-            if (message === undefined || message === "") {
-                return;
-            }
-            const msg = JSON.parse(message);
-            if (msg?.isa === "DownloadItem") {
-                const di = msg as DownloadItem;
-                if (di.modelRepo === modelRepo && di.filePath === filePath) {
-                    setDownloadItem(di);
-                }
+        // if (lastWebSocketMessage?.lastMessage !== undefined) {
+        //     const message = lastWebSocketMessage.lastMessage;
+        //     if (message === undefined || message === "") {
+        //         return;
+        //     }
+        //     const msg = JSON.parse(message);
+        //     if (msg?.isa === "DownloadItem") {
+        //         const di = msg as DownloadItem;
+        //         if (di.modelRepo === modelRepo && di.filePath === filePath) {
+        //             setDownloadItem(di);
+        //         }
+        //     }
+        // }
+        if (downloadItems !== undefined) {
+            const di = downloadItems.find((item) => item.modelRepo === modelRepo && item.filePath === filePath);
+            if (di !== undefined) {
+                setDownloadItem(di);
             }
         }
 
@@ -67,6 +74,7 @@ const DownloadButton = ({ modelRepo, filePath,
                 case "complete":
                     if (isDownloading && !downloadCompleted){
                         setDownloadLabel("Downloaded");
+                        setDownloadStatus("Aircraft Landed");
                         setDisabled(true);
                         setProgress(downloadItem.progress);
                         setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
@@ -80,6 +88,7 @@ const DownloadButton = ({ modelRepo, filePath,
                         onStarted(downloadItem);
                     }
                     setDownloadLabel("Cancel Download");
+                    setDownloadStatus(`Aircraft in Flight - ${downloadItem.progress.toPrecision(3)}%}`);
                     setDisabled(false);
                     setProgress(downloadItem.progress);
                     setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
@@ -89,6 +98,7 @@ const DownloadButton = ({ modelRepo, filePath,
                 case "cancelled":
                     if (isDownloading && !downloadCompleted){
                         setDownloadLabel("Redownload");
+                        setDownloadStatus("Flight Aborted");
                         setDisabled(false);
                         setProgress(downloadItem.progress);
                         setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
@@ -99,14 +109,17 @@ const DownloadButton = ({ modelRepo, filePath,
                     break;
                 case "error":
                     setDownloadLabel("Error");
+                    setDownloadStatus("Failure to Takeoff");
                     break;
                 case "idle":
                     setDownloadLabel("Download");
+                    setDownloadStatus("Aircraft Docked");
                     setDisabled(true);
                     setDownloadStarted(false);
                     break;
                 case "queued":
                     setDownloadLabel("Queued");
+                    setDownloadStatus("Ready for Takeoff");
                     setDisabled(true);
                     setDownloadStarted(false);
                     break;
@@ -115,7 +128,7 @@ const DownloadButton = ({ modelRepo, filePath,
             }
             setIsDownloading(isDownloadingLocal);
         }
-    }, [lastWebSocketMessage]);
+    }, [downloadItems]);
 
     useEffect(() => {
         if (autoStart) {

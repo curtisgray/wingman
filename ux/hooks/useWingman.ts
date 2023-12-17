@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { ConnectionStatus, DownloadServerAppItem, WingmanWebSocketMessage, newWingmanWebSocketMessage } from "@/types/download";
+import { ConnectionStatus, DownloadItem, DownloadServerAppItem, WingmanWebSocketMessage, newWingmanWebSocketMessage } from "@/types/download";
 import { LlamaStats, LlamaStatsTimings, newLlamaStatsTimings, LlamaStatsSystem, newLlamaStatsSystem, LlamaStatsMeta, newLlamaStatsMeta, LlamaStatsTensors, newLlamaStatsTensors } from "@/types/llama_stats";
 import { WingmanContent, WingmanItem, WingmanItemStatus, WingmanServiceAppItem, WingmanStateProps, createWingmanItem, hasActiveStatus } from "@/types/wingman";
 import { useEffect, useRef, useState } from "react";
@@ -7,6 +7,9 @@ import useWebSocket, { ReadyState } from "react-use-websocket";
 import { useRequestInferenceAction } from "./useRequestInferenceAction";
 import useApiService from "@/services/useApiService";
 import { useQuery } from "react-query";
+import { isEqual } from "lodash";
+import { initialWingmanState } from "@/pages/api/home/wingman.state";
+import { useCreateReducer } from "./useCreateReducer";
 
 
 function precisionRound(value: number, precision: number)
@@ -110,10 +113,20 @@ export function useWingman(monitorPort: number = 6567): WingmanStateProps
     // const [wingmanStatus, setWingmanStatus] = useState<WingmanItemStatus>("unknown");
     // const [wingmanItem, setWingmanItem] = useState<WingmanItem>(() => createWingmanItem("", "", ""));
     const [wingmanItems, setWingmanItems] = useState<WingmanItem[]>([]);
+    const [downloadItems, setDownloadItems] = useState<DownloadItem[]>([]);
     const [currentWingmanInferenceItem, setCurrentWingmanInferenceItem] = useState<WingmanItem | undefined>(undefined);
     // const [isInferring, setIsInferring] = useState<boolean>(false);
     const [isOnline, setIsOnline] = useState<boolean>(false);
-    const [lastWebSocketMessage, setLastWebSocketMessage] = useState<WingmanWebSocketMessage>(() => newWingmanWebSocketMessage());
+    // const [lastWebSocketMessage, setLastWebSocketMessage] = useState<WingmanWebSocketMessage>(() => newWingmanWebSocketMessage());
+
+
+    const wingmanContextValue = useCreateReducer<WingmanStateProps>({
+        initialState: initialWingmanState,
+    });
+
+    const {
+        dispatch: wingmanDispatch,
+    } = wingmanContextValue;
 
     // const inferenceActions = useRequestInferenceAction();
 
@@ -159,32 +172,39 @@ export function useWingman(monitorPort: number = 6567): WingmanStateProps
     useEffect(() =>
     {
         if (lastMessage?.data) {
+            // const json = JSON.parse(JSON.stringify(lastMessage.data));
             const json = JSON.parse(lastMessage.data);
-            const message: WingmanWebSocketMessage = {
-                lastMessage: lastMessage.data,
-                connectionStatus: connectionStatus as ConnectionStatus,
-            };
-            setLastWebSocketMessage(message);
-            if (json.meta) {
-                setMeta(json.meta);
+            // const message: WingmanWebSocketMessage = {
+            //     lastMessage: lastMessage.data,
+            //     connectionStatus: connectionStatus as ConnectionStatus,
+            // };
+            // if (!isEqual(message, lastWebSocketMessage))
+            //     setLastWebSocketMessage(message);
+            if (json?.meta) {
+                if (!isEqual(json?.meta, meta))
+                    setMeta(json.meta);
             }
-            if (json.system) {
-                setSystem(json.system);
+            if (json?.system) {
+                if (!isEqual(json?.system, system))
+                    setSystem(json.system);
             }
-            if (json.tensors) {
-                setTensors(json.tensors);
+            if (json?.tensors) {
+                if (!isEqual(json?.tensors, tensors))
+                    setTensors(json.tensors);
             }
-            if (json.timings && !pauseMetrics) {
+            if (json?.timings && !pauseMetrics) {
                 const metrics = json.timings;
                 Object.keys(metrics).forEach(function (key) { metrics[key] = precisionRound(metrics[key], fractionDigits); });
                 setMetrics(metrics);
                 setTimeSeries([...timeSeries, metrics].slice(-100));
             }
             if (json?.WingmanService) {
-                setWingmanServiceStatus(json.WingmanService);
+                if (!isEqual(json?.WingmanService, wingmanServiceStatus))
+                    setWingmanServiceStatus(json.WingmanService);
             }
             if (json?.DownloadService) {
-                setDownloadServiceStatus(json.DownloadService);
+                if (!isEqual(json?.DownloadService, downloadServiceStatus))
+                    setDownloadServiceStatus(json.DownloadService);
             }
             // if (json?.isa === "WingmanItem") {
             //     // insert into wingmanItems list, careful to overwrite existing items
@@ -199,36 +219,107 @@ export function useWingman(monitorPort: number = 6567): WingmanStateProps
             //         setWingmanItems(newItems);
             //     }
             // }   // TODO: remove WingmanItems after they've been in the list for a while
-            const date = new Date();
-            setLastTime(date);
-        }
-    }, [lastMessage, pauseMetrics]);
 
-    const { getWingmanItems } = useApiService();
-    const { data: currentWingmanItems, error: currentWingmanItemsError } = useQuery(
-        "GetWingmanItems",
-        getWingmanItems,
-        { enabled: true, refetchIntervalInBackground: true, refetchInterval: 3000 }
-    );
-
-    useEffect(() =>
-    {
-        if (currentWingmanItems) {
-            if (currentWingmanItems !== undefined && currentWingmanItems.length > 0) {
-                setWingmanItems(currentWingmanItems);
-                const wi = currentWingmanItems.find((wi) => hasActiveStatus(wi));
-                if (wi?.alias !== currentWingmanInferenceItem?.alias) {
-                    if (wi !== undefined) {
+            if (json?.WingmanItems) {
+                if (!isEqual(json?.WingmanItems, wingmanItems)) {
+                    setWingmanItems(json.WingmanItems);
+                    // search for the currentWinmanInferenceItem in the list of currentWingmanItems
+                    // if it's not there, check for the first item with an active status
+                    // let wi = json.WingmanItems.find((w: WingmanItem) => w.alias === currentWingmanInferenceItem?.alias);
+                    // if (wi === undefined) {
+                    //     wi = json.WingmanItems.find((w: WingmanItem) => hasActiveStatus(w));
+                    // }
+                    // let's try setting the current inference item to the one that is inferring
+                    const wi = json.WingmanItems.find((w: WingmanItem) => hasActiveStatus(w));
+                    if (wi !== undefined && !isEqual(wi, currentWingmanInferenceItem)) {
                         setCurrentWingmanInferenceItem(wi);
-                    } else {
-                        setCurrentWingmanInferenceItem(undefined);
                     }
                 }
             }
-            // this is also being done in the useWingman hook using real-time updates
-            // wingmanDispatch({ field: "wingmanItems", value: currentWingmanItems });
+            if (json?.DownloadItems) {
+                if (!isEqual(json?.DownloadItems, downloadItems))
+                    setDownloadItems(json.DownloadItems);
+            }
+            // const date = new Date();
+            // setLastTime(date);
         }
-    }, [currentWingmanItems]);
+    }, [lastMessage, pauseMetrics]);
+
+    useEffect(() =>
+    {
+        // wingmanDispatch({ field: "alias", value: alias });
+        // wingmanDispatch({ field: "modelRepo", value: modelRepo });
+        // wingmanDispatch({ field: "filePath", value: filePath });
+        // wingmanDispatch({ field: "isGenerating", value: isGenerating });
+        // wingmanDispatch({ field: "latestItem", value: latestItem });
+        // wingmanDispatch({ field: "items", value: items });
+        wingmanDispatch({ field: "pauseMetrics", value: pauseMetrics });
+        wingmanDispatch({ field: "timeSeries", value: timeSeries });
+        wingmanDispatch({ field: "meta", value: meta });
+        wingmanDispatch({ field: "tensors", value: tensors });
+        wingmanDispatch({ field: "system", value: system });
+        wingmanDispatch({ field: "metrics", value: metrics });
+        // wingmanDispatch({ field: "lastTime", value: lastTime });
+        wingmanDispatch({ field: "isOnline", value: isOnline });
+        wingmanDispatch({ field: "status", value: connectionStatus });
+        wingmanDispatch({ field: "wingmanServiceStatus", value: wingmanServiceStatus });
+        wingmanDispatch({ field: "downloadServiceStatus", value: downloadServiceStatus });
+        wingmanDispatch({ field: "wingmanItems", value: wingmanItems });
+        wingmanDispatch({ field: "currentWingmanInferenceItem", value: currentWingmanInferenceItem });
+        // wingmanDispatch({ field: "lastWebSocketMessage", value: lastMessage });
+
+        // wingmanDispatch({ field: "forceChosenModel", value: forceChosenModel });
+        // wingmanDispatch({ field: "activate", value: activate });
+        // wingmanDispatch({ field: "deactivate", value: deactivate });
+        // wingmanDispatch({ field: "startGenerating", value: startGenerating });
+        // wingmanDispatch({ field: "stopGenerating", value: stopGenerating });
+        // wingmanDispatch({ field: "toggleMetrics", value: toggleMetrics });
+
+        // const wingmanItem = wingmanItems.find((item) => item.status === "inferring");
+        // if (wingmanItem && isModelChosen() && wingmanItem.alias === chosenModel?.filePath){
+        //     onInferenceItemsEvent(wingmanItem);
+        // }
+    }, [
+        // isGenerating, latestItem, items,
+        pauseMetrics, timeSeries, meta, system, tensors, metrics,
+        // lastTime,
+        isOnline, connectionStatus, wingmanServiceStatus,
+        downloadServiceStatus,
+        // lastMessage,
+        currentWingmanInferenceItem]);
+
+    // const { getWingmanItems } = useApiService();
+    // const { data: currentWingmanItems, error: currentWingmanItemsError } = useQuery(
+    //     "GetWingmanItems",
+    //     getWingmanItems,
+    //     { enabled: true, refetchIntervalInBackground: true, refetchInterval: 300 }
+    // );
+
+    // useEffect(() =>
+    // {
+    //     if (currentWingmanItems) {
+    //         if (currentWingmanItems !== undefined && currentWingmanItems.length > 0) {
+    //             setWingmanItems(currentWingmanItems);
+    //             // search for the currentWinmanInferenceItem in the list of currentWingmanItems
+    //             // if it's not there, check for the first item with an active status
+    //             let wi = currentWingmanItems.find((wi) => wi.alias === currentWingmanInferenceItem?.alias);
+    //             if (wi === undefined) {
+    //                 wi = currentWingmanItems.find((wi) => hasActiveStatus(wi));
+    //             }
+    //             setCurrentWingmanInferenceItem(wi);
+    //             // const wi = currentWingmanItems.find((wi) => hasActiveStatus(wi));
+    //             // if (wi?.alias !== currentWingmanInferenceItem?.alias) {
+    //             //     if (wi !== undefined) {
+    //             //         setCurrentWingmanInferenceItem(wi);
+    //             //     } else {
+    //             //         setCurrentWingmanInferenceItem(undefined);
+    //             //     }
+    //             // }
+    //         }
+    //         // this is also being done in the useWingman hook using real-time updates
+    //         // wingmanDispatch({ field: "wingmanItems", value: currentWingmanItems });
+    //     }
+    // }, [currentWingmanItems]);
 
     useEffect(() =>
     {
@@ -245,10 +336,12 @@ export function useWingman(monitorPort: number = 6567): WingmanStateProps
         // startGenerating, stopGenerating,
         pauseMetrics,
         // toggleMetrics: () => setPauseMetrics(!pauseMetrics),
-        timeSeries, meta, system, tensors, metrics, lastTime,
-        wingmanServiceStatus,downloadServiceStatus,
+        timeSeries, meta, system, tensors, metrics,
+        // lastTime,
+        wingmanServiceStatus, downloadServiceStatus,
         wingmanItems,
+        downloadItems,
         currentWingmanInferenceItem,
-        lastWebSocketMessage,
+        // lastWebSocketMessage,
     };
 }

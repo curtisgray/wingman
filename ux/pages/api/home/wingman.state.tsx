@@ -14,7 +14,7 @@ export const initialWingmanState: WingmanStateProps = {
     system: newLlamaStatsSystem(),
     tensors: newLlamaStatsTensors(),
     metrics: newLlamaStatsTimings(),
-    lastTime: new Date(),
+    // lastTime: new Date(),
     isOnline: false,
     status: "❓",
     wingmanServiceStatus: undefined,
@@ -23,11 +23,12 @@ export const initialWingmanState: WingmanStateProps = {
     // isInferring: false,
     // wingmanItem: createWingmanItem("", "", ""),
     wingmanItems: [],
+    downloadItems: [],
     currentWingmanInferenceItem: undefined,
-    lastWebSocketMessage: {
-        lastMessage: undefined,
-        connectionStatus: "❓"
-    },
+    // lastWebSocketMessage: {
+    //     lastMessage: undefined,
+    //     connectionStatus: "❓"
+    // },
 
     // forceChosenModel: () => { },
     // activate: async () => { return new Promise(() => { }); },

@@ -1,4 +1,4 @@
-import { ConnectionStatus, DownloadServerAppItem as DownloadServiceAppItem, WingmanWebSocketMessage } from "./download";
+import { ConnectionStatus, DownloadItem, DownloadServerAppItem as DownloadServiceAppItem, WingmanWebSocketMessage } from "./download";
 import { LlamaStats, LlamaStatsMeta, LlamaStatsSystem, LlamaStatsTensors, LlamaStatsTimings } from "./llama_stats";
 
 export type WingmanServiceAppItemStatus = "ready" | "starting" | "preparing" | "inferring" | "stopping" | "stopped" | "error" | "unknown";
@@ -12,7 +12,8 @@ export type WingmanServiceAppItem = {
     created: number;
     updated: number;
 };
-export type WingmanItemStatus = "queued" | "preparing" | "inferring" | "complete" | "error" | "cancelling" | "cancelled" | "unknown";
+// export type WingmanItemStatus = "queued" | "preparing" | "inferring" | "complete" | "error" | "cancelling" | "cancelled" | "unknown";
+export type WingmanItemStatus = "queued" | "preparing" | "inferring" | "complete" | "error" | "cancelling" | "unknown";
 export type WingmanProps = {
     alias: string;
 };
@@ -96,7 +97,7 @@ export const hasCompletedStatus = (item: WingmanItem) =>
     switch (item.status) {
         case "complete":
         case "error":
-        case "cancelled":
+        // case "cancelled":
             return true;
         default:
             return false;
@@ -167,7 +168,7 @@ export interface WingmanStateProps
     system: LlamaStatsSystem;
     tensors: LlamaStatsTensors;
     metrics: LlamaStatsTimings;
-    lastTime: Date;
+    // lastTime: Date;
     isOnline: boolean;
     status: ConnectionStatus;
     wingmanServiceStatus: WingmanServiceAppItem | undefined;
@@ -176,8 +177,9 @@ export interface WingmanStateProps
     // isInferring: boolean;
     // wingmanItem: WingmanItem;
     wingmanItems: WingmanItem[];
+    downloadItems: DownloadItem[];
     currentWingmanInferenceItem: WingmanItem | undefined;
-    lastWebSocketMessage: WingmanWebSocketMessage;
+    // lastWebSocketMessage: WingmanWebSocketMessage;
 
     // forceChosenModel: (alias: string, modelRepo: string, filePath: string) => void;
     // activate: (alias: string, modelRepo: string, filePath: string, gpuLayers: number) => Promise<WingmanItem | undefined>;

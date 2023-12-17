@@ -475,8 +475,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                                                 <label className="mt-4 mb-0">Show downloaded items only
                                                     <input type="checkbox" className="w-4 m-4" checked={showDownloadedItemsOnly} onChange={(e) => setShowDownloadedItemsOnly(e.target.checked)} />
                                                 </label>
-                                                <SelectModel autoDownload={true} showDownloadedItemsOnly={showDownloadedItemsOnly}
-                                                    onValidateChange={(model) => handleValidateChangeModel(model)} />
+                                                <SelectModel autoDownload={true} showDownloadedItemsOnly={showDownloadedItemsOnly} />
                                             </div>
 
                                             <SystemPrompt

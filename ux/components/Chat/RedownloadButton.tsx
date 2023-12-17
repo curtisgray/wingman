@@ -8,7 +8,7 @@ import WingmanContext from "@/pages/api/home/wingman.context";
 const RedownloadButton = ({ modelRepo, filePath, className = undefined, children = undefined, hideIfDisabled = undefined }: DownloadButtonProps) =>
 {
     const {
-        state: { lastWebSocketMessage },
+        state: { downloadItems },
     } = useContext(WingmanContext);
 
     const downloadActions = useRequestDownloadAction();
@@ -23,17 +23,10 @@ const RedownloadButton = ({ modelRepo, filePath, className = undefined, children
 
     useEffect(() =>
     {
-        if (lastWebSocketMessage?.lastMessage !== undefined) {
-            const message = lastWebSocketMessage.lastMessage;
-            if (message === undefined || message === "") {
-                return;
-            }
-            const msg = JSON.parse(message);
-            if (msg?.isa === "DownloadItem") {
-                const di = msg as DownloadItem;
-                if (di.modelRepo === modelRepo && di.filePath === filePath) {
-                    setDownloadItem(di);
-                }
+        if (downloadItems !== undefined) {
+            const di = downloadItems.find((item) => item.modelRepo === modelRepo && item.filePath === filePath);
+            if (di !== undefined) {
+                setDownloadItem(di);
             }
         }
 
@@ -76,7 +69,7 @@ const RedownloadButton = ({ modelRepo, filePath, className = undefined, children
             }
             setIsDownloading(isDownloadingLocal);
         }
-    }, [lastWebSocketMessage]);
+    }, [downloadItems]);
 
     // only enable the button if the download item exists and the system is online
     const isVisible = hideIfDisabled !== undefined ? !disabled : true;
