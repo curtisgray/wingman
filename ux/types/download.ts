@@ -177,26 +177,6 @@ export const StripFormatFromModelRepo = (modelRepo: string): string =>
     return modelRepo;
 };
 
-
-// translate c++ to js
-// inline std::string quantizationNameFromQuantization(const std:: string & quantization)
-// {
-//     std::string quantizationName;
-//     // parse q. remove 'Q' from the beginning. Replace '_' with '.' if the next character is a number, otherwise replace with ' '.
-//     for (size_t i = 1; i < quantization.size(); i++) {
-//         if (quantization[i] == '_') {
-//             if (i + 1 < quantization.size() && std:: isdigit(quantization[i + 1])) {
-//                 quantizationName += '.';
-//             } else {
-//                 quantizationName += ' ';
-//             }
-//         } else {
-//             quantizationName += quantization[i];
-//         }
-//     }
-//     return quantizationName;
-// }
-
 export const quantizationNameFromQuantization = (quantization: string): string =>
 {
     let quantizationName = "";
@@ -229,18 +209,6 @@ export type Quantization = {
 
 export const quantizationFromFilePath = (filePath: string): Quantization =>
 {
-    // translate c++ to js
-    // quantization is the next to last part of the filePath
-    // const auto parts = util:: splitString(filePathPart, '.');
-	// 	auto quantPosition = 1;
-    // check if the extension is HF_MODEL_FILE_EXTENSION. if so, set quantPosition to 1
-    // std::string ext = curl:: HF_MODEL_FILE_EXTENSION;
-    // if (parts[parts.size() - 1] == util:: stringLeftTrim(ext, ".")) {
-    //     quantPosition = 2;
-    // }
-    // const auto & q = parts[parts.size() - quantPosition];
-    // std::string quantization = util:: quantizationNameFromQuantization(q);
-
     const parts = filePath.split(".");
     let quantPosition = 1;
     const ext = HF_MODEL_FILE_EXTENSION.slice(1);

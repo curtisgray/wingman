@@ -1,5 +1,5 @@
-import { WINGMAN_SERVER_API } from "@/types/ai";
 import { DownloadItem } from "@/types/download";
+import { WINGMAN_CONTROL_SERVER_URL } from "@/types/wingman";
 
 interface DownloadActionProps
 {
@@ -14,7 +14,7 @@ export function useRequestDownloadAction(): DownloadActionProps
     const requestDownload = async (modelRepo: string, filePath: string): Promise<DownloadItem | undefined> =>
     {
         try {
-            const url = `${WINGMAN_SERVER_API}/downloads/enqueue?modelRepo=${encodeURI(modelRepo)}&filePath=${encodeURI(filePath)}`;
+            const url = `${WINGMAN_CONTROL_SERVER_URL}/api/downloads/enqueue?modelRepo=${encodeURI(modelRepo)}&filePath=${encodeURI(filePath)}`;
             const response = await fetch(url);
             let downloadItem: DownloadItem | undefined = undefined;
             // ensure response is valid and that JSON data is of type ProgressData
@@ -43,7 +43,7 @@ export function useRequestDownloadAction(): DownloadActionProps
 
     const requestCancelDownload = async (modelRepo: string, filePath: string) =>
     {
-        const url = `${WINGMAN_SERVER_API}/downloads/cancel?modelRepo=${modelRepo}&filePath=${filePath}`;
+        const url = `${WINGMAN_CONTROL_SERVER_URL}/api/downloads/cancel?modelRepo=${modelRepo}&filePath=${filePath}`;
         try {
             const response = await fetch(encodeURI(url));
             if (!response.ok) {
@@ -56,7 +56,7 @@ export function useRequestDownloadAction(): DownloadActionProps
 
     const requestResetDownload = async (modelRepo: string, filePath: string) =>
     {
-        const url = `${WINGMAN_SERVER_API}/downloads/reset?modelRepo=${modelRepo}&filePath=${filePath}`;
+        const url = `${WINGMAN_CONTROL_SERVER_URL}/api/downloads/reset?modelRepo=${modelRepo}&filePath=${filePath}`;
         try {
             const response = await fetch(encodeURI(url));
             if (!response.ok) {
@@ -69,7 +69,7 @@ export function useRequestDownloadAction(): DownloadActionProps
 
     const requestRedownload = async (modelRepo: string, filePath: string) =>
     {
-        const url = `${WINGMAN_SERVER_API}/downloads/reset?modelRepo=${modelRepo}&filePath=${filePath}`;
+        const url = `${WINGMAN_CONTROL_SERVER_URL}/api/downloads/reset?modelRepo=${modelRepo}&filePath=${filePath}`;
         try {
             const response = await fetch(encodeURI(url));
             if (!response.ok) {

@@ -3,9 +3,6 @@ import { ChatInput } from "./ChatInput";
 import { ChatLoader } from "./ChatLoader";
 import { ErrorMessageDiv } from "./ErrorMessageDiv";
 import { MemoizedChatMessage } from "./MemoizedChatMessage";
-import { ModelSelect } from "./ModelSelect";
-import { SystemPrompt } from "./SystemPrompt";
-import { TemperatureSlider } from "./Temperature";
 import HomeContext from "@/pages/api/home/home.context";
 import { ChatBody, Conversation, Message } from "@/types/chat";
 import { Plugin } from "@/types/plugin";
@@ -16,7 +13,6 @@ import {
     updateConversation,
 } from "@/utils/app/conversation";
 import { throttle } from "@/utils/data/throttle";
-import { IconClearAll, IconSettings } from "@tabler/icons-react";
 import { useTranslation } from "next-i18next";
 import {
     MutableRefObject,
@@ -28,8 +24,9 @@ import {
     useState,
 } from "react";
 import toast from "react-hot-toast";
-import { SelectModel } from "./SelectModel";
 import { DownloadProps } from "@/types/download";
+import ChatSettings from "./ChatSettings";
+import ChatStatus from "./ChatStatus";
 
 interface Props {
     stopConversationRef: MutableRefObject<boolean>;
@@ -50,6 +47,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             modelError,
             loading,
             prompts,
+            globalModel,
         },
         handleUpdateConversation,
         dispatch: homeDispatch,
@@ -58,9 +56,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     const [currentMessage, setCurrentMessage] = useState<Message>();
     const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(true);
     const [showSettings, setShowSettings] = useState<boolean>(false);
-    const [showScrollDownButton, setShowScrollDownButton] =
-        useState<boolean>(false);
-    const [showDownloadedItemsOnly, setShowDownloadedItemsOnly] = useState<boolean>(false);
+    const [showScrollDownButton, setShowScrollDownButton] = useState<boolean>(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -72,7 +68,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             deleteCount = 0,
             plugin: Plugin | null = null
         ) => {
-            if (selectedConversation) {
+            if (selectedConversation && globalModel) {
                 let updatedConversation: Conversation;
 
                 // TODO: Use techniques to reduce the context length, such as summarizing the first x messages, reducing them to a single message, etc.
@@ -104,8 +100,9 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                     model: updatedConversation.model,
                     messages: updatedConversation.messages,
                     key: apiKey,
-                    prompt: updatedConversation.prompt,
+                    systemPrompt: updatedConversation.systemPrompt,
                     temperature: updatedConversation.temperature,
+                    vendor: globalModel.vendor,
                 };
                 const endpoint = getEndpoint(plugin);
                 let body;
@@ -193,21 +190,21 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                         } else {
                             const updatedMessages: Message[] =
                                 updatedConversation.messages.map(
-                                    (message, index) => {
+                                (message, index) => {
                                         if (
                                             index ===
                                             updatedConversation.messages
                                                 .length -
                                                 1
                                         ) {
-                                            return {
-                                                ...message,
-                                                content: text,
-                                            };
-                                        }
-                                        return message;
+                                        return {
+                                            ...message,
+                                            content: text,
+                                        };
                                     }
-                                );
+                                    return message;
+                                }
+                            );
                             updatedConversation = {
                                 ...updatedConversation,
                                 messages: updatedMessages,
@@ -221,11 +218,11 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                     saveConversation(updatedConversation);
                     const updatedConversations: Conversation[] =
                         conversations.map((conversation) => {
-                            if (conversation.id === selectedConversation.id) {
-                                return updatedConversation;
-                            }
-                            return conversation;
-                        });
+                        if (conversation.id === selectedConversation.id) {
+                            return updatedConversation;
+                        }
+                        return conversation;
+                    });
                     if (updatedConversations.length === 0) {
                         updatedConversations.push(updatedConversation);
                     }
@@ -270,7 +267,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                 }
             }
         },
-        [apiKey, conversations, homeDispatch, pluginKeys, selectedConversation, stopConversationRef]
+        [apiKey, conversations, homeDispatch, pluginKeys, selectedConversation, stopConversationRef, globalModel]
     );
 
     const scrollToBottom = useCallback(() => {
@@ -296,7 +293,14 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         }
     };
 
-    const handleScrollDown = () => {
+    const handleScrollTop = () => {
+        chatContainerRef.current?.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
+    };
+
+    const handleScrollBottom = () => {
         chatContainerRef.current?.scrollTo({
             top: chatContainerRef.current.scrollHeight,
             behavior: "smooth",
@@ -305,6 +309,31 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
 
     const handleSettings = () => {
         setShowSettings(!showSettings);
+        if (!showSettings)
+            handleScrollTop();
+        else
+            handleScrollBottom();
+    };
+
+    const handleChangeSystemPrompt = (prompt: string) => {
+        if (selectedConversation) {
+            handleUpdateConversation(selectedConversation, {
+                key: "systemPrompt",
+                value: prompt,
+            });
+        }
+    };
+    
+    const handleChangeTemperature = (temperature: number) => {
+        if (selectedConversation) {
+            handleUpdateConversation(
+                selectedConversation,
+                {
+                    key: "temperature",
+                    value: temperature,
+                }
+            );
+        }
     };
 
     const onClearAll = () => {
@@ -362,52 +391,14 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         };
     }, []);
 
-    // const displayActivationButton = () =>
-    // {
-    //     if (isModelChosen()) {
-    //         if (currentInferenceItem?.status === "inferring") {
-    //             return (
-    //                 <button className="text-center rounded h-12 mt-4 p-4 bg-neutral-50 text-xs font-medium uppercase text-neutral-800"
-    //                     onClick={handleStopInference}>{`deactivate (${currentInferenceItem.alias})`}</button>
-    //             );
-    //         } else if (currentInferenceItem?.status === "complete") {
-    //             return (
-    //                 <button className="text-center rounded h-12 mt-4 p-4 bg-neutral-50 text-xs font-medium uppercase text-neutral-800"
-    //                     onClick={handleStartInference}>activate</button>
-    //             );
-    //         } else {
-    //             return (
-    //                 <button className="text-center rounded h-12 mt-4 p-4 bg-neutral-50 text-xs font-medium uppercase text-neutral-800"
-    //                     onClick={handleStartInference}>{`${currentInferenceItem?.status}`}</button>
-    //             );
-    //         }
-    //     }
-    //     return (
-    //         <div></div>
-    //     );
-    // };
-
     const handleValidateChangeModel = (model: DownloadProps): boolean => {
-        // if (selectedConversation && models.length > 0) {
-        //     const m = models.find((m) => m.id === model.modelRepo);
-        //     if (!m || !(m.items !== undefined && m.items.length > 0)) {
-        //         return false;
-        //     }
-        //     const item = m.items?.find((item) => item.filePath === model.filePath);
-        //     m.item = item;
-        //     // handleUpdateConversation(selectedConversation, {
-        //     //     key: "model",
-        //     //     value: m,
-        //     // });
-        //     return true;
-        // }
-        // return false;
         return true;
     };
 
     return (
         <div className="relative flex-1 overflow-hidden bg-white dark:bg-[#343541]">
             {!(apiKey || serverSideApiKeyIsSet) ? (
+                // TODO: Besides api key, we should also check if the user has selected a model
                 <div className="mx-auto flex h-full w-[300px] flex-col justify-center space-y-6 sm:w-[600px]">
                     <div className="text-center text-4xl font-bold text-black dark:text-white">
                         Welcome to Wingman
@@ -417,7 +408,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                     </div>
                     <div className="text-center text-gray-500 dark:text-gray-400">
                         <div className="mb-2">
-                            Wingman allows you to chat with OpenAI and LLaMA AI models.
+                            Wingman allows you to chat with and tune AI models.
                         </div>
                         <div className="mb-2">
                             It is <span className="italic">only</span> used to
@@ -447,12 +438,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                 <ErrorMessageDiv error={modelError} />
             ) : (
                 <>
-                    <div
-                        className="max-h-full overflow-x-hidden"
-                        ref={chatContainerRef}
-                        onScroll={handleScroll}
-                    >
-                        {selectedConversation?.messages.length === 0 ? (
+                    <div className="max-h-full overflow-x-hidden" ref={chatContainerRef} onScroll={handleScroll}>
+                        {selectedConversation?.messages.length === 0 ? ( // no messages so display startup settings
                             <>
                                 <div className="mx-auto flex flex-col space-y-5 md:space-y-10 px-3 pt-5 md:pt-12 sm:max-w-[600px]">
                                     <div className="text-center text-3xl font-semibold text-gray-800 dark:text-gray-100">
@@ -469,75 +456,16 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                                     </div>
 
                                     {models.length > 0 && (
-                                        <div className="flex h-full flex-col space-y-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-600">
-                                            {/* <ModelSelect /> */}
-                                            <div className="w-full text-gray-800 dark:text-gray-100 ">
-                                                <label className="mt-4 mb-0">Show downloaded items only
-                                                    <input type="checkbox" className="w-4 m-4" checked={showDownloadedItemsOnly} onChange={(e) => setShowDownloadedItemsOnly(e.target.checked)} />
-                                                </label>
-                                                <SelectModel autoDownload={true} showDownloadedItemsOnly={showDownloadedItemsOnly} />
-                                            </div>
-
-                                            <SystemPrompt
-                                                conversation={
-                                                    selectedConversation
-                                                }
-                                                prompts={prompts}
-                                                onChangePrompt={(prompt) =>
-                                                    handleUpdateConversation(
-                                                        selectedConversation,
-                                                        {
-                                                            key: "prompt",
-                                                            value: prompt,
-                                                        }
-                                                    )
-                                                }
-                                            />
-
-                                            <TemperatureSlider
-                                                label={t("Temperature")}
-                                                onChangeTemperature={(
-                                                    temperature
-                                                ) =>
-                                                    handleUpdateConversation(
-                                                        selectedConversation,
-                                                        {
-                                                            key: "temperature",
-                                                            value: temperature,
-                                                        }
-                                                    )
-                                                }
-                                            />
-                                        </div>
+                                        <ChatSettings models={models} conversation={selectedConversation} prompts={prompts}
+                                            onChangeSystemPrompt={handleChangeSystemPrompt} onChangeTemperature={handleChangeTemperature} />
                                     )}
                                 </div>
                             </>
-                        ) : (
+                        ) : (   // messages exist so display chat
                             <>
-                                <div className="sticky top-0 z-10 flex justify-center border border-b-neutral-300 bg-neutral-100 py-2 text-sm text-neutral-500 dark:border-none dark:bg-[#444654] dark:text-neutral-200">
-                                    {t("Model")}:{" "}
-                                    {selectedConversation?.model.name} |{" "}
-                                    {t("Temp")}:{" "}
-                                    {selectedConversation?.temperature} |
-                                    <button
-                                        className="ml-2 cursor-pointer hover:opacity-50"
-                                        onClick={handleSettings}
-                                    >
-                                        <IconSettings size={18} />
-                                    </button>
-                                    <button
-                                        className="ml-2 cursor-pointer hover:opacity-50"
-                                        onClick={onClearAll}
-                                    >
-                                        <IconClearAll size={18} />
-                                    </button>
-                                </div>
+                                <ChatStatus onSettings={handleSettings} onClearConversation={onClearAll} />
                                 {showSettings && (
-                                    <div className="flex flex-col space-y-10 md:mx-auto md:max-w-xl md:gap-6 md:py-3 md:pt-6 lg:max-w-2xl lg:px-0 xl:max-w-3xl">
-                                        <div className="flex h-full flex-col space-y-4 border-b border-neutral-200 p-4 dark:border-neutral-600 md:rounded-lg md:border">
-                                            <ModelSelect />
-                                        </div>
-                                    </div>
+                                    <ChatSettings models={models} conversation={selectedConversation!} prompts={prompts} onChangeSystemPrompt={handleChangeSystemPrompt} onChangeTemperature={handleChangeTemperature} />
                                 )}
 
                                 {selectedConversation?.messages.map(
@@ -579,7 +507,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                             setCurrentMessage(message);
                             handleSend(message, 0, plugin);
                         }}
-                        onScrollDownClick={handleScrollDown}
+                        onScrollDownClick={handleScrollBottom}
                         onRegenerate={() => {
                             if (currentMessage) {
                                 handleSend(currentMessage, 2, null);

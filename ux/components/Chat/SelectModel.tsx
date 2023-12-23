@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useContext, useEffect } from "react";
+import React, { memo, useContext, useEffect, useState } from "react";
 import { AIModel, AIModels, DownloadableItem, Vendors } from "@/types/ai";
 import { IconCircleCheck, IconExternalLink, IconRefresh } from "@tabler/icons-react";
 import Image from "next/image";
@@ -10,7 +10,6 @@ import { useTranslation } from "next-i18next";
 import HomeContext from "@/pages/api/home/home.context";
 import WingmanInferenceStatus from "./WingmanInferenceStatus";
 import { useImmer } from "use-immer";
-import WingmanContext from "@/pages/api/home/wingman.context";
 
 export type ModelOption = {
     value: string;
@@ -29,24 +28,26 @@ export type SelectModelProps = {
     onDownloadComplete?: (item: DownloadItem) => void;
     onDownloadStart?: (item: DownloadItem) => void;
     className?: string;
-    showDownloadedItemsOnly?: boolean;
     isDisabled?: boolean;
+    miniMode?: boolean;
     allowDownload?: boolean;
     autoDownload?: boolean;
     iconSize?: number;
 };
 
 const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete = () => { }, onDownloadStart = () => { },
-    className = "", showDownloadedItemsOnly = false, isDisabled: disabled = false,
+    className = "", isDisabled: disabled = false, miniMode = false,
     allowDownload = true, autoDownload = true, iconSize = 24 }: SelectModelProps) => {
 
-    const [modelList, setModelList] = React.useState<AIModel[]>(Object.values(AIModels));
-    const [selectableModels, setSelectableModels] = React.useState<AIModel[]>([]);
+    const [modelList, setModelList] = useState<AIModel[]>(Object.values(AIModels));
+    const [selectableModels, setSelectableModels] = useState<AIModel[]>([]);
 
     const [selectedModel, setSelectedModel] = useImmer<AIModel | undefined>(undefined);
     const [selectedQuantization, setSelectedQuantization] = useImmer<string | undefined>(undefined);
-    const [isLoadingModelList, setIsLoadingModelList] = React.useState<boolean>(false);
-    const [isChangingModel, setIsChangingModel] = React.useState<boolean>(false);
+    const [isLoadingModelList, setIsLoadingModelList] = useState<boolean>(false);
+    const [isChangingModel, setIsChangingModel] = useState<boolean>(false);
+    const [, updateState] = useState({});
+    const [showDownloadedItemsOnly, setShowDownloadedItemsOnly] = useState<boolean>(false);
 
     const { t } = useTranslation("chat");
 
@@ -54,10 +55,6 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
         state: { models, globalModel, defaultModelId },
         handleChangeModel,
     } = useContext(HomeContext);
-
-    // const {
-    //     state: { currentWingmanInferenceItem },
-    // } = useContext(WingmanContext);
 
     const refreshModelList = async () =>
     {
@@ -76,11 +73,6 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
         const item = selectedModel.items?.find((item) => item.quantization === quantization);
         let success = false;
         if (item) {
-            // selectedModel.item = item;
-            // setSelectedModel(draft => {
-            //     if (draft)
-            //         draft.item = item;
-            // });
             const draftModel = {...selectedModel};
             draftModel.item = item;
             const modelRepo = draftModel.id;
@@ -103,8 +95,16 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
     };
 
     const handleDownloadComplete = (item: DownloadItem) => {
+        // if the selectedModel or selectedModel.item is undefined, then something has gone wrong
+        if (selectedModel === undefined) throw new Error("selectedModel is undefined");
+        if (selectedModel.item === undefined) throw new Error("selectedModel.item is undefined");
         setIsChangingModel(false);
-        handleChangeModel(selectedModel);
+        const draftItem = {...selectedModel.item};
+        draftItem.isDownloaded = true;
+        const draftModel = {...selectedModel};
+        draftModel.item = draftItem;
+        setSelectedModel(draftModel);
+        handleChangeModel(draftModel);
         onDownloadComplete(item);
     };
 
@@ -192,10 +192,10 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
     };
 
     const displayDownload = (model: AIModel | undefined) => {
-        if (!allowDownload || model === undefined || model?.item === undefined || model?.vendor == undefined) return "";
+        if (!allowDownload || model === undefined || model?.item === undefined || model?.vendor == undefined) return <></>;
         if (Vendors[model.vendor].isDownloadable) {
-            if(model.item.isDownloaded) {
-                return <div></div>;
+            if (model.item.isDownloaded) {
+                return <></>;
             } else {
                 return <div className="self-center m-4" style={disabled ? {pointerEvents: "none", opacity: "0.4"} : {}}>
                     <DownloadButton modelRepo={model.id}
@@ -254,7 +254,6 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
 
     useEffect(() => {
         handleRefreshModelList();
-        // let success = false;
         if (globalModel !== undefined) {
             if (globalModel.item === undefined) {
                 // whenever the globalModel changes, the globalModel.item must be, otherwise
@@ -266,14 +265,8 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
             }
             // at startup, set the controls to match the global model
             setSelectedModel(globalModel);
-            // if (selectedQuantization !== globalModel.item.quantization) {
-                setSelectedQuantization(globalModel.item.quantization);
-                // success = onValidateChange({modelRepo: globalModel.item.modelRepo, filePath: globalModel.item.filePath});
-            // }
+            setSelectedQuantization(globalModel.item.quantization);
         }
-        // if (!success) {
-        //     setSelectedQuantization(undefined);
-        // }
     }, []);
 
     // keep the selected model in sync with the global model
@@ -298,16 +291,24 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
     return (
         <div className={`${className}`}>
             <div className="flex flex-col w-full">
-                <div className="flex space-x-4">
-                    <label className="mb-2 text-left">
-                        {displayModelVendor(selectedModel)}
-                    </label>
-                    <span className="flex-grow"></span>
-                    <WingmanInferenceStatus className="px-8" showTitle={false} showModel={false} />
-                </div>
+                {!miniMode && (
+                    <div className="flex flex-col space-y-4">
+                        <div className="flex items-center">
+                            <label htmlFor="showDownloadedItemsOnly">Show downloaded items only</label>
+                            <input id="showDownloadedItemsOnly" type="checkbox" className="w-8 h-5" checked={showDownloadedItemsOnly} onChange={(e) => setShowDownloadedItemsOnly(e.target.checked)} />
+                        </div>
+                        <div className="flex space-x-4">
+                            <label className="mb-2 text-left">
+                                {displayModelVendor(selectedModel)}
+                            </label>
+                            <span className="flex-grow"></span>
+                            <WingmanInferenceStatus className="px-8" showTitle={false} />
+                        </div>
+                    </div>
+                )}
                 <div className="flex rounded-lg space-x-2 items-center">
                     <Select
-                        isLoading={isLoadingModelList}
+                        isLoading={isLoadingModelList || isChangingModel}
                         placeholder={(t("Select a model").length > 0) || ""}
                         options={optionsGroupedModels}
                         value={{
@@ -315,7 +316,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                             value: selectedModel?.id,
                         } as ModelOption}
                         isSearchable={true}
-                        hideSelectedOptions={true}
+                        // hideSelectedOptions={true}
                         onChange={handleChangeSelectedModel}
                         className="model-select-container w-full text-neutral-900"
                         classNamePrefix="model-select"
@@ -325,7 +326,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                     {selectedModel?.vendor === Vendors.huggingface.name &&
                     (
                         <Select
-                            isLoading={isLoadingModelList}
+                            isLoading={isLoadingModelList || isChangingModel}
                             placeholder={(t("Select an optimization").length > 0) || ""}
                             options={optionsOptimizations}
                             value={{
@@ -333,7 +334,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                                 value: selectedQuantization,
                             } as QuantizationOption}
                             isSearchable={true}
-                            hideSelectedOptions={true}
+                            // hideSelectedOptions={true}
                             onChange={handleDownloadableItemChange}
                             className="optimization-select-container w-4/12 text-neutral-900"
                             classNamePrefix="optimization-select"
@@ -341,9 +342,11 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                             isDisabled={disabled}
                         />
                     )}
-                    <IconRefresh size={28} className="rounded-sm cursor-pointer" onClick={handleRefreshModelList} />
+                    {!miniMode && !isChangingModel && (
+                        <IconRefresh size={28} className="rounded-sm cursor-pointer" onClick={handleRefreshModelList} />
+                    )}
                 </div>
-                {selectedModel?.vendor === Vendors.openai.name && (
+                {!miniMode && selectedModel?.vendor === Vendors.openai.name && (
                     <div className="w-full mt-3 text-left flex items-center">
                         <a
                             href="https://platform.openai.com/account/usage"
@@ -362,4 +365,4 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
     );
 };
 
-export const SelectModel = React.memo(SelectModelInternal);
+export const SelectModel = memo(SelectModelInternal);

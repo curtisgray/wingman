@@ -1,10 +1,10 @@
 import { AIModel, AIModelID, AIModels, Vendors } from "@/types/ai";
+import { WINGMAN_CONTROL_SERVER_URL } from "@/types/wingman";
 import
 {
     HF_MODEL_ENDS_WITH,
     HF_THEBLOKE_MODELS_URL,
     HF_THEBLOKE_MODEL_URL,
-    HF_WINGMAN_MODELS_URL,
     OPENAI_API_HOST,
     OPENAI_API_TYPE,
     OPENAI_API_VERSION,
@@ -82,7 +82,7 @@ const handler = async (req: Request): Promise<Response> =>
                 .filter(Boolean));
         }
 
-        const ores = await fetch(HF_WINGMAN_MODELS_URL);
+        const ores = await fetch(`${WINGMAN_CONTROL_SERVER_URL}/api/models`);
         if (ores.ok) {
             const res = await ores.json();
             models.push(...res.models);

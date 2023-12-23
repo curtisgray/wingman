@@ -167,12 +167,12 @@ export const SystemPrompt: FC<Props> = ({
     }, []);
 
     useEffect(() => {
-        if (conversation.prompt) {
-            setValue(conversation.prompt);
+        if (conversation.systemPrompt) {
+            setValue(conversation.systemPrompt);
         } else {
             setValue(DEFAULT_SYSTEM_PROMPT);
         }
-    }, [conversation.prompt]);
+    }, [conversation.systemPrompt]);
 
     useEffect(() => {
         const handleOutsideClick = (e: MouseEvent) => {

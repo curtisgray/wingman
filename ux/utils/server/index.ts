@@ -4,14 +4,16 @@ import {
     OPENAI_API_TYPE,
     OPENAI_API_VERSION,
     OPENAI_ORGANIZATION,
+    SYSTEM_MAX_TOKENS,
 } from "../app/const";
 import { Message } from "@/types/chat";
-import { AIModel } from "@/types/ai";
+import { AIModel, VendorName } from "@/types/ai";
 import {
     ParsedEvent,
     ReconnectInterval,
     createParser,
 } from "eventsource-parser";
+import { WINGMAN_INFERENCE_SERVER_URL } from "@/types/wingman";
 
 export class OpenAIError extends Error {
     type: string;
@@ -32,9 +34,27 @@ export const OpenAIStream = async (
     systemPrompt: string,
     temperature: number,
     key: string,
-    messages: Message[]
+    messages: Message[],
+    vendor: VendorName
 ) => {
-    let url = `${OPENAI_API_HOST}/v1/chat/completions`;
+    let vendorDisplayName = "";
+    let host = "";
+    switch (vendor) {
+        case "openai":
+            host = OPENAI_API_HOST;
+            vendorDisplayName = "OpenAI API";
+            break;
+        case "huggingface":
+            host = WINGMAN_INFERENCE_SERVER_URL;
+            vendorDisplayName = "Wingman";
+            break;
+        default:
+            throw new Error(`Unknown vendor: ${vendor}`);
+    }
+
+    let url = `${host}/v1/chat/completions`;
+    console.log(`${vendorDisplayName}: url=${url}`);
+
     if (OPENAI_API_TYPE === "azure") {
         url = `${OPENAI_API_HOST}/openai/deployments/${AZURE_DEPLOYMENT_ID}/chat/completions?api-version=${OPENAI_API_VERSION}`;
     }
@@ -52,11 +72,11 @@ export const OpenAIStream = async (
             ...(OPENAI_API_TYPE === "openai" &&
                 OPENAI_ORGANIZATION && {
                     "OpenAI-Organization": OPENAI_ORGANIZATION,
-                }),
+            }),
         },
         method: "POST",
         body: JSON.stringify({
-            ...(OPENAI_API_TYPE === "openai" && { model: model.id }),
+            ...((vendor === "openai" || vendor === "huggingface") && { model: model.id }),
             messages: [
                 {
                     role: "system",
@@ -64,7 +84,7 @@ export const OpenAIStream = async (
                 },
                 ...messages,
             ],
-            max_tokens: 1000,
+            max_tokens: SYSTEM_MAX_TOKENS,
             temperature: temperature,
             stream: true,
         }),
@@ -84,7 +104,7 @@ export const OpenAIStream = async (
             );
         } else {
             throw new Error(
-                `OpenAI API returned an error: ${
+                `${vendorDisplayName} returned an error: ${
                     decoder.decode(result?.value) || result.statusText
                 }`
             );

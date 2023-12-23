@@ -1,8 +1,9 @@
-import { AIModel } from "@/types/ai";
+import { AIModel, VendorName } from "@/types/ai";
 
 export interface Message {
     role: Role;
     content: string;
+    name?: string;
 }
 
 export type Role = "assistant" | "user";
@@ -11,8 +12,9 @@ export interface ChatBody {
     model: AIModel;
     messages: Message[];
     key: string;
-    prompt: string;
+    systemPrompt?: string;
     temperature: number;
+    vendor: VendorName;
 }
 
 export interface Conversation {
@@ -21,7 +23,7 @@ export interface Conversation {
     messages: Message[];
     model: AIModel;
     inferringAlias: string;
-    prompt: string;
+    systemPrompt: string;
     temperature: number;
     folderId: string | null;
 }

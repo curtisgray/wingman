@@ -2,10 +2,12 @@ import huggingfaceImage from "@/assets/huggingface.png";
 import openaiLightImage from "@/assets/openai-white.png";
 import { StaticImageData } from "next/image";
 
+export type VendorName = "openai" | "huggingface";
+
 export interface VendorInfo
 {
     isa: "VendorInfo";
-    name: string;
+    name: VendorName;
     displayName: string;
     logo: StaticImageData;
     isDownloadable: boolean;
@@ -27,11 +29,11 @@ export interface DownloadableItem
 export interface AIModel
 {
     isa: "AIModel";
-    id: string;
-    name: string;
+    id: string; // raw modelRepo name
+    name: string;   // human-readable modelRepo name
     maxLength: number; // maximum length of a message
     tokenLimit: number;
-    vendor: string;
+    vendor: VendorName;
     location?: string;
     apiKey?: string;
     items?: DownloadableItem[];
@@ -133,9 +135,3 @@ export const AIModels: Record<AIModelID, AIModel> = {
 export const AIModelList = (): AIModel[] => {
     return Object.values(AIModels);
 };
-
-export const WINGMAN_PORT = 6568;
-export const WINGMAN_SERVER = `http://localhost:${WINGMAN_PORT}`;
-export const WINGMAN_SERVER_API = `${WINGMAN_SERVER}/api`;
-export const WINGMAN_INFERENCE_PORT = 6567;
-export const WINGMAN_INFERENCE_SERVER = `http://localhost:${WINGMAN_INFERENCE_PORT}`;

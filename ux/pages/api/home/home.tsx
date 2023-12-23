@@ -12,7 +12,7 @@ import useApiService from "@/services/useApiService";
 import { Conversation } from "@/types/chat";
 import { KeyValuePair } from "@/types/data";
 import { FolderInterface, FolderType } from "@/types/folder";
-import { AIModel, AIModelID, AIModels, DownloadableItem, fallbackModelID } from "@/types/ai";
+import { AIModel, AIModelID, AIModels, DownloadableItem, Vendors, fallbackModelID } from "@/types/ai";
 import { Prompt } from "@/types/prompt";
 import {
     cleanConversationHistory,
@@ -35,9 +35,10 @@ import { useEffect, useRef } from "react";
 import { useQuery } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 import { useWingman } from "@/hooks/useWingman";
-import { WingmanStateProps } from "@/types/wingman";
+import { WingmanItem, WingmanStateProps, hasActiveStatus } from "@/types/wingman";
 import { initialWingmanState } from "./wingman.state";
 import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
+import toast from "react-hot-toast";
 
 interface Props {
     serverSideApiKeyIsSet: boolean;
@@ -50,9 +51,6 @@ const Home = ({
     serverSidePluginKeysSet,
     defaultModelId,
 }: Props) => {
-    // const inferencePort = 6567;
-    const monitorPort = 6568;
-
     const { t } = useTranslation("chat");
     const { getModels } = useApiService();
     const { getModelsError } = useErrorService();
@@ -79,67 +77,50 @@ const Home = ({
         initialState: initialWingmanState,
     });
 
-    // const {
-    //     dispatch: wingmanDispatch,
-    // } = wingmanContextValue;
+    const {
+        dispatch: wingmanDispatch,
+    } = wingmanContextValue;
 
     const {
-        // pauseMetrics,
-        // timeSeries,
-        // meta,
-        // system,
-        // tensors,
-        // metrics,
-        // // lastTime,
-        // isOnline,
-        // status: connectionStatus,
-        // wingmanServiceStatus,
-        // downloadServiceStatus,
-        // wingmanItems,
+        pauseMetrics,
+        timeSeries,
+        meta,
+        system,
+        tensors,
+        metrics,
+        // lastTime,
+        isOnline,
+        status: connectionStatus,
+        wingmanServiceStatus,
+        downloadServiceStatus,
+        wingmanItems,
+        downloadItems,
         currentWingmanInferenceItem,
-    } = useWingman(monitorPort);
+    } = useWingman();
     const inferenceActions = useRequestInferenceAction();
 
-    // useEffect(() =>
-    // {
-    //     // wingmanDispatch({ field: "alias", value: alias });
-    //     // wingmanDispatch({ field: "modelRepo", value: modelRepo });
-    //     // wingmanDispatch({ field: "filePath", value: filePath });
-    //     // wingmanDispatch({ field: "isGenerating", value: isGenerating });
-    //     // wingmanDispatch({ field: "latestItem", value: latestItem });
-    //     // wingmanDispatch({ field: "items", value: items });
-    //     wingmanDispatch({ field: "pauseMetrics", value: pauseMetrics });
-    //     wingmanDispatch({ field: "timeSeries", value: timeSeries });
-    //     wingmanDispatch({ field: "meta", value: meta });
-    //     wingmanDispatch({ field: "tensors", value: tensors });
-    //     wingmanDispatch({ field: "system", value: system });
-    //     wingmanDispatch({ field: "metrics", value: metrics });
-    //     // wingmanDispatch({ field: "lastTime", value: lastTime });
-    //     wingmanDispatch({ field: "isOnline", value: isOnline });
-    //     wingmanDispatch({ field: "status", value: connectionStatus });
-    //     wingmanDispatch({ field: "wingmanServiceStatus", value: wingmanServiceStatus });
-    //     wingmanDispatch({ field: "downloadServiceStatus", value: downloadServiceStatus });
-    //     wingmanDispatch({ field: "wingmanItems", value: wingmanItems });
-    //     wingmanDispatch({ field: "currentWingmanInferenceItem", value: currentWingmanInferenceItem });
-    //     wingmanDispatch({ field: "lastWebSocketMessage", value: lastWSMessage });
-
-    //     // wingmanDispatch({ field: "forceChosenModel", value: forceChosenModel });
-    //     // wingmanDispatch({ field: "activate", value: activate });
-    //     // wingmanDispatch({ field: "deactivate", value: deactivate });
-    //     // wingmanDispatch({ field: "startGenerating", value: startGenerating });
-    //     // wingmanDispatch({ field: "stopGenerating", value: stopGenerating });
-    //     // wingmanDispatch({ field: "toggleMetrics", value: toggleMetrics });
-
-    //     // const wingmanItem = wingmanItems.find((item) => item.status === "inferring");
-    //     // if (wingmanItem && isModelChosen() && wingmanItem.alias === chosenModel?.filePath){
-    //     //     onInferenceItemsEvent(wingmanItem);
-    //     // }
-    // }, [
-    //     // isGenerating, latestItem, items,
-    //     pauseMetrics, timeSeries, meta, system, tensors, metrics,
-    //     // lastTime,
-    //     isOnline, connectionStatus, wingmanServiceStatus,
-    //     downloadServiceStatus, lastWSMessage, currentWingmanInferenceItem?.alias]);
+    useEffect(() =>
+    {
+        wingmanDispatch({ field: "pauseMetrics", value: pauseMetrics });
+        wingmanDispatch({ field: "timeSeries", value: timeSeries });
+        wingmanDispatch({ field: "meta", value: meta });
+        wingmanDispatch({ field: "tensors", value: tensors });
+        wingmanDispatch({ field: "system", value: system });
+        wingmanDispatch({ field: "metrics", value: metrics });
+        // wingmanDispatch({ field: "lastTime", value: lastTime });
+        wingmanDispatch({ field: "isOnline", value: isOnline });
+        wingmanDispatch({ field: "status", value: connectionStatus });
+        wingmanDispatch({ field: "wingmanServiceStatus", value: wingmanServiceStatus });
+        wingmanDispatch({ field: "downloadServiceStatus", value: downloadServiceStatus });
+        wingmanDispatch({ field: "wingmanItems", value: wingmanItems });
+        wingmanDispatch({ field: "downloadItems", value: downloadItems });
+        wingmanDispatch({ field: "currentWingmanInferenceItem", value: currentWingmanInferenceItem });
+    }, [
+        pauseMetrics, timeSeries, meta, system, tensors, metrics,
+        // lastTime,
+        isOnline, connectionStatus, wingmanServiceStatus,
+        downloadItems, wingmanItems,
+        downloadServiceStatus, currentWingmanInferenceItem]);
 
     const stopConversationRef = useRef<boolean>(false);
 
@@ -159,7 +140,8 @@ const Home = ({
     );
 
     useEffect(() => {
-        if (models) homeDispatch({ field: "models", value: models });
+        if (models)
+            homeDispatch({ field: "models", value: models });
     }, [models, homeDispatch]);
 
     useEffect(() => {
@@ -259,7 +241,7 @@ const Home = ({
                 tokenLimit: AIModels[defaultModelId].tokenLimit,
             },
             inferringAlias: "",
-            prompt: DEFAULT_SYSTEM_PROMPT,
+            systemPrompt: DEFAULT_SYSTEM_PROMPT,
             temperature: lastConversation?.temperature ?? DEFAULT_TEMPERATURE,
             folderId: null,
         };
@@ -300,7 +282,7 @@ const Home = ({
             messages: conversation.messages,
             model: conversation.model,
             inferringAlias: conversation.inferringAlias,
-            prompt: conversation.prompt,
+            systemPrompt: conversation.systemPrompt,
             temperature: conversation.temperature,
             folderId: conversation.folderId,
         };
@@ -323,7 +305,7 @@ const Home = ({
             //  that the globalModel is not being set correctly in the first place. Perhaps the globalModel
             //  is being set to a reference to the model, rather than a copy of the model? Shouldn't matter
             //  since the model being passed should be different from the globalModel
-            // return;
+            return;
         }
         if (model && model.item === undefined) {
             throw new Error(`'model' is defined as ${model.id}, but 'model.item' is undefined. Something has gone wrong within the application.`);
@@ -356,6 +338,19 @@ const Home = ({
         if (window.innerWidth < 640) {
             homeDispatch({ field: "showChatbar", value: false });
         }
+        // if no globalModel or currentWingmanInferenceItem, then this is the first time the app has loaded
+        //   so we need to start the model running
+        if (globalModel === undefined && currentWingmanInferenceItem === undefined &&
+            selectedConversation && selectedConversation.model && selectedConversation.model.item) {
+            const vendor = Vendors[selectedConversation.model!.vendor];
+            if (vendor.isDownloadable) {
+                // check if inference engine is running
+                // a model is selected, so start the model running on the llama server
+                inferenceActions.requestStartInference(
+                    selectedConversation.model.item!.filePath, selectedConversation.model.id, selectedConversation.model.item!.filePath, -1);
+            }
+        }
+
     }, [selectedConversation]);
 
     useEffect(() => {
@@ -486,23 +481,6 @@ const Home = ({
     ]);
 
     useEffect(() => {
-        if (globalModel) {
-            if (globalModel.item === undefined) {
-                // ON INITIAL LOAD: if globalModel is defined, but item is not, then we need to reset the model globally
-                homeDispatch({ field: "globalModel", value: undefined });
-            } else {
-                if (currentWingmanInferenceItem && currentWingmanInferenceItem.alias === globalModel.item.filePath) {
-                    // same model is already running, so do nothing
-                    console.log(`globalModel.item.filePath: ${globalModel.item.filePath} is already running`);
-                } else {
-                    inferenceActions.requestStartInference(
-                        globalModel.item!.filePath, globalModel.id, globalModel.item!.filePath, -1);
-                }
-            }
-        }
-    }, []);
-
-    useEffect(() => {
         if (globalModel !== undefined) {
             if (globalModel.item === undefined) {
                 // whenever the globalModel changes, the globalModel.item must be, otherwise
@@ -514,8 +492,9 @@ const Home = ({
                     // same model is already running, so do nothing
                     console.log(`globalModel.item.filePath: ${globalModel.item.filePath} is already running`);
                 } else {
+                    toast.success(`Engaging Target: ${globalModel.name}`);
                     inferenceActions.requestStartInference(
-                        globalModel.item!.filePath, globalModel.id, globalModel.item!.filePath, -1);
+                        globalModel.item!.filePath, globalModel.item!.modelRepo, globalModel.item!.filePath, -1);
                 }
             }
         }
@@ -525,13 +504,13 @@ const Home = ({
         // keep the globalModel in sync with the currentWingmanInferenceItem which is coming
         //   from the wingman websocket
         if (currentWingmanInferenceItem) {
-            // if the currentWingmanInferenceItem.alias is the same as the globalModel, then do nothing
-            if (globalModel?.id === currentWingmanInferenceItem?.alias) {
+            // if the currentWingmanInferenceItem is the same as the globalModel, then do nothing
+            if (globalModel && globalModel.item && globalModel?.item?.filePath === currentWingmanInferenceItem?.filePath) {
                 return;
             }
             // find the model that matches the currentWingmanInferenceItem and see if it matches the globalModel
             //   find the model by searching all model items for the one that matches the currentWingmanInferenceItem
-            if (models === undefined) {
+            if (models === undefined || models.length === 0) {
                 return;
             }
             let model: AIModel | undefined = undefined;
@@ -542,8 +521,6 @@ const Home = ({
                         // copy the readonly model into a draft model so that we can set the item
                         const draftModel = { ...m };
                         draftModel.item = mi;
-                        // m.item = mi;
-                        // model = m;
                         model = draftModel;
                         break;
                     }
@@ -552,13 +529,21 @@ const Home = ({
 
             if (model) {
                 if (globalModel?.id !== model.id) {
+                    toast.success(`Target Acquired: ${model.name}`);
                     // if the globalModel is not the same as the model that matches the currentWingmanInferenceItem,
                     //   then we need to change the globalModel to match the currentWingmanInferenceItem
-                    homeDispatch({ field: "globalModel", value: model });
+                    // homeDispatch({ field: "globalModel", value: model });
+                    handleChangeModel(model);
                 }
+            } else {
+                // if the currentWingmanInferenceItem is defined, but the model that matches the currentWingmanInferenceItem
+                //   is not found, then we need to reset the globalModel and notify the user
+                // homeDispatch({ field: "globalModel", value: undefined });
+                handleChangeModel(undefined);
+                toast.error(`Target Lost: ${currentWingmanInferenceItem.alias}`);
             }
         }
-    }, [currentWingmanInferenceItem?.alias, models]);
+    }, [currentWingmanInferenceItem, models]);
 
     return (
         <WingmanContext.Provider

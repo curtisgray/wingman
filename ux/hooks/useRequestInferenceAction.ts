@@ -1,12 +1,10 @@
-import { WINGMAN_SERVER_API } from "@/types/ai";
-import { WingmanContent, WingmanItem } from "@/types/wingman";
+import { WINGMAN_INFERENCE_SERVER_URL, WINGMAN_CONTROL_SERVER_URL, WingmanContent, WingmanItem } from "@/types/wingman";
 import { useRef, useState } from "react";
 
 interface InferenceActionProps
 {
     requestStartInference: (alias: string, modelRepo: string, filePath: string, gpuLayers: number) => Promise<WingmanItem | undefined>;
     requestStopInference: (alias: string) => Promise<void>;
-    // requestRestartInference: (alias: string) => Promise<void>;
     startGenerating: (content: string, probabilities_to_return?: number) => Promise<void>;
     stopGenerating: () => void;
     latestItem: WingmanContent | undefined;
@@ -14,12 +12,12 @@ interface InferenceActionProps
     isGenerating: boolean;
 }
 
-export function useRequestInferenceAction(inferencePort = 6567): InferenceActionProps
+export function useRequestInferenceAction(): InferenceActionProps
 {
     const requestStartInference = async (alias: string, modelRepo: string, filePath: string, gpuLayers: number = -1): Promise<WingmanItem | undefined> =>
     {
         try {
-            const url = `${WINGMAN_SERVER_API}/inference/start?alias=${encodeURI(alias)}&modelRepo=${encodeURI(modelRepo)}&filePath=${encodeURI(filePath)}&gpuLayers=${gpuLayers}`;
+            const url = `${WINGMAN_CONTROL_SERVER_URL}/api/inference/start?alias=${encodeURI(alias)}&modelRepo=${encodeURI(modelRepo)}&filePath=${encodeURI(filePath)}&gpuLayers=${gpuLayers}`;
             const response = await fetch(url);
             let wingmanItem: WingmanItem | undefined = undefined;
             // ensure response is valid and that JSON data is of type ProgressData
@@ -32,38 +30,38 @@ export function useRequestInferenceAction(inferencePort = 6567): InferenceAction
                             wingmanItem = item;
                         }
                     } catch (error) {
-                        console.error("useRequestDownloadAction: requestStartInference Failed to parse JSON:", error);
+                        console.error("useRequestInferenceAction: requestStartInference Failed to parse JSON:", error);
                     }
                 } else {
-                    console.error("useRequestDownloadAction: requestStartInference Received non-JSON response:",
+                    console.error("useRequestInferenceAction: requestStartInference Received non-JSON response:",
                         response.headers.get("content-type"));
                 }
             }
             return wingmanItem;
         } catch (error) {
-            console.error("useRequestDownloadAction: requestStartInference Failed to start download:", error);
+            console.error("useRequestInferenceAction: requestStartInference Failed to start download:", error);
             return undefined;
         }
     };
 
     const requestStopInference = async (alias: string) =>
     {
-        const url = `${WINGMAN_SERVER_API}/inference/stop?alias=${encodeURI(alias)}`;
+        const url = `${WINGMAN_CONTROL_SERVER_URL}/api/inference/stop?alias=${encodeURI(alias)}`;
         try {
             const response = await fetch(encodeURI(url));
             if (!response.ok) {
-                console.error("useRequestDownloadAction: requestStopInference Received non-OK response:", response.status, response.statusText);
+                console.error("useRequestInferenceAction: requestStopInference Received non-OK response:", response.status, response.statusText);
             }
         } catch (error) {
-            console.error("useRequestDownloadAction: requestStopInference Exception Failed to cancel download:", error);
+            console.error("useRequestInferenceAction: requestStopInference Exception Failed to cancel download:", error);
         }
     };
 
     const requestInferenceStatus = async (alias: string|undefined = undefined) =>
     {
-        let url = `${WINGMAN_SERVER_API}/inference/status`;
+        let url = `${WINGMAN_CONTROL_SERVER_URL}/api/inference/status`;
         if (alias) {
-            url = `${WINGMAN_SERVER_API}/inference/status?alias=${encodeURI(alias)}`;
+            url = `${WINGMAN_CONTROL_SERVER_URL}/api/inference/status?alias=${encodeURI(alias)}`;
         }
         try {
             const response = await fetch(encodeURI(url));
@@ -74,16 +72,6 @@ export function useRequestInferenceAction(inferencePort = 6567): InferenceAction
             console.error("requestInferenceStatus: requestInferenceStatus Exception Failed to cancel download:", error);
         }
     };
-
-    // const requestRestartInference = async (alias: string) =>
-    // {
-    //     try {
-    //         await requestStopInference(alias);
-    //         await requestStartInference(alias);
-    //     } catch (error) {
-    //         console.error("useRequestDownloadAction: requestRedownload Exception Failed to cancel download:", error);
-    //     }
-    // };
 
     const continueGenerating = useRef<boolean>(true);
     const [latestItem, setLatestItem] = useState<WingmanContent>();
@@ -97,7 +85,7 @@ export function useRequestInferenceAction(inferencePort = 6567): InferenceAction
             setItems([]);
             try {
                 const controller = new AbortController();
-                fetch(encodeURI(`http://localhost:${inferencePort}/completion`), {
+                fetch(encodeURI(`${WINGMAN_INFERENCE_SERVER_URL}/completion`), {
                     method: "POST",
                     headers: {
                         "Content-Type": "text/event-stream"
@@ -141,9 +129,7 @@ export function useRequestInferenceAction(inferencePort = 6567): InferenceAction
                                 continue;
                             }
                             const content = JSON.parse(data) as WingmanContent;
-                            // onNewContent(content);
                             setLatestItem(content);
-                            // setItems([...items, content]);
                             setItems((items) => items.concat(content));
                             text = "";
                         }
@@ -165,7 +151,6 @@ export function useRequestInferenceAction(inferencePort = 6567): InferenceAction
     return {
         requestStartInference,
         requestStopInference,
-        // requestRestartInference,
         startGenerating,
         stopGenerating,
         latestItem,

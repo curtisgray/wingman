@@ -3,7 +3,6 @@ import React, { useContext } from "react";
 // import reddit from "@/prompts/reddit.prompt.xwin.json";
 import { useRef } from "react";
 import { DownloadProps } from "@/types/download";
-import WingmanContext from "@/pages/api/home/wingman.context";
 import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 
 interface WingmanRenderBoxProps
@@ -12,60 +11,11 @@ interface WingmanRenderBoxProps
     className?: string;
 }
 
-// const WingmanRenderBox = ({ chosenModel, className = "" }: WingmanRenderBoxProps) =>
 const WingmanRenderBox = ({ className = "" }: WingmanRenderBoxProps) =>
 {
-    // const [items, setItems] = useState<WingmanContent[]>([]);
     const messageEndRef = useRef<HTMLDivElement>(null);
-    // const [beAutoScrolling, setBeAutoScrolling] = useState(true);
-    // const { isScrollingUp } = useScrollDirection();
-    // const { isGenerating, startGenerating, stopGenerating, items } = useWingman(6567, 6568);
-    // const {
-    //     // state: { 
-    //     //     items,
-    //     //     isGenerating,
-    //     // },
-    // } = useContext(WingmanContext);
 
     const { startGenerating, stopGenerating, items, isGenerating } = useRequestInferenceAction();
-
-    // function sendDronePrompt()
-    // {
-    //     // setItems([]);
-    //     startGenerating(drone.prompt, 0);
-    //     console.log("sent drone prompt");
-    // }
-
-    // function sendRedditPrompt()
-    // {
-    //     // setItems([]);
-    //     startGenerating(reddit.prompt, 0);
-    //     console.log("sent drone prompt");
-    // }
-
-    // const scrollToBottom = () =>
-    // {
-    //     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    // };
-
-    // useEffect(() =>
-    // {
-    //     if (isScrollingUp) {
-    //         setBeAutoScrolling(false);
-    //     }
-    //     if (beAutoScrolling) {
-    //         scrollToBottom();
-    //     }
-    // }, [beAutoScrolling, isScrollingUp, items]);
-
-    // useEffect(() =>
-    // {
-    //     if (isGenerating) {
-    //         if (latestItem !== undefined)
-    //             setItems([...items, latestItem]);
-    //     }
-    // // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, [isGenerating, latestItem]);
 
     return (
         <div className={`${className} flex`}>

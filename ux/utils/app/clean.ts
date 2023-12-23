@@ -22,10 +22,10 @@ export const cleanSelectedConversation = (conversation: Conversation) => {
     }
 
     // check for system prompt on each conversation
-    if (!updatedConversation.prompt) {
+    if (!updatedConversation.systemPrompt) {
         updatedConversation = {
             ...updatedConversation,
-            prompt: updatedConversation.prompt || DEFAULT_SYSTEM_PROMPT,
+            systemPrompt: updatedConversation.systemPrompt || DEFAULT_SYSTEM_PROMPT,
         };
     }
 
