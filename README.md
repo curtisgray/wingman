@@ -2,7 +2,7 @@
 
 Wingman merges Meta's Llama and OpenAI's GPT on PCs, offering Silk Tuning for custom AI responses and Swift Switch to change models mid conversation.
 
-# Wingman: Advanced AI Integration for Your Desktop
+## Wingman: Advanced AI Integration for Your Desktop
 
 Effortless AI Model Integration: Wingman provides a streamlined solution to bring advanced AI capabilities, specifically Meta’s Llama and OpenAI's GPT models, to your Windows or Mac environment. This integration bypasses the usual complexities of setup and configuration, making cutting-edge AI accessible without the need for extensive development tools or setup procedures.
 
@@ -10,9 +10,10 @@ Silk Tuning – Personalized AI Feedback Loop: At its core, Wingman employs an i
 
 Swift Switch – Dynamic Model Comparison: With Swift Switch, users gain the flexibility to switch between different AI models during a conversation. This feature is particularly useful for technical professionals and AI enthusiasts interested in observing and comparing the nuances of various AI models' responses. Whether it's transitioning from a high-capacity model like GPT-4 for in-depth, complex queries to a leaner model for efficiency, Swift Switch offers a practical tool for real-time performance evaluation and comparison.
 
-Conclusion: Wingman is more than just an application; it's a gateway to a more accessible and tailored AI experience. By eliminating the barriers of complex AI integration and offering unique features for personalized and flexible interactions, Wingman stands as a valuable tool for those wanting to explore and utilize AI technologies with ease and efficiency.
+Wingman is more than just an application; it's a gateway to a more accessible and tailored AI experience. By eliminating the barriers of complex AI integration and offering unique features for personalized and flexible interactions, Wingman stands as a valuable tool for those wanting to explore and utilize AI technologies with ease and efficiency.
 
-# Progress Updates
+### Wingman is under heavy development. Expect frequent updates.
+## Progress Updates
 
 - ✅ Add All GPT Models
 - ✅ Duplicate existing conversations
