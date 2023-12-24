@@ -463,7 +463,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                             </>
                         ) : (   // messages exist so display chat
                             <>
-                                <ChatStatus onSettings={handleSettings} onClearConversation={onClearAll} />
+                                <ChatStatus onSettings={handleSettings} onClearConversation={onClearAll} showStatus={!showSettings} />
                                 {showSettings && (
                                     <ChatSettings models={models} conversation={selectedConversation!} prompts={prompts} onChangeSystemPrompt={handleChangeSystemPrompt} onChangeTemperature={handleChangeTemperature} />
                                 )}
