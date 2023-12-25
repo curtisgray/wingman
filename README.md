@@ -26,6 +26,17 @@ Wingman is more than just an application; it's a gateway to a more accessible an
 **Legend**:
 ✅ Completed, ⏳ In Progress, ✉️ Not Started
 
+## Requirements for Hardware and OS
+
+- Windows 10+ or Mac OS X
+- 2016 or newer CPU
+- 16GB+ RAM
+- 2016 or newer GPU with at least 3GB of RAM
+- GPU not required, but recommended
+- 100GB free disk space (for AI models)
+- 1GB free disk space (for app)
+
+
 ## Installation
 
 Note, an OpenAI API key is NOT needed, unless you want to run an OpenAI GPT-style model. Otherwise it is not needed. Wingman is designed to run without it.
