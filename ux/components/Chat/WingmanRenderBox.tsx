@@ -15,14 +15,14 @@ const WingmanRenderBox = ({ className = "" }: WingmanRenderBoxProps) =>
 {
     const messageEndRef = useRef<HTMLDivElement>(null);
 
-    const { startGenerating, stopGenerating, items, isGenerating } = useRequestInferenceAction();
+    const { startGenerating, stopGenerating, generatedItems, isGenerating } = useRequestInferenceAction();
 
     return (
         <div className={`${className} flex`}>
             <div className="flex flex-row p-2 space-x-2 flex-auto bg-slate-700">
                 <div className="flex flex-auto overflow-auto bg-slate-800" ref={messageEndRef}>
                     <p className="flex-auto m-2 text-sm">
-                        {items.map((item) => item.content)}
+                        {generatedItems.map((item) => item.content)}
                     </p>
                 </div>
                 {isGenerating === false && <div className="grid items-center">

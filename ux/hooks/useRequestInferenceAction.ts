@@ -7,8 +7,8 @@ interface InferenceActionProps
     requestStopInference: (alias: string) => Promise<void>;
     startGenerating: (content: string, probabilities_to_return?: number) => Promise<void>;
     stopGenerating: () => void;
-    latestItem: WingmanContent | undefined;
-    items: WingmanContent[];
+    latestGeneratedItem: WingmanContent | undefined;
+    generatedItems: WingmanContent[];
     isGenerating: boolean;
 }
 
@@ -74,8 +74,8 @@ export function useRequestInferenceAction(): InferenceActionProps
     };
 
     const continueGenerating = useRef<boolean>(true);
-    const [latestItem, setLatestItem] = useState<WingmanContent>();
-    const [items, setItems] = useState<WingmanContent[]>([]);
+    const [latestGeneratedItem, setLatestItem] = useState<WingmanContent>();
+    const [generatedItems, setItems] = useState<WingmanContent[]>([]);
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
 
     const startGenerating = async (content: string, probabilities_to_return?: number): Promise<void> =>
@@ -153,8 +153,8 @@ export function useRequestInferenceAction(): InferenceActionProps
         requestStopInference,
         startGenerating,
         stopGenerating,
-        latestItem,
-        items,
+        latestGeneratedItem,
+        generatedItems,
         isGenerating
     };
 }
