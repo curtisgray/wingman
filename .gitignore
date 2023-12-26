@@ -12,6 +12,11 @@ ux_proto/server/wingman/Linux
 ux_proto/server/wingman/Darwin
 ux_proto/server/wingman/Native
 
+ux/server/wingman/Windows
+ux/server/wingman/Linux
+ux/server/wingman/Darwin
+ux/server/wingman/Native
+
 
 # dependencies
 /node_modules
