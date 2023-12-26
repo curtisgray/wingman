@@ -1,6 +1,6 @@
 ![logo](./assets/images/wingman-logo.png)
 
-Wingman merges Meta's Llama and OpenAI's GPT on PCs, offering Silk Tuning for custom AI responses and Swift Switch to change models mid conversation.
+Wingman is a private ChatGPT interface for your PC. It combines Meta's Llama and OpenAI's GPT AI's into one interface, allowing you to change to change models mid conversation, and give real-time feedback to the AI.
 
 ## Wingman: Advanced AI Integration for Your Desktop
 
