@@ -1,6 +1,6 @@
 import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from "./const";
 import { Conversation } from "@/types/chat";
-import { AIModelID, AIModels } from "@/types/ai";
+import { AIModelID, AIModels, fallbackModelID } from "@/types/ai";
 
 export const cleanSelectedConversation = (conversation: Conversation) => {
     // added model for each conversation (3/20/23)
@@ -17,7 +17,7 @@ export const cleanSelectedConversation = (conversation: Conversation) => {
             ...updatedConversation,
             model:
                 updatedConversation.model ||
-                AIModels[AIModelID.GPT_3_5],
+                AIModels[fallbackModelID],
         };
     }
 
@@ -68,7 +68,7 @@ export const cleanConversationHistory = (history: any[]): Conversation[] => {
     return history.reduce((acc: any[], conversation) => {
         try {
             if (!conversation.model) {
-                conversation.model = AIModels[AIModelID.GPT_3_5];
+                conversation.model = AIModels[fallbackModelID];
             }
 
             if (!conversation.prompt) {

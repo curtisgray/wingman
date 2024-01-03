@@ -39,7 +39,7 @@ export function useRequestInferenceAction(): InferenceActionProps
             }
             return wingmanItem;
         } catch (error) {
-            console.error("useRequestInferenceAction: requestStartInference Failed to start download:", error);
+            console.error("useRequestInferenceAction: requestStartInference Failed to start inference:", error);
             return undefined;
         }
     };
@@ -53,7 +53,7 @@ export function useRequestInferenceAction(): InferenceActionProps
                 console.error("useRequestInferenceAction: requestStopInference Received non-OK response:", response.status, response.statusText);
             }
         } catch (error) {
-            console.error("useRequestInferenceAction: requestStopInference Exception Failed to cancel download:", error);
+            console.error("useRequestInferenceAction: requestStopInference Exception Failed to cancel inference:", error);
         }
     };
 
@@ -69,7 +69,7 @@ export function useRequestInferenceAction(): InferenceActionProps
                 console.error("requestInferenceStatus: requestInferenceStatus Received non-OK response:", response.status, response.statusText);
             }
         } catch (error) {
-            console.error("requestInferenceStatus: requestInferenceStatus Exception Failed to cancel download:", error);
+            console.error("requestInferenceStatus: requestInferenceStatus Exception Failed to cancel inference:", error);
         }
     };
 

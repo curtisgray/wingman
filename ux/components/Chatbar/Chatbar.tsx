@@ -235,7 +235,7 @@ export const Chatbar = () => {
                 handleApiKeyChange,
             }}
         >
-            <Sidebar<Conversation>
+            <Sidebar
                 side={"left"}
                 isOpen={showChatbar}
                 addItemButtonTitle={t("New chat")}

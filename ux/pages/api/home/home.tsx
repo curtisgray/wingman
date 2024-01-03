@@ -4,11 +4,10 @@ import WingmanContext from "./wingman.context";
 import { HomeStateProps, initialState } from "./home.state";
 import { Chat } from "@/components/Chat/Chat";
 import { Chatbar } from "@/components/Chatbar/Chatbar";
-import { Navbar } from "@/components/Mobile/Navbar";
 import Promptbar from "@/components/Promptbar";
 import { useCreateReducer } from "@/hooks/useCreateReducer";
 import useErrorService from "@/services/errorService";
-import useApiService from "@/services/useApiService";
+import useApiService, { GetModelsRequestProps } from "@/services/useApiService";
 import { Conversation } from "@/types/chat";
 import { KeyValuePair } from "@/types/data";
 import { FolderInterface, FolderType } from "@/types/folder";
@@ -31,7 +30,7 @@ import { GetServerSideProps } from "next";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 import { useWingman } from "@/hooks/useWingman";
@@ -54,6 +53,8 @@ const Home = ({
     const { t } = useTranslation("chat");
     const { getModels } = useApiService();
     const { getModelsError } = useErrorService();
+    const [currentConversationModel, setCurrentConversationModel] = useState<AIModel | undefined>(undefined);
+    const [isSwitchingModel, setIsSwitchingModel] = useState<boolean>(false);
 
     const homeContextValue = useCreateReducer<HomeStateProps>({
         initialState,
@@ -132,7 +133,7 @@ const Home = ({
             return getModels(
                 {
                     key: apiKey,
-                },
+                } as GetModelsRequestProps,
                 signal
             );
         },
@@ -226,6 +227,19 @@ const Home = ({
     };
 
     // CONVERSATION OPERATIONS  --------------------------------------------
+    const changeConversationModel = (model: AIModel | undefined) => {
+        if (selectedConversation) {
+            handleUpdateConversation(selectedConversation, {
+                key: "model",
+                value: model,
+            });
+        }
+    };
+
+    const changeGlobalModel = (model: AIModel | undefined) => {
+        setIsSwitchingModel(true);
+        homeDispatch({ field: "globalModel", value: model });
+    };
 
     const handleNewConversation = () => {
         const lastConversation = conversations[conversations.length - 1];
@@ -299,37 +313,8 @@ const Home = ({
     };
 
     const handleChangeModel = (model: AIModel | undefined) => {
-        // if the model and global model are the same, do nothing
-        if (model && globalModel && model.id === globalModel.id && model.item?.filePath === globalModel.item?.filePath) {
-            // BUG: whenever this method is called, globalModel and model are already the same. Suspect
-            //  that the globalModel is not being set correctly in the first place. Perhaps the globalModel
-            //  is being set to a reference to the model, rather than a copy of the model? Shouldn't matter
-            //  since the model being passed should be different from the globalModel
-            return;
-        }
-        if (model && model.item === undefined) {
-            throw new Error(`'model' is defined as ${model.id}, but 'model.item' is undefined. Something has gone wrong within the application.`);
-        }
-        homeDispatch({ field: "globalModel", value: model });
-
-        if (model) {
-            if (selectedConversation) {
-                handleUpdateConversation(selectedConversation, {
-                    key: "model",
-                    value: model,
-                });
-            }
-            inferenceActions.requestStartInference(model.item!.filePath, model.id, model.item!.filePath, -1);
-        }
-    };
-
-    const handleStartGenerating = async (prompt: string, probabilties_to_return: number) => {
-    };
-
-    const handleStopGenerating = () => {
-    };
-
-    const handleToggleMetrics = () => {
+        // change model for the current conversation
+        changeConversationModel(model);
     };
 
     // EFFECTS  --------------------------------------------
@@ -338,20 +323,21 @@ const Home = ({
         if (window.innerWidth < 640) {
             homeDispatch({ field: "showChatbar", value: false });
         }
-        // if no globalModel or currentWingmanInferenceItem, then this is the first time the app has loaded
-        //   so we need to start the model running
-        if (globalModel === undefined && currentWingmanInferenceItem === undefined &&
-            selectedConversation && selectedConversation.model && selectedConversation.model.item) {
-            const vendor = Vendors[selectedConversation.model!.vendor];
-            if (vendor.isDownloadable) {
-                // check if inference engine is running
-                // a model is selected, so start the model running on the llama server
-                inferenceActions.requestStartInference(
-                    selectedConversation.model.item!.filePath, selectedConversation.model.id, selectedConversation.model.item!.filePath, -1);
-            }
-        }
-
     }, [selectedConversation]);
+
+    useEffect(() => {
+        if (selectedConversation && selectedConversation.model !== currentConversationModel) {
+            setCurrentConversationModel(selectedConversation.model);
+            changeGlobalModel(selectedConversation.model);
+        }
+    }, [selectedConversation?.model]);
+
+    useEffect(() => {
+        if (selectedConversation && selectedConversation.model !== currentConversationModel) {
+            setCurrentConversationModel(selectedConversation.model);
+            changeGlobalModel(selectedConversation.model);
+        }
+    }, [selectedConversation?.id]);
 
     useEffect(() => {
         defaultModelId &&
@@ -482,76 +468,60 @@ const Home = ({
 
     useEffect(() => {
         if (globalModel !== undefined) {
-            if (globalModel.item === undefined) {
-                // whenever the globalModel changes, the globalModel.item must be, otherwise
-                //   something has gone wrong in setting the global model
-                //   so throw an error
-                throw new Error(`'globalModel' is defined as ${globalModel.id}, but 'globalModel.item' is undefined. Something has gone wrong within the application.`);
-            } else {
-                if (currentWingmanInferenceItem && currentWingmanInferenceItem.alias === globalModel.item.filePath) {
-                    // same model is already running, so do nothing
-                    console.log(`globalModel.item.filePath: ${globalModel.item.filePath} is already running`);
+            const vendor = Vendors[globalModel.vendor];
+            // check if the globalModel is downloadable, e.g., running on the Wingman server
+            //  if so, then start the model running on the Wingman server
+            if (vendor.isDownloadable) {
+                if (globalModel.item === undefined) {
+                    // whenever the globalModel changes, the globalModel.item must be defined, otherwise
+                    //   something has gone wrong in setting the global model
+                    //   so throw an error
+                    throw new Error(`'globalModel' is defined as ${globalModel.id}, but 'globalModel.item' is undefined. Something has gone wrong within the application.`);
                 } else {
-                    toast.success(`Engaging Target: ${globalModel.name}`);
-                    inferenceActions.requestStartInference(
-                        globalModel.item!.filePath, globalModel.item!.modelRepo, globalModel.item!.filePath, -1);
+                    // issue a request to start the model running on the Wingman server
+                    //  and wait for the currentWingmanInferenceItem to be set to the globalModel
+                    const wi = inferenceActions.requestStartInference(
+                        globalModel.item!.filePath, globalModel.id, globalModel.item!.filePath, -1);
+                    if (wi === undefined) {
+                        setIsSwitchingModel(false);
+                        toast.error(`Target Acquisition Failed: ${globalModel.name}`);
+                    }
                 }
+            } else {
+                toast.success(`Target Acquired: ${globalModel.name}`);
+                setIsSwitchingModel(false);
             }
         }
     }, [globalModel]);
 
     useEffect(() => {
-        // keep the globalModel in sync with the currentWingmanInferenceItem which is coming
-        //   from the wingman websocket
         if (currentWingmanInferenceItem) {
-            // if the currentWingmanInferenceItem is the same as the globalModel, then do nothing
-            if (globalModel && globalModel.item && globalModel?.item?.filePath === currentWingmanInferenceItem?.filePath) {
-                return;
-            }
-            // find the model that matches the currentWingmanInferenceItem and see if it matches the globalModel
-            //   find the model by searching all model items for the one that matches the currentWingmanInferenceItem
-            if (models === undefined || models.length === 0) {
-                return;
-            }
-            let model: AIModel | undefined = undefined;
-            for (const m of models) {
-                if (m.items !== undefined && m.items.length > 0) {
-                    const mi = m.items.find((mi: DownloadableItem) => mi.filePath === currentWingmanInferenceItem?.filePath);
-                    if (mi !== undefined) {
-                        // copy the readonly model into a draft model so that we can set the item
-                        const draftModel = { ...m };
-                        draftModel.item = mi;
-                        model = draftModel;
-                        break;
-                    }
+            if (globalModel && globalModel.item && globalModel.item.filePath === currentWingmanInferenceItem.filePath) {
+                // this can be called several times while the currentWingmanInferenceItem's status is changing,
+                //  so, we need to wait until the status is 'inferring' before notifying the user
+                if (currentWingmanInferenceItem.status === "inferring") {
+                    toast.success(`Engaging Target: ${globalModel.name}`);
+                    setIsSwitchingModel(false);
+                } else if (currentWingmanInferenceItem.status === "error") {
+                    toast.error(`Target Acquisition Failed: ${globalModel.name}`);
+                    setIsSwitchingModel(false);
                 }
-            }
-
-            if (model) {
-                if (globalModel?.id !== model.id) {
-                    toast.success(`Target Acquired: ${model.name}`);
-                    // if the globalModel is not the same as the model that matches the currentWingmanInferenceItem,
-                    //   then we need to change the globalModel to match the currentWingmanInferenceItem
-                    // homeDispatch({ field: "globalModel", value: model });
-                    handleChangeModel(model);
-                }
-            } else {
-                // if the currentWingmanInferenceItem is defined, but the model that matches the currentWingmanInferenceItem
-                //   is not found, then we need to reset the globalModel and notify the user
-                // homeDispatch({ field: "globalModel", value: undefined });
-                handleChangeModel(undefined);
-                toast.error(`Target Lost: ${currentWingmanInferenceItem.alias}`);
             }
         }
     }, [currentWingmanInferenceItem, models]);
+
+    useEffect(() => {
+        if (isSwitchingModel) {
+            homeDispatch({ field: "loading", value: true });
+        } else {
+            homeDispatch({ field: "loading", value: false });
+        }
+    }, [isSwitchingModel]);
 
     return (
         <WingmanContext.Provider
             value={{
                 ...wingmanContextValue,
-                handleStartGenerating,
-                handleStopGenerating,
-                handleToggleMetrics,
             }}
         >
             <HomeContext.Provider
@@ -581,13 +551,6 @@ const Home = ({
                     <main
                         className={`flex h-screen w-screen flex-col text-sm text-black dark:text-white ${lightMode}`}
                     >
-                        <div className="fixed top-0 w-full sm:hidden">
-                            <Navbar
-                                selectedConversation={selectedConversation}
-                                onNewConversation={handleNewConversation}
-                            />
-                        </div>
-
                         <div className="flex h-full w-full pt-[48px] sm:pt-0">
                             <Chatbar />
 

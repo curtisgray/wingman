@@ -24,7 +24,7 @@ const handler = async (req: Request): Promise<Response> =>
 
         const models: AIModel[] = [];
 
-        if (key) {
+        if (key || process.env.OPENAI_API_KEY) {
             let url = `${OPENAI_API_HOST}/v1/models`;
             if (OPENAI_API_TYPE === "azure") {
                 url = `${OPENAI_API_HOST}/openai/deployments?api-version=${OPENAI_API_VERSION}`;
@@ -67,15 +67,26 @@ const handler = async (req: Request): Promise<Response> =>
                 {
                     const model_name =
                         OPENAI_API_TYPE === "azure" ? model.model : model.id;
+                    // if (model.owned_by === "openai") {
+                    //     return {
+                    //         id: model.id,
+                    //         name: model_name,
+                    //         vendor: Vendors.openai.name,
+                    //         location: `https://api.openai.com/v1/models/${model_name}`,
+                    //         apiKey: key ? key : process.env.OPENAI_API_KEY,
+                    //     };
+                    // }
                     for (const [k, value] of Object.entries(AIModelID)) {
                         if (value === model_name) {
                             return {
                                 id: model.id,
                                 name: AIModels[value].name,
+                                maxLength: AIModels[value].maxLength,
+                                tokenLimit: AIModels[value].tokenLimit,
                                 vendor: Vendors.openai.name,
-                                location: AIModels[value].location,
-                                apiKey: AIModels[value].apiKey,
-                            };
+                                location: `https://api.openai.com/v1/models/${model_name}`,
+                                apiKey: key ? key : process.env.OPENAI_API_KEY,
+                            } as AIModel;
                         }
                     }
                 })

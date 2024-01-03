@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useContext, useEffect, useState } from "react";
 import WingmanContext from "@/pages/api/home/wingman.context";
-import { WingmanItem, hasActiveStatus } from "@/types/wingman";
+import { WingmanItem } from "@/types/wingman";
 import { StripFormatFromModelRepo, quantizationFromFilePath } from "@/types/download";
 
 const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, showModel = true, showQuantization = true, showAlias = false, className = "" }) =>
@@ -25,6 +25,23 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
         setModel("");
         setModelAlias("");
         setQuantizationName("");
+    };
+
+    const displayMonitoredStatusIndicator = (item: WingmanItem | undefined) =>
+    {
+        switch (item?.status) {
+            case "queued":
+            case "preparing":
+                return <span className="animate-pulse inline-flex h-2 w-2 mx-1 rounded-full bg-orange-400"></span>;
+            case "inferring":
+                return <span className="animate-pulse inline-flex h-2 w-2 mx-1 rounded-full bg-sky-400"></span>;
+            case "cancelling":
+                return <span className="animate-pulse inline-flex h-2 w-2 mx-1 rounded-full bg-fuchsia-400"></span>;
+            case "error":
+                return <span className="inline-flex h-2 w-2 mx-1 rounded-full bg-red-400"></span>;
+            default:
+                return <span className="inline-flex h-2 w-2 mx-1 rounded-full bg-sky-900"></span>;
+        }
     };
 
     useEffect(() =>
@@ -61,11 +78,9 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
         }
 
         if (currentWingmanInferenceItem && wingmanItems?.length > 0) {
-            // const wi = wingmanItems.find((wi) => hasActiveStatus(wi));
             const wi = wingmanItems.find((wi) => wi.filePath === currentWingmanInferenceItem?.alias);
             if (wi !== undefined) {
                 setWingmanItem(wi);
-                // setIsInferring(true);
                 if (showTitle)
                     setWingmanStatusTitle(title);
                 if (showModel)
@@ -87,7 +102,7 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
     if (currentWingmanInferenceItem && currentWingmanInferenceItem.alias) {
         return (
             <div className={`${className}`}>
-                <p>{wingmanStatusTitle} <span>{model} {modelAlias} {(showQuantization) && <span>({quantizationName})</span>}</span> {(wingmanItem && hasActiveStatus(wingmanItem)) && <span className="animate-pulse inline-flex h-2 w-2 mx-1 rounded-full bg-sky-400"></span>} {wingmanStatusLabel}</p>
+                <span>{wingmanStatusTitle} <span>{model} {modelAlias} {(showQuantization) && <span>({quantizationName})</span>}</span> {displayMonitoredStatusIndicator(wingmanItem)} {wingmanStatusLabel}</span>
             </div>
         );
     } else {

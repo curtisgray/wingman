@@ -37,7 +37,6 @@ export const hasActiveStatus = (item: WingmanItem) =>
         case "queued":
         case "preparing":
         case "inferring":
-        case "cancelling":
             return true;
         default:
             return false;

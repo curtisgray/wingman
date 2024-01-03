@@ -44,6 +44,7 @@
         "remark-gfm": "^3.0.1",
         "remark-math": "^5.1.1",
         "sqlite3": "^5.1.6",
+        "systeminformation": "^5.21.22",
         "use-immer": "^0.9.0",
         "uuid": "^9.0.0",
         "winston": "^3.11.0",
