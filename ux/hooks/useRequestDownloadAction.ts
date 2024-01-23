@@ -7,6 +7,7 @@ interface DownloadActionProps
     requestCancelDownload: (modelRepo: string, filePath: string) => Promise<void>;
     requestResetDownload: (modelRepo: string, filePath: string) => Promise<void>;
     requestRedownload: (modelRepo: string, filePath: string) => Promise<void>;
+    requestDownloadItems: (modelRepo?: string, filePath?: string) => Promise<DownloadItem[]>;
 }
 
 export function useRequestDownloadAction(): DownloadActionProps
@@ -81,10 +82,48 @@ export function useRequestDownloadAction(): DownloadActionProps
         }
     };
 
+    const requestDownloadItems = async (modelRepo: string = "", filePath: string = ""): Promise<DownloadItem[]> =>
+    {
+        try {
+            let query: string[] = [];
+            if (modelRepo !== "") {
+                query.push(`modelRepo=${encodeURI(modelRepo)}`);
+            }
+            if (filePath !== "") {
+                query.push(`filePath=${encodeURI(filePath)}`);
+            }
+            const url = `${WINGMAN_CONTROL_SERVER_URL}/api/downloads/${query.length > 0 ? "?" : ""}${query.join("&")}`;
+            const response = await fetch(url);
+            const downloadItems: DownloadItem[] = [];
+            // ensure response is valid and that JSON data is of type ProgressData
+            if (response.ok) {
+                if ((response.headers.get("content-type") ?? "") && ((response.headers.get("content-type")?.includes("application/json")) ?? false)) {
+                    try {
+                        const data = await response.json();
+                        if (data?.DownloadItems) {
+                            const items = data.DownloadItems as DownloadItem[];
+                            downloadItems.push(...items);
+                        }
+                    } catch (error) {
+                        console.error("useRequestDownloadAction: requestDownload Failed to parse JSON:", error);
+                    }
+                } else {
+                    console.error("useRequestDownloadAction: requestDownload Received non-JSON response:",
+                        response.headers.get("content-type"));
+                }
+            }
+            return downloadItems;
+        } catch (error) {
+            console.error("useRequestDownloadAction: requestDownload Failed to start download:", error);
+            return [];
+        }
+    };
+
     return {
         requestDownload,
         requestCancelDownload,
         requestResetDownload,
         requestRedownload,
+        requestDownloadItems
     };
 }

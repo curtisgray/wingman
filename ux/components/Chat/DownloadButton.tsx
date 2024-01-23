@@ -7,7 +7,7 @@ import WingmanContext from "@/pages/api/home/wingman.context";
 
 const DownloadButton = ({ modelRepo, filePath,
     showRepoName = true, showFileName = true, showProgress = true, showProgressText = true,
-    onComplete = () => { }, onStarted = () => { }, onCancelled = () => { }, onProgress = () => { },
+    onComplete = () => { }, onStarted = () => { }, onCancelled = () => { }, onProgress = () => { }, onInitialized = () => { },
     className = undefined, children = undefined, autoStart = false }: DownloadButtonProps) =>
 {
     const {
@@ -22,13 +22,27 @@ const DownloadButton = ({ modelRepo, filePath,
     const [downloadCompleted, setDownloadCompleted] = useState<boolean>(false);
     const [progress, setProgress] = useState<number>(0);
     const [progressText, setProgressText] = useState<string>("");
-    const [downloadLabel, setDownloadLabel] = useState<string>("Download");
+    const [downloadLabel, setDownloadLabel] = useState<React.ReactNode>("Download");
     const [downloadStatus, setDownloadStatus] = useState<string>("Docked");
-    const [disabled, setDisabled] = useState<boolean>(false);
+    const [disabled, setDisabled] = useState<boolean>(true);
+    const [isInitialized, setIsInitialized] = useState<boolean>(false);
+    const [isInitializing, setIsInitializing] = useState<boolean>(false);
     
+    const handleInitializeButton = () => {
+        setDisabled(false);
+        setDownloadLabel("Download");
+        setDownloadStatus("Docked");
+        setDownloadStarted(false);
+        setDownloadCompleted(false);
+        setIsDownloading(false);
+        setProgress(0);
+        setProgressText("");
+    };
+
     const handleRequestDownload = () => {
         setDisabled(true);
         downloadActions.requestDownload(modelRepo, filePath);
+        setIsDownloading(true);
         setDownloadLabel("Queued");
     };
 
@@ -46,93 +60,130 @@ const DownloadButton = ({ modelRepo, filePath,
         }
     };
 
+    const handleError = () => {
+        setDownloadLabel("Error");
+        setDownloadStatus("Failure to Takeoff");
+        setDisabled(true);
+        setDownloadStarted(false);
+    };
+
     useEffect(() =>
     {
-        // if (lastWebSocketMessage?.lastMessage !== undefined) {
-        //     const message = lastWebSocketMessage.lastMessage;
-        //     if (message === undefined || message === "") {
-        //         return;
-        //     }
-        //     const msg = JSON.parse(message);
-        //     if (msg?.isa === "DownloadItem") {
-        //         const di = msg as DownloadItem;
-        //         if (di.modelRepo === modelRepo && di.filePath === filePath) {
-        //             setDownloadItem(di);
-        //         }
-        //     }
-        // }
+        if (isInitializing) return;
+        let localUpdatedDownloadItem = false;
         if (downloadItems !== undefined) {
             const di = downloadItems.find((item) => item.modelRepo === modelRepo && item.filePath === filePath);
-            if (di !== undefined) {
+            if (di !== undefined && di !== downloadItem) {
                 setDownloadItem(di);
+                localUpdatedDownloadItem = true;
             }
         }
 
-        let isDownloadingLocal = false;
-        if (downloadItem !== undefined) {
-            switch (downloadItem.status) {
-                case "complete":
-                    if (isDownloading && !downloadCompleted){
+        if (localUpdatedDownloadItem) {
+            let localIsDownloading = false;
+            if (downloadItem !== undefined) {
+                switch (downloadItem.status) {
+                    case "complete":
                         setDownloadLabel("Downloaded");
                         setDownloadStatus("Aircraft Landed");
                         setDisabled(true);
-                        setProgress(downloadItem.progress);
-                        setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
-                        setDownloadCompleted(true);
-                        onComplete(downloadItem);
-                    }
-                    break;
-                case "downloading":
-                    if (!downloadStarted) {
-                        setDownloadStarted(true);
-                        onStarted(downloadItem);
-                    }
-                    setDownloadLabel("Cancel Download");
-                    setDownloadStatus(`Aircraft in Flight - ${downloadItem.progress.toPrecision(3)}%}`);
-                    setDisabled(false);
-                    setProgress(downloadItem.progress);
-                    setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
-                    isDownloadingLocal = true;
-                    onProgress(downloadItem.progress);
-                    break;
-                case "cancelled":
-                    if (isDownloading && !downloadCompleted){
-                        setDownloadLabel("Redownload");
-                        setDownloadStatus("Flight Aborted");
+                        if (isDownloading && !downloadCompleted){
+                            setProgress(downloadItem.progress);
+                            setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
+                            setDownloadCompleted(true);
+                            onComplete(downloadItem);
+                        }
+                        break;
+                    case "downloading":
+                        if (!downloadStarted) {
+                            setDownloadStarted(true);
+                            onStarted(downloadItem);
+                        }
+                        setDownloadLabel("Cancel Download");
+                        setDownloadStatus(`Aircraft in Flight - ${downloadItem.progress.toPrecision(3)}%}`);
                         setDisabled(false);
                         setProgress(downloadItem.progress);
                         setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
-                        isDownloadingLocal = false;
+                        localIsDownloading = true;
+                        onProgress(downloadItem.progress);
+                        break;
+                    case "cancelled":
+                        if (isDownloading && !downloadCompleted){
+                            setDownloadLabel("Redownload");
+                            setDownloadStatus("Flight Aborted");
+                            setDisabled(false);
+                            setProgress(downloadItem.progress);
+                            setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
+                            localIsDownloading = false;
+                            setDownloadStarted(false);
+                            onCancelled(downloadItem);
+                        }
+                        break;
+                    case "error":
+                        setDownloadLabel("Error");
+                        setDownloadStatus("Failure to Takeoff");
+                        break;
+                    case "idle":
+                        setDownloadLabel("Download");
+                        setDownloadStatus("Aircraft Docked");
+                        setDisabled(true);
                         setDownloadStarted(false);
-                        onCancelled(downloadItem);
-                    }
-                    break;
-                case "error":
-                    setDownloadLabel("Error");
-                    setDownloadStatus("Failure to Takeoff");
-                    break;
-                case "idle":
-                    setDownloadLabel("Download");
-                    setDownloadStatus("Aircraft Docked");
-                    setDisabled(true);
-                    setDownloadStarted(false);
-                    break;
-                case "queued":
-                    setDownloadLabel("Queued");
-                    setDownloadStatus("Ready for Takeoff");
-                    setDisabled(true);
-                    setDownloadStarted(false);
-                    break;
-                default:
-                    break;
+                        break;
+                    case "queued":
+                        setDownloadLabel("Queued");
+                        setDownloadStatus("Ready for Takeoff");
+                        setDisabled(true);
+                        setDownloadStarted(false);
+                        break;
+                    default:
+                        break;
+                }
+                setIsDownloading(localIsDownloading);
             }
-            setIsDownloading(isDownloadingLocal);
         }
     }, [downloadItems]);
 
     useEffect(() => {
-        if (autoStart) {
-            handleRequestDownload();
+        if (isInitializing && isInitialized) {
+            setIsInitializing(false);
+            if (downloadItem !== undefined) {
+                if (downloadItem.status === "complete") {
+                    setIsDownloading(false);
+                    setDownloadLabel("Downloaded");
+                    setDownloadStatus("Aircraft Landed");
+                    setDisabled(true);
+                }
+            } else {
+                if (autoStart)
+                    handleRequestDownload();
+                else
+                    handleInitializeButton();
+            }
+        }
+    }, [downloadItem, isInitialized, isInitializing]);
+
+    useEffect(() => {
+        setIsInitializing(true);
+        setDownloadLabel(<span className="animate-pulse inline-flex h-2 w-2 mx-1 rounded-full bg-orange-400"></span>);
+        setDisabled(true);
+        // request download status to set initial state of the control
+        const response = downloadActions.requestDownloadItems(modelRepo, filePath);
+        if (response !== undefined) {
+            response.then((items) => {
+                if (items.length > 0)
+                    setDownloadItem(items[0]);
+                setIsInitialized(true);
+                onInitialized(true);
+            });
+            response.catch(() => {
+                setIsInitialized(true);
+                handleError();
+                onInitialized(false);
+            });
+        } else {
+            setIsInitialized(true);
+            handleError();
+            onInitialized(false);
         }
     }, []);
 

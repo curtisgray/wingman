@@ -4,7 +4,9 @@ import { useRef, useState } from "react";
 interface InferenceActionProps
 {
     requestStartInference: (alias: string, modelRepo: string, filePath: string, gpuLayers: number) => Promise<WingmanItem | undefined>;
-    requestStopInference: (alias: string) => Promise<void>;
+    requestStopInference: (alias: string) => Promise<WingmanItem | undefined>;
+    requestResetInference: (alias: string) => Promise<WingmanItem | undefined>;
+    requestInferenceStatus: (alias?: string) => Promise<WingmanItem | undefined>;
     startGenerating: (content: string, probabilities_to_return?: number) => Promise<void>;
     stopGenerating: () => void;
     latestGeneratedItem: WingmanContent | undefined;
@@ -14,10 +16,9 @@ interface InferenceActionProps
 
 export function useRequestInferenceAction(): InferenceActionProps
 {
-    const requestStartInference = async (alias: string, modelRepo: string, filePath: string, gpuLayers: number = -1): Promise<WingmanItem | undefined> =>
+    const inferenceAction = async (url: string): Promise<WingmanItem | undefined> =>
     {
         try {
-            const url = `${WINGMAN_CONTROL_SERVER_URL}/api/inference/start?alias=${encodeURI(alias)}&modelRepo=${encodeURI(modelRepo)}&filePath=${encodeURI(filePath)}&gpuLayers=${gpuLayers}`;
             const response = await fetch(url);
             let wingmanItem: WingmanItem | undefined = undefined;
             // ensure response is valid and that JSON data is of type ProgressData
@@ -30,31 +31,36 @@ export function useRequestInferenceAction(): InferenceActionProps
                             wingmanItem = item;
                         }
                     } catch (error) {
-                        console.error("useRequestInferenceAction: requestStartInference Failed to parse JSON:", error);
+                        console.error("useRequestInferenceAction: inferenceAction Failed to parse JSON:", error);
                     }
                 } else {
-                    console.error("useRequestInferenceAction: requestStartInference Received non-JSON response:",
+                    console.error("useRequestInferenceAction: inferenceAction Received non-JSON response:",
                         response.headers.get("content-type"));
                 }
             }
             return wingmanItem;
         } catch (error) {
-            console.error("useRequestInferenceAction: requestStartInference Failed to start inference:", error);
+            console.error("useRequestInferenceAction: inferenceAction Failed to start inference:", error);
             return undefined;
         }
+    };
+
+    const requestStartInference = async (alias: string, modelRepo: string, filePath: string, gpuLayers: number = -1): Promise<WingmanItem | undefined> =>
+    {
+        const url = `${WINGMAN_CONTROL_SERVER_URL}/api/inference/start?alias=${encodeURI(alias)}&modelRepo=${encodeURI(modelRepo)}&filePath=${encodeURI(filePath)}&gpuLayers=${gpuLayers}`;
+        return await inferenceAction(url);
     };
 
     const requestStopInference = async (alias: string) =>
     {
         const url = `${WINGMAN_CONTROL_SERVER_URL}/api/inference/stop?alias=${encodeURI(alias)}`;
-        try {
-            const response = await fetch(encodeURI(url));
-            if (!response.ok) {
-                console.error("useRequestInferenceAction: requestStopInference Received non-OK response:", response.status, response.statusText);
-            }
-        } catch (error) {
-            console.error("useRequestInferenceAction: requestStopInference Exception Failed to cancel inference:", error);
-        }
+        return await inferenceAction(url);
+    };
+
+    const requestResetInference = async (alias: string) =>
+    {
+        const url = `${WINGMAN_CONTROL_SERVER_URL}/api/inference/reset?alias=${encodeURI(alias)}`;
+        return await inferenceAction(url);
     };
 
     const requestInferenceStatus = async (alias: string|undefined = undefined) =>
@@ -63,14 +69,7 @@ export function useRequestInferenceAction(): InferenceActionProps
         if (alias) {
             url = `${WINGMAN_CONTROL_SERVER_URL}/api/inference/status?alias=${encodeURI(alias)}`;
         }
-        try {
-            const response = await fetch(encodeURI(url));
-            if (!response.ok) {
-                console.error("requestInferenceStatus: requestInferenceStatus Received non-OK response:", response.status, response.statusText);
-            }
-        } catch (error) {
-            console.error("requestInferenceStatus: requestInferenceStatus Exception Failed to cancel inference:", error);
-        }
+        return await inferenceAction(url);
     };
 
     const continueGenerating = useRef<boolean>(true);
@@ -151,6 +150,8 @@ export function useRequestInferenceAction(): InferenceActionProps
     return {
         requestStartInference,
         requestStopInference,
+        requestResetInference,
+        requestInferenceStatus,
         startGenerating,
         stopGenerating,
         latestGeneratedItem,

@@ -16,4 +16,5 @@ export const initialWingmanState: WingmanStateProps = {
     wingmanItems: [],
     downloadItems: [],
     currentWingmanInferenceItem: undefined,
+    gpuInfo: undefined,
 };

@@ -105,6 +105,15 @@ export type WingmanContent = {
         }
     ];
 };
+
+export interface GpuInfo
+{
+    isa: "GpuInfo";
+    name: string;
+    totalMemory: number;
+    freeMemory: number;
+}
+
 export interface WingmanStateProps
 {
     pauseMetrics: boolean;
@@ -121,6 +130,7 @@ export interface WingmanStateProps
     wingmanItems: WingmanItem[];
     downloadItems: DownloadItem[];
     currentWingmanInferenceItem: WingmanItem | undefined;
+    gpuInfo: GpuInfo | undefined;
 }
 
 export const isValidWingmanItem = (item: WingmanItem) => item.alias !== undefined && item.alias.trim() !== "";

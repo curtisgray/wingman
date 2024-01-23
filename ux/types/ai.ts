@@ -23,6 +23,8 @@ export interface DownloadableItem
     quantization: string;
     quantizationName: string;
     isDownloaded: boolean;
+    available: boolean;
+    hasError: boolean;
     location: string;
 }
 
@@ -69,7 +71,7 @@ export enum AIModelID
 }
 
 // in case the `DEFAULT_MODEL` environment variable is not set or set to an unsupported model
-export const fallbackModelID = AIModelID.GPT_3_5_TURBO;
+export const fallbackModelID = AIModelID.GPT_OFFLINE;
 
 export const Vendors: Record<string, VendorInfo> = {
     openai: {

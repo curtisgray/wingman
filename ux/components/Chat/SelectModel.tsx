@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { memo, useContext, useEffect, useState } from "react";
+import React, { memo, useContext, useEffect, useReducer, useState } from "react";
 import { AIModel, DownloadableItem, Vendors } from "@/types/ai";
-import { IconCircleCheck, IconExternalLink, IconRefresh } from "@tabler/icons-react";
+import { IconCircleCheck, IconExclamationCircle, IconExternalLink, IconRefresh, IconRefreshDot } from "@tabler/icons-react";
 import Image from "next/image";
 import Select, { ActionMeta, SingleValue } from "react-select";
 import DownloadButton from "./DownloadButton";
@@ -10,6 +10,12 @@ import { useTranslation } from "next-i18next";
 import HomeContext from "@/pages/api/home/home.context";
 import WingmanInferenceStatus from "./WingmanInferenceStatus";
 import { useImmer } from "use-immer";
+import WingmanContext from "@/pages/api/home/wingman.context";
+import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
+import { Tooltip } from "react-tooltip";
+import { getSettings, saveSettings } from "@/utils/app/settings";
+import { useCreateReducer } from "@/hooks/useCreateReducer";
+import { Settings } from "@/types/settings";
 
 export type ModelOption = {
     value: string;
@@ -30,6 +36,7 @@ export type SelectModelProps = {
     className?: string;
     isDisabled?: boolean;
     miniMode?: boolean;
+    easyMode?: boolean;
     allowDownload?: boolean;
     autoDownload?: boolean;
     iconSize?: number;
@@ -38,6 +45,7 @@ export type SelectModelProps = {
 const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete = () => { }, onDownloadStart = () => { },
     className = "", isDisabled: disabled = false, miniMode = false,
     allowDownload = true, autoDownload = true, iconSize = 24 }: SelectModelProps) => {
+    const settings: Settings = getSettings();
 
     const [selectableModels, setSelectableModels] = useState<AIModel[]>([]);
 
@@ -46,58 +54,38 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
     const [isLoadingModelList, setIsLoadingModelList] = useState<boolean>(false);
     const [isChangingModel, setIsChangingModel] = useState<boolean>(false);
     const [showDownloadedItemsOnly, setShowDownloadedItemsOnly] = useState<boolean>(false);
+    const [expertMode, setExpertMode] = useState<boolean>(false);
+    const [isForcingDownloadButtonUpdate, setIsForcingDownloadButtonUpdate] = useState<boolean>(false);
 
     const { t } = useTranslation("chat");
+
+    const { requestResetInference } = useRequestInferenceAction();
 
     const {
         state: { models, globalModel, defaultModelId },
         handleChangeModel,
     } = useContext(HomeContext);
 
-    const onQuantizationChange = (selectedModel: AIModel, quantization: string) => {
-        const item = selectedModel.items?.find((item) => item.quantization === quantization);
-        let success = false;
-        if (item) {
-            const draftModel = {...selectedModel};
-            draftModel.item = item;
-            const modelRepo = draftModel.id;
-            const filePath = item?.filePath as string;
-            if (success = onValidateChange({modelRepo: modelRepo, filePath: filePath})) {
-                setSelectedModel(draftModel);
-                setSelectedQuantization(quantization);
-                // if the model is already downloaded, then send call handleChangeModel
-                //   otherwise, wait for the download to complete, then call handleChangeModel
-                if (item.isDownloaded) {
-                    handleChangeModel(draftModel);
-                } else {
-                    setIsChangingModel(true);
-                }
-            }
-        }
-        if (!success) {
-            setSelectedQuantization(undefined);
-        }
+    const {
+        state: { gpuInfo },
+    } = useContext(WingmanContext);
+
+    const handleSaveSettings = () => {
+        const newSettings: Settings = {
+            ...settings,
+            expertMode: expertMode,
+            showDownloadedItemsOnly: showDownloadedItemsOnly,
+        };
+        saveSettings(newSettings);
     };
 
-    const handleChangeSelectedModel = (e: SingleValue<{ value: string | undefined; label: string | Element; }>,
-        actionMeta: ActionMeta<{ value: string | undefined; label: string | Element; }>) => {
-        if (actionMeta.action === "select-option" && typeof onValidateChange === "function") {
-            const selectedModel = selectableModels.find((m) => m.id === e?.value) as AIModel;
-            setSelectedModel(selectedModel);
-            const vendor = Vendors[selectedModel.vendor];
-            if (vendor.isDownloadable) {
-                // do nothing until the user selects a quantization
-            } else {
-                const downloadProps: DownloadProps = {
-                    modelRepo: selectedModel.id,
-                    filePath: "",
-                };
-                if (onValidateChange(downloadProps)) {
-                    handleChangeModel(selectedModel);
-                }
-                setIsChangingModel(false);
-            }
-        }
+    const handleDownloadInitialized = (success: boolean) => {
+        if (expertMode) setIsChangingModel(false);
+    };
+
+    const handleDownloadStart = (item: DownloadItem) => {
+        setIsChangingModel(true);
+        onDownloadStart(item);
     };
 
     const handleDownloadComplete = (item: DownloadItem) => {
@@ -114,8 +102,62 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
         onDownloadComplete(item);
     };
 
-    const handleDownloadStart = (item: DownloadItem) => {
-        onDownloadStart(item);
+    const onQuantizationChange = (selectedModel: AIModel, quantization: string) => {
+        const item = selectedModel.items?.find((item) => item.quantization === quantization);
+        let success = false;
+        if (item) {
+            const draftModel = {...selectedModel};
+            draftModel.item = item;
+            const modelRepo = draftModel.id;
+            const filePath = item?.filePath as string;
+            if (success = onValidateChange({modelRepo: modelRepo, filePath: filePath})) {
+                setSelectedModel(draftModel);
+                setSelectedQuantization(quantization);
+                if (expertMode) { // if in expertMode, let the user be in control of the download
+                    setIsForcingDownloadButtonUpdate(true);
+                }
+                // if the model is already downloaded, then send call handleChangeModel
+                //   otherwise, wait for the download to complete, then call handleChangeModel
+                if (item.isDownloaded) {
+                    handleChangeModel(draftModel);
+                } else {
+                    if (expertMode) {   // in expertMode, the user must click the download button to start the download
+                    } else {   // if not in expertMode, the download will start automatically, so put the control in 'changing model' state
+                        setIsChangingModel(true);
+                    }
+                }
+            }
+        }
+        if (!success) {
+            setSelectedQuantization(undefined);
+        }
+    };
+
+    const handleChangeSelectedModel = (e: SingleValue<{ value: string | undefined; label: string | Element; }>,
+        actionMeta: ActionMeta<{ value: string | undefined; label: string | Element; }>) => {
+        if (actionMeta.action === "select-option" && typeof onValidateChange === "function") {
+            const selectedModel = selectableModels.find((m) => m.id === e?.value) as AIModel;
+            setSelectedModel(selectedModel);
+            const vendor = Vendors[selectedModel.vendor];
+            if (vendor.isDownloadable) {
+                if (expertMode) { // if expertMode, then let the user select the quantization
+                } else { // if not in expertMode, then select the middle quantization and start the download
+                    // find the middle quantization
+                    const middleIndex = Math.floor(selectedModel.items?.length as number / 2);
+                    const middleQuantization = selectedModel.items?.[middleIndex].quantization as string;
+                    onQuantizationChange(selectedModel, middleQuantization);
+                }
+            } else {
+                const downloadProps: DownloadProps = {
+                    modelRepo: selectedModel.id,
+                    filePath: "",
+                };
+                if (onValidateChange(downloadProps)) {
+                    handleChangeModel(selectedModel);
+                }
+                setIsChangingModel(false);
+            }
+        }
     };
 
     const handleDownloadableItemChange = (e: SingleValue<{ value: string | undefined; label: string | Element; }>,
@@ -147,6 +189,19 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
         }
     };
 
+    const handleResetSelectedModel = () => {
+        if (selectedModel?.item !== undefined) {
+            requestResetInference(selectedModel.item.filePath).then(() => {
+                const draftModel = {...selectedModel};
+                const draftItem = {...selectedModel.item as DownloadableItem};
+                draftItem.hasError = false;
+                draftModel.item = draftItem;
+                setSelectedModel(draftModel);
+                handleChangeModel(draftModel);
+            });
+        }
+    };
+
     const displayModelVendor = (model: AIModel | undefined) => {
         if (!model) return <></>;
         const vendor = Vendors[model.vendor];
@@ -167,7 +222,18 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
         let name = <span>{model.name}</span>;
         if (model.items && model.items.length > 0) {
             const hasDownloadedItem = model.items.some((item) => item.isDownloaded);
-            if (hasDownloadedItem) {
+            const hasErrorItem = model.items.some((item) => item.hasError);
+            if (hasErrorItem) {
+                name = (
+                    <div className="flex space-x-1">
+                        <IconExclamationCircle
+                            width={iconSize}
+                            className="text-red-700"
+                        />
+                        <span className="font-bold">{model.name}</span>
+                    </div>
+                );
+            } else if (hasDownloadedItem) {
                 name = (
                     <div className="flex space-x-1">
                         <IconCircleCheck
@@ -187,7 +253,11 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
     const displayDownload = (model: AIModel | undefined) => {
         if (!allowDownload || model === undefined || model?.item === undefined || model?.vendor == undefined) return <></>;
         if (Vendors[model.vendor].isDownloadable) {
-            if (model.item.isDownloaded) {
+            if (isForcingDownloadButtonUpdate) {
+                return <div className="self-center m-4" style={disabled ? {pointerEvents: "none", opacity: "0.4"} : {}}>
+                    <span className="animate-pulse inline-flex h-2 w-2 mx-1 rounded-full bg-lime-400">wait</span>
+                </div>;
+            } else if (!expertMode && model.item.isDownloaded) {
                 return <></>;
             } else {
                 return <div className="self-center m-4" style={disabled ? {pointerEvents: "none", opacity: "0.4"} : {}}>
@@ -198,17 +268,28 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                         showProgressText={true}
                         onComplete={handleDownloadComplete}
                         onStarted={handleDownloadStart}
-                        autoStart={autoDownload} />
+                        onInitialized={handleDownloadInitialized}
+                        autoStart={autoDownload && !expertMode} />
                 </div>;
             }
         }
-        return "";
+        return <></>;
     };
 
     const displayQuantization = (item: DownloadableItem | undefined) => {
         if (item === undefined) return "";
 
-        if (item.isDownloaded) {
+        if (item.hasError) {
+            return (
+                <div className="flex space-x-1">
+                    <IconExclamationCircle
+                        width={iconSize}
+                        className="text-red-700"
+                    />
+                    <span className="font-bold">{item.quantizationName}</span>
+                </div>
+            );
+        } else if (item.isDownloaded) {
             return (
                 <div className="flex space-x-1">
                     <IconCircleCheck
@@ -256,15 +337,23 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
         }
     }, []);
 
-    // keep the selected model in sync with the global model
     useEffect(() => {
+        if (isForcingDownloadButtonUpdate) {
+            setIsForcingDownloadButtonUpdate(false);
+        }
+    }, [isForcingDownloadButtonUpdate]);
+
+    const syncComponentWithGlobalModel = () => {
         // if model vendor is openai, then notify the user that the model is ready and return
         if (globalModel?.vendor === "openai") {
             setSelectedModel(globalModel);
             setSelectedQuantization(undefined);
             return;
         }
-        if (globalModel !== undefined && !isChangingModel) {
+        if (globalModel === undefined && !isChangingModel) {
+            setSelectedModel(undefined);
+            setSelectedQuantization(undefined);
+        } else if (globalModel !== undefined && !isChangingModel) {
             if (globalModel.item === undefined) {
                 // whenever the globalModel changes, the globalModel.item must be, otherwise
                 //   something has gone wrong in setting the global model
@@ -279,20 +368,54 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                 setSelectedQuantization(globalModel.item.quantization);
             }
         }
+    };
+
+    // keep the selected model in sync with the global model
+    useEffect(() => {
+        syncComponentWithGlobalModel();
     }, [globalModel]);
 
     useEffect(() => {
         handleRefreshModels();
     }, [models, showDownloadedItemsOnly]);
 
+    useEffect(() => {
+        syncComponentWithGlobalModel();
+        const newSettings: Settings = {
+            ...settings,
+            expertMode: expertMode,
+        };
+        saveSettings(newSettings);
+    }, [expertMode]);
+
+    useEffect(() => {
+        const newSettings: Settings = {
+            ...settings,
+            showDownloadedItemsOnly: showDownloadedItemsOnly,
+        };
+        saveSettings(newSettings);
+    }, [showDownloadedItemsOnly]);
+
     return (
         <div className={`${className}`}>
             <div className="flex flex-col w-full">
                 {!miniMode && (
                     <div className="flex flex-col space-y-4">
-                        <div className="flex items-center">
-                            <label htmlFor="showDownloadedItemsOnly">Show downloaded items only</label>
-                            <input id="showDownloadedItemsOnly" type="checkbox" className="w-8 h-5" checked={showDownloadedItemsOnly} onChange={(e) => setShowDownloadedItemsOnly(e.target.checked)} />
+                        <div className="flex pb-2">
+                            <label className="text-left text-neutral-700 dark:text-neutral-400">
+                                {t("Below is a list of AI models that you can use to generate text. Select the list and type any part of the model name to filter the list. Select a model to use it. For downloadable models, select a to download and use it. In Expert Mode, model optimizations are listed in order of size, with the smallest size first.")}
+                            </label>
+                            <span className="flex-grow"></span>
+                        </div>
+                        <div className="flex justify-between">
+                            <div className="flex items-center">
+                                <label htmlFor="showDownloadedItemsOnly">Show downloaded AI models only</label>
+                                <input id="showDownloadedItemsOnly" type="checkbox" className="w-8 h-5" checked={showDownloadedItemsOnly} onChange={(e) => setShowDownloadedItemsOnly(e.target.checked)} />
+                            </div>
+                            <div className="flex items-center">
+                                <label htmlFor="expertMode">Expert Mode</label>
+                                <input id="expertMode" type="checkbox" className="w-8 h-5" checked={expertMode} onChange={(e) => setExpertMode(e.target.checked)} />
+                            </div>
                         </div>
                         <div className="flex pb-2">
                             <label className="text-left">
@@ -306,6 +429,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                     </div>
                 )}
                 <div className="flex rounded-lg space-x-2 items-center">
+                    <>
                     <Select
                         isLoading={isLoadingModelList || isChangingModel}
                         placeholder={(t("Select a model").length > 0) || ""}
@@ -317,13 +441,18 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                         isSearchable={true}
                         // hideSelectedOptions={true}
                         onChange={handleChangeSelectedModel}
-                        className="model-select-container w-full text-neutral-900"
+                        className="model-select-container w-full text-neutral-900 bg-slate-700"
                         classNamePrefix="model-select"
                         instanceId={"model-select"}
                         isDisabled={disabled}
+                        data-tooltip-id="model-select"
+                        data-tooltip-content="Select or search for an AI model"
                     />
-                    {selectedModel?.vendor === Vendors.huggingface.name &&
+                    <Tooltip id="model-select" />
+                    </>
+                    {expertMode && selectedModel?.vendor === Vendors.huggingface.name &&
                     (
+                        <>
                         <Select
                             isLoading={isLoadingModelList || isChangingModel}
                             placeholder={(t("Select an optimization").length > 0) || ""}
@@ -339,11 +468,28 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                             classNamePrefix="optimization-select"
                             instanceId={"optimization-select"}
                             isDisabled={disabled}
+                            data-tooltip-id="optimization-select"
+                            data-tooltip-content="Select or search for an optimization"
                         />
+                        <Tooltip id="optimization-select" />
+                        </>
                     )}
-                    {!miniMode && !isChangingModel && (
-                        <IconRefresh size={28} className="rounded-sm cursor-pointer" onClick={handleRefreshModels} />
-                    )}
+                    <>
+                        {!miniMode && !isChangingModel && (
+                            <>
+                                <IconRefresh size={28} className="rounded-sm cursor-pointer" onClick={handleRefreshModels}
+                                    data-tooltip-id="refresh-models-list" data-tooltip-content="Refresh list of AI models" />
+                                <Tooltip id="refresh-models-list" />
+                            </>
+                        )}
+                        {!miniMode && selectedModel?.item?.hasError && (
+                            <>
+                                <IconRefreshDot size={28} className="rounded-sm cursor-pointer" onClick={handleResetSelectedModel}
+                                    data-tooltip-id="reset-selected-model" data-tooltip-content="Clear error to try running the AI model again" />
+                                <Tooltip id="reset-selected-model" />
+                            </>
+                        )}
+                    </>
                 </div>
                 {!miniMode && selectedModel?.vendor === Vendors.openai.name && (
                     <div className="w-full mt-3 text-left flex items-center">

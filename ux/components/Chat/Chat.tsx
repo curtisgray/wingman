@@ -4,6 +4,7 @@ import { ChatLoader } from "./ChatLoader";
 import { ErrorMessageDiv } from "./ErrorMessageDiv";
 import { MemoizedChatMessage } from "./MemoizedChatMessage";
 import HomeContext from "@/pages/api/home/home.context";
+import WingmanContext from "@/pages/api/home/wingman.context";
 import { ChatBody, Conversation, Message } from "@/types/chat";
 import { Plugin } from "@/types/plugin";
 import { getEndpoint } from "@/utils/app/api";
@@ -27,6 +28,7 @@ import toast from "react-hot-toast";
 import { DownloadProps } from "@/types/download";
 import ChatSettings from "./ChatSettings";
 import ChatStatus from "./ChatStatus";
+import { SelectModel } from "./SelectModel";
 
 interface Props {
     stopConversationRef: MutableRefObject<boolean>;
@@ -51,6 +53,10 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         handleUpdateConversation,
         dispatch: homeDispatch,
     } = useContext(HomeContext);
+
+    const {
+        state: { downloadItems },
+    } = useContext(WingmanContext);
 
     const [currentMessage, setCurrentMessage] = useState<Message>();
     const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(true);
@@ -396,7 +402,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
 
     return (
         <div className="relative flex-1 overflow-hidden bg-white dark:bg-[#343541]">
-            {!(apiKey || serverSideApiKeyIsSet) ? (
+            {!(apiKey || serverSideApiKeyIsSet || downloadItems?.length > 0) ? ( // no models available so display startup ui
                 // TODO: Besides api key, we should also check if the user has selected a model
                 <div className="mx-auto flex h-full w-[300px] flex-col justify-center space-y-6 sm:w-[600px]">
                     <div className="text-center text-4xl font-bold text-black dark:text-white">
@@ -405,32 +411,45 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                     <div className="text-center text-lg text-black dark:text-white">
                         <div className="mb-8">{`Wingman is an open source chat UI.`}</div>
                     </div>
-                    <div className="text-center text-gray-500 dark:text-gray-400">
+                    <div className="text-gray-500 dark:text-gray-400">
                         <div className="mb-2">
-                            Wingman allows you to chat with and tune AI models.
+                            Wingman allows you to chat with and tune AI models from OpenAI and Meta.
                         </div>
-                        <div className="mb-2">
-                            It is <span className="italic">only</span> used to
-                            communicate with their API.
-                        </div>
-                        <div className="mb-2">
-                            {t(
-                                "Please set your OpenAI API key in the bottom left of the sidebar."
-                            )}
-                        </div>
-                        <div>
-                            {t(
-                                "If you don't have an OpenAI API key, you can get one here: "
-                            )}
-                            <a
-                                href="https://platform.openai.com/account/api-keys"
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-blue-500 hover:underline"
-                            >
-                                openai.com
-                            </a>
-                        </div>
+                        {!(apiKey || serverSideApiKeyIsSet) && (
+                            <>
+                                <div className="mb-2">
+                                    {t(
+                                        "To use OpenAI's chat models, please set your OpenAI API key in the bottom left of the sidebar."
+                                    )}
+                                </div>
+                                <div>
+                                    {t(
+                                        "If you don't have an OpenAI API key, you can get one here: "
+                                    )}
+                                    <a
+                                        href="https://platform.openai.com/account/api-keys"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-blue-500 hover:underline"
+                                    >
+                                        openai.com
+                                    </a>
+                                </div>
+                            </>
+                        )}
+                        {!downloadItems?.length && (
+                            <>
+                                <hr className="my-2 mb-8 mt-8" />
+                                <div className="mb-4">
+                                    {t(
+                                        "To use Meta's chat models, please search for and download any model from the dropdown list below."
+                                    )}
+                                </div>
+                                <div className="w-full text-gray-800 dark:text-gray-100 ">
+                                    <SelectModel autoDownload={true} miniMode />
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             ) : modelError ? (

@@ -50,6 +50,7 @@ export type DownloadButtonProps = DownloadProps & {
     onStarted?: (item: DownloadItem) => void;
     onCancelled?: (item: DownloadItem) => void;
     onProgress?: (value: number) => void;
+    onInitialized?: (success: boolean) => void;
     autoStart?: boolean;
     children?: React.ReactNode;
 };

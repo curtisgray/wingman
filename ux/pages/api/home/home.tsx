@@ -11,7 +11,7 @@ import useApiService, { GetModelsRequestProps } from "@/services/useApiService";
 import { Conversation } from "@/types/chat";
 import { KeyValuePair } from "@/types/data";
 import { FolderInterface, FolderType } from "@/types/folder";
-import { AIModel, AIModelID, AIModels, DownloadableItem, Vendors, fallbackModelID } from "@/types/ai";
+import { AIModel, AIModelID, AIModels, Vendors, fallbackModelID } from "@/types/ai";
 import { Prompt } from "@/types/prompt";
 import {
     cleanConversationHistory,
@@ -34,7 +34,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 import { useWingman } from "@/hooks/useWingman";
-import { WingmanItem, WingmanStateProps, hasActiveStatus } from "@/types/wingman";
+import { WingmanStateProps } from "@/types/wingman";
 import { initialWingmanState } from "./wingman.state";
 import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 import toast from "react-hot-toast";
@@ -54,6 +54,7 @@ const Home = ({
     const { getModels } = useApiService();
     const { getModelsError } = useErrorService();
     const [currentConversationModel, setCurrentConversationModel] = useState<AIModel | undefined>(undefined);
+    const [lastConversationModel, setLastConversationModel] = useState<AIModel | undefined>(undefined); // this is a place to save the current model when a request is made to change the conversations model
     const [isSwitchingModel, setIsSwitchingModel] = useState<boolean>(false);
 
     const homeContextValue = useCreateReducer<HomeStateProps>({
@@ -70,6 +71,7 @@ const Home = ({
             prompts,
             temperature,
             globalModel,
+            defaultModel
         },
         dispatch: homeDispatch,
     } = homeContextValue;
@@ -97,6 +99,7 @@ const Home = ({
         wingmanItems,
         downloadItems,
         currentWingmanInferenceItem,
+        gpuInfo,
     } = useWingman();
     const inferenceActions = useRequestInferenceAction();
 
@@ -116,6 +119,7 @@ const Home = ({
         wingmanDispatch({ field: "wingmanItems", value: wingmanItems });
         wingmanDispatch({ field: "downloadItems", value: downloadItems });
         wingmanDispatch({ field: "currentWingmanInferenceItem", value: currentWingmanInferenceItem });
+        wingmanDispatch({ field: "gpuInfo", value: gpuInfo });
     }, [
         pauseMetrics, timeSeries, meta, system, tensors, metrics,
         // lastTime,
@@ -129,20 +133,26 @@ const Home = ({
         ["GetModels", apiKey, serverSideApiKeyIsSet],
         ({ signal }) => {
             // if (!apiKey && !serverSideApiKeyIsSet) return null;
-
-            return getModels(
+            const m = getModels(
                 {
                     key: apiKey,
                 } as GetModelsRequestProps,
                 signal
             );
+            return m;
         },
         { enabled: true, refetchOnMount: false }
     );
 
     useEffect(() => {
-        if (models)
+        if (models) {
             homeDispatch({ field: "models", value: models });
+            // identify the model named 'default' and set it as the default model
+            const defaultModel = models.find(m => m.id === "default");
+            if (defaultModel) {
+                homeDispatch({ field: "defaultModel", value: defaultModel });
+            }
+        }
     }, [models, homeDispatch]);
 
     useEffect(() => {
@@ -229,9 +239,25 @@ const Home = ({
     // CONVERSATION OPERATIONS  --------------------------------------------
     const changeConversationModel = (model: AIModel | undefined) => {
         if (selectedConversation) {
+            let m = model;
+            // if (model && model.item) {
+            //     const vendor = Vendors[model.vendor];
+            //     if (vendor.isDownloadable) {
+            //         const item = model.item as DownloadableItem;
+            //         // if the model has an error it cannot be used
+            //         if (item.hasError) {
+            //             // m = undefined;
+            //             // the model has an error and cannot be used
+            //         }
+            //     }
+            // }
+            // if (selectedConversation.model && selectedConversation.model !== m) {
+            if (selectedConversation.model !== m) {
+                setLastConversationModel(selectedConversation.model);
+            }
             handleUpdateConversation(selectedConversation, {
                 key: "model",
-                value: model,
+                value: m,
             });
         }
     };
@@ -239,6 +265,15 @@ const Home = ({
     const changeGlobalModel = (model: AIModel | undefined) => {
         setIsSwitchingModel(true);
         homeDispatch({ field: "globalModel", value: model });
+    };
+
+    const handleSyncModel = (model: AIModel | undefined) => {
+        if (selectedConversation) {
+            handleUpdateConversation(selectedConversation, {
+                key: "model",
+                value: model,
+            });
+        }
     };
 
     const handleNewConversation = () => {
@@ -326,18 +361,61 @@ const Home = ({
     }, [selectedConversation]);
 
     useEffect(() => {
-        if (selectedConversation && selectedConversation.model !== currentConversationModel) {
-            setCurrentConversationModel(selectedConversation.model);
-            changeGlobalModel(selectedConversation.model);
-        }
-    }, [selectedConversation?.model]);
+        if (models && models.length > 0 && selectedConversation && selectedConversation.model && selectedConversation.model !== currentConversationModel) {
+            const vendor = Vendors[selectedConversation.model.vendor];
+            if (vendor.isDownloadable && selectedConversation.model.item === undefined) {
+                // throw new Error(`'selectedConversation.model' is defined as ${selectedConversation.model.id}, but 'selectedConversation.model.item' is undefined. Something has gone wrong within the application.`);
+                toast.error(`Operational Error: Please refresh the page.`);
+                return;
+            }
+            // the selectedConversation's model must be set to a model from the list of available models, e.g., `models`
+            //  so, if the model is not in the list of available models, then set the selectedConversations's model to undefined
+            //  and notify the user that the model is not available, and do not change the globalModel
+            const m = models?.find(m => m.id === selectedConversation.model.id);
 
-    useEffect(() => {
-        if (selectedConversation && selectedConversation.model !== currentConversationModel) {
-            setCurrentConversationModel(selectedConversation.model);
-            changeGlobalModel(selectedConversation.model);
+            if (m === undefined) {
+                toast.error(`Model '${selectedConversation.model.name}' is not available. Please select another model.`);
+                setCurrentConversationModel(undefined);
+            } else {
+                let item = undefined;
+                if (vendor.isDownloadable) {
+                    item = m.items?.find((item) => item.quantization === selectedConversation.model.item?.quantization);
+                    if (item === undefined) {
+                        toast.error(`Model '${selectedConversation.model.name}' is not available. Please select another model.`);
+                        setCurrentConversationModel(undefined);
+                        return;
+                    }
+                    if (item.hasError) {
+                        // check if the wingmanItems has an item with the same filePath as the selectedConversation.model.item.filePath
+                        //  if so, use the items error message to notify the user. Otherwise, use the default message.
+                        const wi = wingmanItems?.find((wi) => wi.alias === selectedConversation.model.item?.filePath);
+                        if (wi !== undefined) {
+                            toast.error(
+                                `Model '${selectedConversation.model.name}' has an error and cannot run. Please select another model or reset it to try again using the Reset button on the AI model list. Error: ${wi.error}`,
+                                { duration: 10000 }
+                            );
+                        } else {
+                            toast.error(
+                                `Model '${selectedConversation.model.name}' has an error and cannot run. Please select another model or reset it to try again using the Reset button on the AI model list.`,
+                                { duration: 10000 }
+                            );
+                        }
+                        // setCurrentConversationModel(undefined);
+                        setCurrentConversationModel(lastConversationModel);
+                        changeGlobalModel(lastConversationModel);
+                        return;
+                    }
+                }
+
+                const draftModel = {...m};
+                if (vendor.isDownloadable) {
+                    draftModel.item = item;
+                }
+                setCurrentConversationModel(draftModel);
+                changeGlobalModel(draftModel);
+            }
         }
-    }, [selectedConversation?.id]);
+    }, [selectedConversation?.id, selectedConversation?.model, models]);
 
     useEffect(() => {
         defaultModelId &&
@@ -475,8 +553,9 @@ const Home = ({
                 if (globalModel.item === undefined) {
                     // whenever the globalModel changes, the globalModel.item must be defined, otherwise
                     //   something has gone wrong in setting the global model
-                    //   so throw an error
-                    throw new Error(`'globalModel' is defined as ${globalModel.id}, but 'globalModel.item' is undefined. Something has gone wrong within the application.`);
+                    //   so, return.
+                    return;
+                    // throw new Error(`'globalModel' is defined as ${globalModel.id}, but 'globalModel.item' is undefined. Something has gone wrong within the application.`);
                 } else {
                     // issue a request to start the model running on the Wingman server
                     //  and wait for the currentWingmanInferenceItem to be set to the globalModel
@@ -494,9 +573,9 @@ const Home = ({
         }
     }, [globalModel]);
 
-    useEffect(() => {
+    useEffect(() => {   // this effect is for notifying the user on the status of the currentWingmanInferenceItem when the globalModel changes
         if (currentWingmanInferenceItem) {
-            if (globalModel && globalModel.item && globalModel.item.filePath === currentWingmanInferenceItem.filePath) {
+            if (isSwitchingModel && globalModel && globalModel.item && globalModel.item.filePath === currentWingmanInferenceItem.filePath) {
                 // this can be called several times while the currentWingmanInferenceItem's status is changing,
                 //  so, we need to wait until the status is 'inferring' before notifying the user
                 if (currentWingmanInferenceItem.status === "inferring") {
@@ -504,6 +583,10 @@ const Home = ({
                     setIsSwitchingModel(false);
                 } else if (currentWingmanInferenceItem.status === "error") {
                     toast.error(`Target Acquisition Failed: ${globalModel.name}`);
+                    // switch the globalModel and selectedConversation.model to undefined
+                    // TODO: set the globalModel and selectedConversation.model to defaultModel
+                    setCurrentConversationModel(undefined);
+                    changeGlobalModel(undefined);                    
                     setIsSwitchingModel(false);
                 }
             }
@@ -536,6 +619,7 @@ const Home = ({
                     handleDuplicateConversation,
                     handleDeleteConversation: () => {},
                     handleChangeModel,
+                    handleSyncModel,
                 }}
             >
                 <Head>

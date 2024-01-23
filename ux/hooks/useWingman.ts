@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { ConnectionStatus, DownloadItem, DownloadServerAppItem } from "@/types/download";
 import { LlamaStats, LlamaStatsTimings, newLlamaStatsTimings, LlamaStatsSystem, newLlamaStatsSystem, LlamaStatsMeta, newLlamaStatsMeta, LlamaStatsTensors, newLlamaStatsTensors } from "@/types/llama_stats";
-import { WINGMAN_CONTROL_PORT, WingmanItem, WingmanServiceAppItem, WingmanStateProps, hasActiveStatus } from "@/types/wingman";
+import { GpuInfo, WINGMAN_CONTROL_PORT, WingmanItem, WingmanServiceAppItem, WingmanStateProps, hasActiveStatus } from "@/types/wingman";
 import { useEffect, useState } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { isEqual } from "lodash";
@@ -27,6 +27,7 @@ export function useWingman(): WingmanStateProps
     const [wingmanServiceStatus, setWingmanServiceStatus] = useState<WingmanServiceAppItem | undefined>(undefined);
     const [wingmanItems, setWingmanItems] = useState<WingmanItem[]>([]);
     const [downloadItems, setDownloadItems] = useState<DownloadItem[]>([]);
+    const [gpuInfo, setGpuInfo] = useState<GpuInfo|undefined>(undefined);
     const [currentWingmanInferenceItem, setCurrentWingmanInferenceItem] = useState<WingmanItem | undefined>(undefined);
     const [isOnline, setIsOnline] = useState<boolean>(false);
 
@@ -90,6 +91,10 @@ export function useWingman(): WingmanStateProps
             if (json?.DownloadItems) {
                 setDownloadItems(json.DownloadItems);
             }
+            if (json?.GpuInfo) {
+                if (!isEqual(json?.GpuInfo, gpuInfo))
+                    setGpuInfo(json.GpuInfo);
+            }
         }
     }, [lastMessage, pauseMetrics]);
 
@@ -108,5 +113,6 @@ export function useWingman(): WingmanStateProps
         wingmanItems,
         downloadItems,
         currentWingmanInferenceItem,
+        gpuInfo,
     };
 }

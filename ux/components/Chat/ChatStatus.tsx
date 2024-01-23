@@ -10,9 +10,10 @@ interface Props {
     onClearConversation: () => void;
     iconSize?: number;
     showStatus?: boolean;
+    disabled?: boolean;
 }
 
-const ChatStatus = ({ onSettings, onClearConversation, iconSize = 18, showStatus = true }: Props) => {
+const ChatStatus = ({ onSettings, onClearConversation, iconSize = 18, showStatus = true, disabled = false }: Props) => {
     const {
         state: { globalModel },
     } = useContext(HomeContext);
@@ -64,10 +65,10 @@ const ChatStatus = ({ onSettings, onClearConversation, iconSize = 18, showStatus
     return (
         <div className="sticky top-0 z-10 flex justify-center border border-b-neutral-300 bg-neutral-100 py-2 text-sm text-neutral-500 dark:border-none dark:bg-[#444654] dark:text-neutral-200">
             { showStatus && (displayModel(globalModel)) }
-            <button className="ml-2 cursor-pointer hover:opacity-50" onClick={onSettings}>
+            <button style={disabled ? {pointerEvents: "none", opacity: "0.4"} : {}} className="ml-2 cursor-pointer hover:opacity-50" onClick={onSettings}>
                 <IconSettings size={iconSize} />
             </button>
-            <button className="ml-2 cursor-pointer hover:opacity-50" onClick={onClearConversation}>
+            <button style={disabled ? {pointerEvents: "none", opacity: "0.4"} : {}} className="ml-2 cursor-pointer hover:opacity-50" onClick={onClearConversation}>
                 <IconClearAll size={iconSize} />
             </button>
         </div>

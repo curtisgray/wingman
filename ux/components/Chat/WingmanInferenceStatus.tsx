@@ -3,12 +3,21 @@ import React, { useContext, useEffect, useState } from "react";
 import WingmanContext from "@/pages/api/home/wingman.context";
 import { WingmanItem } from "@/types/wingman";
 import { StripFormatFromModelRepo, quantizationFromFilePath } from "@/types/download";
+import { IconRotateRectangle } from "@tabler/icons-react";
+import { Tooltip } from "react-tooltip";
+import HomeContext from "@/pages/api/home/home.context";
+import { AIModel, Vendors } from "@/types/ai";
 
 const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, showModel = true, showQuantization = true, showAlias = false, className = "" }) =>
 {
     const {
-        state: { wingmanItems, currentWingmanInferenceItem },
+        state: { wingmanItems, currentWingmanInferenceItem, isOnline },
     } = useContext(WingmanContext);
+
+    const {
+        state: { models, globalModel },
+        handleSyncModel
+    } = useContext(HomeContext)
 
     const [wingmanItem, setWingmanItem] = useState<WingmanItem | undefined>(undefined);
     const [wingmanStatusLabel, setWingmanStatusLabel] = useState<string>("unknown");
@@ -16,10 +25,14 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
     const [model, setModel] = useState<string>("");
     const [modelAlias, setModelAlias] = useState<string>("");
     const [quantizationName, setQuantizationName] = useState<string>("");
+    const [downloadableModelSelected, setDownloadableModelSelected] = useState<boolean>(false);
+    const [isRunningInferenceModel, setIsRunningInferenceModel] = useState<boolean>(false);
 
     const reset = () =>
     {
         setWingmanItem(undefined);
+        setDownloadableModelSelected(false);
+        setIsRunningInferenceModel(false);
         setWingmanStatusLabel("unknown");
         setWingmanStatusTitle("");
         setModel("");
@@ -40,7 +53,35 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
             case "error":
                 return <span className="inline-flex h-2 w-2 mx-1 rounded-full bg-red-400"></span>;
             default:
-                return <span className="inline-flex h-2 w-2 mx-1 rounded-full bg-sky-900"></span>;
+                return <span className="inline-flex h-2 w-2 mx-1 rounded-full dark:bg-white bg-black"></span>;
+        }
+    };
+
+    const displaySyncModelControl = () =>
+    {
+        if (downloadableModelSelected)
+            return <><IconRotateRectangle size={18} className="rounded-sm cursor-pointer" onClick={handleSyncModelLocal}
+                data-tooltip-id="sync-selected-model" data-tooltip-content="Select the mission model running on the server" />
+                <Tooltip id="sync-selected-model" /></>;
+        else
+            return <></>;
+    }
+
+    const handleSyncModelLocal = () =>
+    {
+        if (wingmanItem !== undefined) {
+            // handleSyncModel(wingmanItem);
+            // find model in models by wingmanItem
+            const model = models.find((m) => m.id === wingmanItem.modelRepo);
+            if (model !== undefined) {
+                const draftModel = {...model};
+                const vendor = Vendors[model.vendor];
+                if (vendor !== undefined && vendor.isDownloadable) {
+                    const item = model.items?.find((item) => item.filePath === wingmanItem.filePath);
+                    draftModel.item = item;
+                }
+                handleSyncModel(draftModel);
+            }
         }
     };
 
@@ -60,7 +101,7 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
                         setWingmanStatusLabel("Mission Underway"); // The item is actively being processed, akin to a plane that has taken off and is in flight
                         break;
                     case "complete":
-                        setWingmanStatusLabel("Mission Accomplished"); // Signifies the successful completion of the task, like a plane safely landing
+                        setWingmanStatusLabel("Mission Complete"); // Signifies the successful completion of the task, like a plane safely landing
                         break;
                     case "error":
                         setWingmanStatusLabel("Mission Compromised"); // Communicates a problem or error, as in distress signals
@@ -81,6 +122,12 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
             const wi = wingmanItems.find((wi) => wi.filePath === currentWingmanInferenceItem?.alias);
             if (wi !== undefined) {
                 setWingmanItem(wi);
+                setDownloadableModelSelected(true);
+                if (wi.modelRepo === globalModel?.id && wi.filePath === globalModel?.item?.filePath) {
+                    setIsRunningInferenceModel(true);
+                } else {
+                    setIsRunningInferenceModel(false);
+                }
                 if (showTitle)
                     setWingmanStatusTitle(title);
                 if (showModel)
@@ -95,18 +142,27 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
             } else {
                 reset();
             }
+        } else {
+            reset();
         }
-
-    }, [wingmanItems, currentWingmanInferenceItem]);
+    }, [wingmanItems, currentWingmanInferenceItem, globalModel, models]);
     
-    if (currentWingmanInferenceItem && currentWingmanInferenceItem.alias) {
+    if (!isOnline)
         return (
             <div className={`${className}`}>
+                <span>Wingman is offline</span>
+            </div>
+        );
+
+    if (currentWingmanInferenceItem && currentWingmanInferenceItem.alias) {
+        return (
+            <div className={`${className} flex`}>
                 <span>{wingmanStatusTitle} <span>{model} {modelAlias} {(showQuantization) && <span>({quantizationName})</span>}</span> {displayMonitoredStatusIndicator(wingmanItem)} {wingmanStatusLabel}</span>
+                &nbsp;{displaySyncModelControl()}
             </div>
         );
     } else {
-        return (<></>);
+        return (<>No AI model is running</>);
     }
 };
 
