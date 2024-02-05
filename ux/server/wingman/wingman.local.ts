@@ -14,13 +14,13 @@ const childProcesses = new Map<string, ChildProcess>();
 let PLATFORM_DIR = "";
 switch (process.platform) {
     case "win32":
-        PLATFORM_DIR = "Windows";
+        PLATFORM_DIR = "windows";
         break;
     case "linux":
-        PLATFORM_DIR = "Linux";
+        PLATFORM_DIR = "linux";
         break;
     case "darwin":
-        PLATFORM_DIR = "Darwin";
+        PLATFORM_DIR = "macos";
         break;
     default:
         throw new Error(`${SERVER_NAME}: Unsupported platform: ${process.platform}`);
@@ -67,10 +67,10 @@ const getModelInfo = async (): Promise<ModelRuntimeInfo> =>
     if (gpuVendor.toUpperCase() === "NVIDIA" &&
         validGpuModels.some(model => gpuModel.toUpperCase().includes(model)) &&
         gpuMemory > 1024) {
-        modelInfo.platform = "cuBLAS";
+        modelInfo.platform = "cublas";
     }
     else {
-        modelInfo.platform = "Native";
+        modelInfo.platform = "";
     }
     if (gpuMemory > 1024) {
         modelInfo.numLayers = Math.round(gpuMemory / avgVramPerLayer);
@@ -102,7 +102,8 @@ export const startWingman = async (alias: string | "default", force: boolean = t
             }
         }
 
-        const entryPoint = path.join(EXE_BASE_DIR, modelInfo.platform, "bin", EXE_NAME);
+        // const entryPoint = path.join(EXE_BASE_DIR, modelInfo.platform, "bin", EXE_NAME);
+        const entryPoint = path.join(EXE_BASE_DIR, `wingman${modelInfo.platform ? `-${modelInfo.platform}` : ""}`, "bin", EXE_NAME);
         if (!fs.existsSync(entryPoint)) {
             const errorString = `${SERVER_NAME}::startWingman entryPoint does not exist: ${entryPoint}`;
             logger.error(errorString);

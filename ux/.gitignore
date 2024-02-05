@@ -8,6 +8,9 @@ tt.json
 tt.py
 tt.ts
 tt.js
+server/wingman/windows*
+server/wingman/macos*
+server/wingman/linux*
 
 # dependencies
 /node_modules
