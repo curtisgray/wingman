@@ -22,6 +22,7 @@ export interface HomeContextProps {
     handleDeleteConversation: (conversation: Conversation) => void;
     handleChangeModel: (model: AIModel | undefined) => void;
     handleSyncModel: (model: AIModel | undefined) => void;
+    handleRefreshModels: () => void;
 }
 
 const HomeContext = createContext<HomeContextProps>(undefined!);

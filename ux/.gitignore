@@ -11,6 +11,7 @@ tt.js
 server/wingman/windows*
 server/wingman/macos*
 server/wingman/linux*
+llama*.log
 
 # dependencies
 /node_modules

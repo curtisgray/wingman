@@ -6,6 +6,7 @@ import { StripFormatFromModelRepo, quantizationFromFilePath } from "@/types/down
 import { IconRotateRectangle } from "@tabler/icons-react";
 import { Tooltip } from "react-tooltip";
 import HomeContext from "@/pages/api/home/home.context";
+import Image from "next/image";
 import { AIModel, Vendors } from "@/types/ai";
 
 const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, showModel = true, showQuantization = true, showAlias = false, className = "" }) =>
@@ -61,7 +62,7 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
     {
         if (downloadableModelSelected)
             return <><IconRotateRectangle size={18} className="rounded-sm cursor-pointer" onClick={handleSyncModelLocal}
-                data-tooltip-id="sync-selected-model" data-tooltip-content="Select the mission model running on the server" />
+                data-tooltip-id="sync-selected-model" data-tooltip-content="Engage the AI model that's currently running on the server" />
                 <Tooltip id="sync-selected-model" /></>;
         else
             return <></>;
@@ -98,7 +99,7 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
                         setWingmanStatusLabel("Final Checks"); // The item is in the final preparation stages, similar to an aircraft cleared for takeoff
                         break;
                     case "inferring":
-                        setWingmanStatusLabel("Mission Underway"); // The item is actively being processed, akin to a plane that has taken off and is in flight
+                        setWingmanStatusLabel("Engaged"); // The item is actively being processed, akin to a plane that has taken off and is in flight
                         break;
                     case "complete":
                         setWingmanStatusLabel("Mission Complete"); // Signifies the successful completion of the task, like a plane safely landing
@@ -147,6 +148,34 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
         }
     }, [wingmanItems, currentWingmanInferenceItem, globalModel, models]);
     
+
+    const displayModelVendor = (model: AIModel | undefined) =>
+    {
+        if (!model) return <></>;
+        const vendor = Vendors[model.vendor];
+        return (
+            <div className="flex space-x-1">
+                <Image
+                    src={vendor.logo}
+                    width={18}
+                    alt={vendor.displayName}
+                />
+                <span className="">{vendor.displayName}</span>
+                <span className="">{model.name}</span>
+            </div>
+        );
+    };
+
+    // if running an API model, just return the name of the model
+    if (globalModel && !Vendors[globalModel.vendor].isDownloadable)
+    {
+        return (
+            <div className={`${className}`}>
+                <span>{displayModelVendor(globalModel)}</span>
+            </div>
+        );
+    }
+
     if (!isOnline)
         return (
             <div className={`${className}`}>
@@ -162,7 +191,11 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
             </div>
         );
     } else {
-        return (<>No AI model is running</>);
+        return (
+            <div className={`${className}`}>
+                No AI model is running
+            </div>
+        );
     }
 };
 

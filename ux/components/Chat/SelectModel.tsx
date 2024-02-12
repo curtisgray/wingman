@@ -1,21 +1,19 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { memo, useContext, useEffect, useReducer, useState } from "react";
+import React, { memo, useContext, useEffect, useState } from "react";
 import { AIModel, DownloadableItem, Vendors } from "@/types/ai";
-import { IconCircleCheck, IconExclamationCircle, IconExternalLink, IconRefresh, IconRefreshDot } from "@tabler/icons-react";
+import { IconCircleCheck, IconExclamationCircle, IconExternalLink, IconPlaneDeparture, IconRefresh, IconRefreshDot, IconPlaneOff } from "@tabler/icons-react";
 import Image from "next/image";
 import Select, { ActionMeta, SingleValue } from "react-select";
 import DownloadButton from "./DownloadButton";
 import { DownloadItem, DownloadProps } from "@/types/download";
 import { useTranslation } from "next-i18next";
 import HomeContext from "@/pages/api/home/home.context";
-import WingmanInferenceStatus from "./WingmanInferenceStatus";
 import { useImmer } from "use-immer";
-import WingmanContext from "@/pages/api/home/wingman.context";
 import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 import { Tooltip } from "react-tooltip";
 import { getSettings, saveSettings } from "@/utils/app/settings";
-import { useCreateReducer } from "@/hooks/useCreateReducer";
 import { Settings } from "@/types/settings";
+import WingmanContext from "@/pages/api/home/wingman.context";
 
 export type ModelOption = {
     value: string;
@@ -49,11 +47,12 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
 
     const [selectableModels, setSelectableModels] = useState<AIModel[]>([]);
 
-    const [selectedModel, setSelectedModel] = useImmer<AIModel | undefined>(undefined);
+    const [model, setSelectedModel] = useImmer<AIModel | undefined>(undefined);
     const [selectedQuantization, setSelectedQuantization] = useImmer<string | undefined>(undefined);
     const [isLoadingModelList, setIsLoadingModelList] = useState<boolean>(false);
     const [isChangingModel, setIsChangingModel] = useState<boolean>(false);
     const [showDownloadedItemsOnly, setShowDownloadedItemsOnly] = useState<boolean>(false);
+    const [showReadyForTakeoffOnly, setShowReadyForTakeoffOnly] = useState<boolean>(false);
     const [expertMode, setExpertMode] = useState<boolean>(false);
     const [isForcingDownloadButtonUpdate, setIsForcingDownloadButtonUpdate] = useState<boolean>(false);
 
@@ -64,17 +63,15 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
     const {
         state: { models, globalModel, defaultModelId },
         handleChangeModel,
+        handleRefreshModels: globalHandleRefreshModels,
     } = useContext(HomeContext);
-
-    const {
-        state: { gpuInfo },
-    } = useContext(WingmanContext);
 
     const handleSaveSettings = () => {
         const newSettings: Settings = {
             ...settings,
             expertMode: expertMode,
             showDownloadedItemsOnly: showDownloadedItemsOnly,
+            showReadyForTakeoffOnly: showReadyForTakeoffOnly,
         };
         saveSettings(newSettings);
     };
@@ -90,12 +87,12 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
 
     const handleDownloadComplete = (item: DownloadItem) => {
         // if the selectedModel or selectedModel.item is undefined, then something has gone wrong
-        if (selectedModel === undefined) throw new Error("selectedModel is undefined");
-        if (selectedModel.item === undefined) throw new Error("selectedModel.item is undefined");
+        if (model === undefined) throw new Error("selectedModel is undefined");
+        if (model.item === undefined) throw new Error("selectedModel.item is undefined");
         setIsChangingModel(false);
-        const draftItem = {...selectedModel.item};
+        const draftItem = {...model.item};
         draftItem.isDownloaded = true;
-        const draftModel = {...selectedModel};
+        const draftModel = {...model};
         draftModel.item = draftItem;
         setSelectedModel(draftModel);
         handleChangeModel(draftModel);
@@ -133,40 +130,49 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
         }
     };
 
+    const selectModel = (model: AIModel) => {
+        setSelectedModel(model)
+        const vendor = Vendors[model.vendor]
+        if (vendor.isDownloadable) {
+            if (expertMode) {
+                // if expertMode, then let the user select the quantization
+            } else {
+                // if not in expertMode, then select the middle quantization and start the download
+                // find the middle quantization
+                const middleIndex = Math.floor(
+                    (model.items?.length as number) / 2
+                )
+                const middleQuantization = model.items?.[middleIndex]
+                    .quantization as string
+                onQuantizationChange(model, middleQuantization)
+            }
+        } else {
+            const downloadProps: DownloadProps = {
+                modelRepo: model.id,
+                filePath: '',
+            }
+            if (onValidateChange(downloadProps)) {
+                handleChangeModel(model)
+            }
+            setIsChangingModel(false)
+        }
+    }
+
     const handleChangeSelectedModel = (e: SingleValue<{ value: string | undefined; label: string | Element; }>,
         actionMeta: ActionMeta<{ value: string | undefined; label: string | Element; }>) => {
         if (actionMeta.action === "select-option" && typeof onValidateChange === "function") {
             const selectedModel = selectableModels.find((m) => m.id === e?.value) as AIModel;
-            setSelectedModel(selectedModel);
-            const vendor = Vendors[selectedModel.vendor];
-            if (vendor.isDownloadable) {
-                if (expertMode) { // if expertMode, then let the user select the quantization
-                } else { // if not in expertMode, then select the middle quantization and start the download
-                    // find the middle quantization
-                    const middleIndex = Math.floor(selectedModel.items?.length as number / 2);
-                    const middleQuantization = selectedModel.items?.[middleIndex].quantization as string;
-                    onQuantizationChange(selectedModel, middleQuantization);
-                }
-            } else {
-                const downloadProps: DownloadProps = {
-                    modelRepo: selectedModel.id,
-                    filePath: "",
-                };
-                if (onValidateChange(downloadProps)) {
-                    handleChangeModel(selectedModel);
-                }
-                setIsChangingModel(false);
-            }
+            selectModel(selectedModel);
         }
     };
 
     const handleDownloadableItemChange = (e: SingleValue<{ value: string | undefined; label: string | Element; }>,
         actionMeta: ActionMeta<{ value: string | undefined; label: string | Element; }>) => {
         if (actionMeta.action === "select-option") {
-            if (selectedModel?.items) {
+            if (model?.items) {
                 const quantization = e?.value;
                 if (quantization !== undefined) {
-                    onQuantizationChange(selectedModel, quantization);
+                    onQuantizationChange(model, quantization);
                 }
             }
         }
@@ -175,11 +181,16 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
     const handleRefreshModels = async () => {
         try {
             setIsLoadingModelList(true);
-            const selectable = showDownloadedItemsOnly ? models.filter((model) =>
-                (model.vendor === Vendors.huggingface.name && model.items?.some((item) => item.isDownloaded)) ||
-                (model.vendor !== Vendors.huggingface.name))
+            const downloadsFilter = showDownloadedItemsOnly ? models.filter((model) =>
+                (Vendors[model.vendor].isDownloadable && model.items?.some((item) => item.isDownloaded)) ||
+                (!Vendors[model.vendor].isDownloadable))
                 : models;
-            
+
+            const selectable = showReadyForTakeoffOnly ? downloadsFilter.filter((model) =>
+                (Vendors[model.vendor].isDownloadable && model.isInferable) ||
+                (!Vendors[model.vendor].isDownloadable))
+                : models;
+
             setSelectableModels(selectable);
             setIsLoadingModelList(false);
         }
@@ -190,10 +201,10 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
     };
 
     const handleResetSelectedModel = () => {
-        if (selectedModel?.item !== undefined) {
-            requestResetInference(selectedModel.item.filePath).then(() => {
-                const draftModel = {...selectedModel};
-                const draftItem = {...selectedModel.item as DownloadableItem};
+        if (model?.item !== undefined) {
+            requestResetInference(model.item.filePath).then(() => {
+                const draftModel = {...model};
+                const draftItem = {...model.item as DownloadableItem};
                 draftItem.hasError = false;
                 draftModel.item = draftItem;
                 setSelectedModel(draftModel);
@@ -217,9 +228,43 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
         );
     };
 
+    const displayClearedForTakeoff = (model: AIModel) =>
+    {
+        if (Vendors[model.vendor].isDownloadable) {
+            if (model.isInferable) {
+                return <div className="text-sky-400">
+                    <IconPlaneDeparture size={23} />
+                </div>;
+            } else {
+                return <div className="text-neutral-500">
+                    <IconPlaneOff size={23} />
+                </div>;
+            }
+        }
+        return <></>;
+    };
+
+    const displayModelName = (model: AIModel | undefined) => {
+        if (!model) return <></>;
+        const vendor = Vendors[model.vendor];
+        if (vendor.isDownloadable) {
+            // split the repo owner and name and return 'name (repo owner)'
+            const [owner, repo] = model.name.split('/')
+            return (
+                <div className='flex space-x-1'>
+                    {displayClearedForTakeoff(model)}
+                    <span>{repo}</span>
+                    <span className="text-xs">{owner}</span>
+                </div>
+            )
+        } else {
+            return <span>{model.name}</span>
+        }
+    }
+
     const displayModel = (model: AIModel | undefined) => {
         if (model === undefined) return "";
-        let name = <span>{model.name}</span>;
+        let name = displayModelName(model);
         if (model.items && model.items.length > 0) {
             const hasDownloadedItem = model.items.some((item) => item.isDownloaded);
             const hasErrorItem = model.items.some((item) => item.hasError);
@@ -230,7 +275,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                             width={iconSize}
                             className="text-red-700"
                         />
-                        <span className="font-bold">{model.name}</span>
+                        <span className="font-bold">{displayModelName(model)}</span>
                     </div>
                 );
             } else if (hasDownloadedItem) {
@@ -240,7 +285,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                             width={iconSize}
                             className="text-green-700"
                         />
-                        <span className="font-bold">{model.name}</span>
+                        <span className="font-bold">{displayModelName(model)}</span>
                     </div>
                 );
             }
@@ -315,7 +360,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                 } as ModelOption)),
         }));
 
-    const optionsOptimizations = selectedModel?.items?.filter((item: DownloadableItem) => item.isDownloaded || !showDownloadedItemsOnly)
+    const optionsOptimizations = model?.items?.filter((item: DownloadableItem) => item.isDownloaded || !showDownloadedItemsOnly)
         .map((item: DownloadableItem) => ({
             label: displayQuantization(item),
             value: item.quantization,
@@ -377,7 +422,8 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
 
     useEffect(() => {
         handleRefreshModels();
-    }, [models, showDownloadedItemsOnly]);
+        // setIsInferables();
+    }, [models, showDownloadedItemsOnly, showReadyForTakeoffOnly]);
 
     useEffect(() => {
         syncComponentWithGlobalModel();
@@ -392,9 +438,10 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
         const newSettings: Settings = {
             ...settings,
             showDownloadedItemsOnly: showDownloadedItemsOnly,
+            showReadyForTakeoffOnly: showReadyForTakeoffOnly,
         };
         saveSettings(newSettings);
-    }, [showDownloadedItemsOnly]);
+    }, [showDownloadedItemsOnly, showReadyForTakeoffOnly]);
 
     return (
         <div className={`${className}`}>
@@ -403,7 +450,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                     <div className="flex flex-col space-y-4">
                         <div className="flex pb-2">
                             <label className="text-left text-neutral-700 dark:text-neutral-400">
-                                {t("Below is a list of AI models that you can use to generate text. Select the list and type any part of the model name to filter the list. Select a model to use it. For downloadable models, select a to download and use it. In Expert Mode, model optimizations are listed in order of size, with the smallest size first.")}
+                                {t("To engage a Llama AI model, search for and select a model from the search box below. The model will be downloaded and launched. Once the model is ready, you can begin using it.")}
                             </label>
                             <span className="flex-grow"></span>
                         </div>
@@ -413,18 +460,20 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                                 <input id="showDownloadedItemsOnly" type="checkbox" className="w-8 h-5" checked={showDownloadedItemsOnly} onChange={(e) => setShowDownloadedItemsOnly(e.target.checked)} />
                             </div>
                             <div className="flex items-center">
+                                <label htmlFor="showReadyForTakeoffOnly"><div className="text-sky-400">
+                                    <IconPlaneDeparture size={23} />
+                                </div></label>
+                                <input id="showReadyForTakeoffOnly" type="checkbox" className="w-8 h-5" checked={showReadyForTakeoffOnly} onChange={(e) => setShowReadyForTakeoffOnly(e.target.checked)} />
+                            </div>
+                            <div className="flex items-center">
                                 <label htmlFor="expertMode">Expert Mode</label>
                                 <input id="expertMode" type="checkbox" className="w-8 h-5" checked={expertMode} onChange={(e) => setExpertMode(e.target.checked)} />
                             </div>
                         </div>
                         <div className="flex pb-2">
                             <label className="text-left">
-                                {displayModelVendor(selectedModel)}
+                                {displayModelVendor(model)}
                             </label>
-                            <span className="flex-grow"></span>
-                            { selectedModel?.vendor !== Vendors.openai.name && (
-                                <WingmanInferenceStatus className="pt-2 text-xs" showTitle={false} />
-                            )}
                         </div>
                     </div>
                 )}
@@ -435,8 +484,8 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                         placeholder={(t("Select a model").length > 0) || ""}
                         options={optionsGroupedModels}
                         value={{
-                            label: displayModel(selectedModel),
-                            value: selectedModel?.id,
+                            label: displayModel(model),
+                            value: model?.id,
                         } as ModelOption}
                         isSearchable={true}
                         // hideSelectedOptions={true}
@@ -448,9 +497,9 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                         data-tooltip-id="model-select"
                         data-tooltip-content="Select or search for an AI model"
                     />
-                    <Tooltip id="model-select" />
+                        <Tooltip id="model-select" data-tooltip-id="model-select" data-tooltip-content="Search for AI models" />
                     </>
-                    {expertMode && selectedModel?.vendor === Vendors.huggingface.name &&
+                    {expertMode && model?.vendor !== undefined && Vendors[model.vendor].isDownloadable &&
                     (
                         <>
                         <Select
@@ -458,7 +507,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                             placeholder={(t("Select an optimization").length > 0) || ""}
                             options={optionsOptimizations}
                             value={{
-                                label: displayQuantization(selectedModel?.item),
+                                label: displayQuantization(model?.item),
                                 value: selectedQuantization,
                             } as QuantizationOption}
                             isSearchable={true}
@@ -471,7 +520,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                             data-tooltip-id="optimization-select"
                             data-tooltip-content="Select or search for an optimization"
                         />
-                        <Tooltip id="optimization-select" />
+                            <Tooltip id="optimization-select" data-tooltip-id="optimization-select" data-tooltip-content="Select an optimization" />
                         </>
                     )}
                     <>
@@ -482,7 +531,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                                 <Tooltip id="refresh-models-list" />
                             </>
                         )}
-                        {!miniMode && selectedModel?.item?.hasError && (
+                        {!miniMode && model?.item?.hasError && (
                             <>
                                 <IconRefreshDot size={28} className="rounded-sm cursor-pointer" onClick={handleResetSelectedModel}
                                     data-tooltip-id="reset-selected-model" data-tooltip-content="Clear error to try running the AI model again" />
@@ -491,7 +540,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                         )}
                     </>
                 </div>
-                {!miniMode && selectedModel?.vendor === Vendors.openai.name && (
+                {!miniMode && model?.vendor === Vendors.openai.name && (
                     <div className="w-full mt-3 text-left flex items-center">
                         <a
                             href="https://platform.openai.com/account/usage"
@@ -504,7 +553,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                         </a>
                     </div>
                 )}
-                {displayDownload(selectedModel)}
+                {displayDownload(model)}
             </div>
         </div>
     );

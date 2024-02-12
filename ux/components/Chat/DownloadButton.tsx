@@ -4,6 +4,7 @@ import { DownloadButtonProps, DownloadItem } from "@/types/download";
 import { HF_MODEL_ENDS_WITH } from "@/utils/app/const";
 import { useRequestDownloadAction } from "@/hooks/useRequestDownloadAction";
 import WingmanContext from "@/pages/api/home/wingman.context";
+import HomeContext from "@/pages/api/home/home.context";
 
 const DownloadButton = ({ modelRepo, filePath,
     showRepoName = true, showFileName = true, showProgress = true, showProgressText = true,
@@ -13,6 +14,8 @@ const DownloadButton = ({ modelRepo, filePath,
     const {
         state: { downloadItems },
     } = useContext(WingmanContext);
+
+    const { handleRefreshModels } = useContext(HomeContext);
 
     const downloadActions = useRequestDownloadAction();
 
@@ -92,6 +95,7 @@ const DownloadButton = ({ modelRepo, filePath,
                             setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
                             setDownloadCompleted(true);
                             onComplete(downloadItem);
+                            handleRefreshModels();
                         }
                         break;
                     case "downloading":
@@ -99,7 +103,8 @@ const DownloadButton = ({ modelRepo, filePath,
                             setDownloadStarted(true);
                             onStarted(downloadItem);
                         }
-                        setDownloadLabel("Cancel Download");
+                        // setDownloadLabel("Cancel Download");
+                        setDownloadLabel("Cancel");
                         setDownloadStatus(`Aircraft in Flight - ${downloadItem.progress.toPrecision(3)}%}`);
                         setDisabled(false);
                         setProgress(downloadItem.progress);
@@ -190,7 +195,7 @@ const DownloadButton = ({ modelRepo, filePath,
     return (
         <button type="button" disabled={disabled}
             onClick={handleRequestOrCancelDownload}
-            className={className == undefined ? "flex flex-col bg-blue-500 hover:bg-blue-700 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded" : className}>
+            className={className == undefined ? "flex flex-col w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded" : className}>
             {
                 children == undefined ?
                     (
@@ -203,7 +208,7 @@ const DownloadButton = ({ modelRepo, filePath,
                                 max="100"
                                 className="mt-2 w-full"
                             ></progress>}
-                            {showProgressText && isDownloading && ` ${progressText}`}
+                            {/* {showProgressText && isDownloading && ` ${progressText}`} */}
                         </>
                     ) : children
             }

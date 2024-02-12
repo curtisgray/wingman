@@ -6,7 +6,8 @@ export const getSettings = (): Settings => {
     let settings: Settings = {
         theme: "dark",
         expertMode: false,
-        showDownloadedItemsOnly: false
+        showDownloadedItemsOnly: false,
+        showReadyForTakeoffOnly: false,
     };
     const settingsJson = localStorage.getItem(STORAGE_KEY);
     if (settingsJson) {

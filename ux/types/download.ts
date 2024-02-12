@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import { ChildProcess } from "child_process";
 import path from "path";
 import os from "os";
@@ -52,7 +53,7 @@ export type DownloadButtonProps = DownloadProps & {
     onProgress?: (value: number) => void;
     onInitialized?: (success: boolean) => void;
     autoStart?: boolean;
-    children?: React.ReactNode;
+    children?: ReactNode;
 };
 
 export const isValidDownloadItem = (item: DownloadItem) => item.modelRepo && item.filePath;
@@ -74,9 +75,9 @@ export type DownloadMetricsProps = DownloadProps & {
     showStatus?: boolean;
     showProgress?: boolean;
     showProgressText?: boolean;
-    noDownloadMessage?: React.ReactNode;
+    noDownloadMessage?: ReactNode;
     className?: string;
-    children?: React.ReactNode;
+    children?: ReactNode;
 };
 export type StartDownloadProps = DownloadProps & {
     destination: string;
@@ -224,6 +225,47 @@ export const quantizationFromFilePath = (filePath: string): Quantization =>
         quantization: quantization,
         quantizationName: quantization
     } as Quantization;
+};
+
+export const prettyBytes = (bytes: number): string =>
+{
+    if (bytes < 1024)
+        return bytes + " B";
+
+    const suffixes: string[] = ["KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+    let s: number = 0; // which suffix to use
+    let count: number = bytes;
+    while (count >= 1024 && s < suffixes.length - 1) {
+        s++;
+        count /= 1024;
+    }
+    return count.toFixed(1) + " " + suffixes[s];
+}
+
+export const timeAgo = (date: Date): string =>
+{
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    const today = new Date();
+    const DAY_IN_MS = 86400000; // 24 * 60 * 60 * 1000
+    const days = Math.floor((today.getTime() - dateObj.getTime()) / DAY_IN_MS);
+    const weeks = Math.floor(days / 7);
+    const months = Math.floor(days / 30);
+    const isToday = today.toDateString() === dateObj.toDateString();
+    const isYesterday = new Date(today.getTime() - DAY_IN_MS).toDateString() === dateObj.toDateString();
+
+    if (days === 0) {
+        return 'today';
+    } else if (days === 1 && isYesterday) {
+        return 'yesterday' ;
+    } else if (days < 7) {
+        return `${days} days ago`;
+    } else if (weeks < 4) {
+        return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+    } else if (months < 3) {
+        return `${months} month${months > 1 ? 's' : ''} ago`;
+    } else {
+        return dateObj.toLocaleDateString(); // Display in local format
+    }
 };
 
 export const DIST_LEAF_DIR = "dist";

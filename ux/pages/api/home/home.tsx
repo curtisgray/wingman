@@ -38,6 +38,8 @@ import { WingmanStateProps } from "@/types/wingman";
 import { initialWingmanState } from "./wingman.state";
 import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 import toast from "react-hot-toast";
+import * as si from 'systeminformation'
+import os from 'os'
 
 interface Props {
     serverSideApiKeyIsSet: boolean;
@@ -55,7 +57,7 @@ const Home = ({
     const { getModelsError } = useErrorService();
     const [currentConversationModel, setCurrentConversationModel] = useState<AIModel | undefined>(undefined);
     const [lastConversationModel, setLastConversationModel] = useState<AIModel | undefined>(undefined); // this is a place to save the current model when a request is made to change the conversations model
-    const [isSwitchingModel, setIsSwitchingModel] = useState<boolean>(false);
+    const [enableAutoModelsRefresh, setEnableAutoModelsRefresh] = useState<boolean>(true);
 
     const homeContextValue = useCreateReducer<HomeStateProps>({
         initialState,
@@ -69,9 +71,8 @@ const Home = ({
             conversations,
             selectedConversation,
             prompts,
-            temperature,
             globalModel,
-            defaultModel
+            isSwitchingModel,
         },
         dispatch: homeDispatch,
     } = homeContextValue;
@@ -91,7 +92,6 @@ const Home = ({
         system,
         tensors,
         metrics,
-        // lastTime,
         isOnline,
         status: connectionStatus,
         wingmanServiceStatus,
@@ -99,7 +99,6 @@ const Home = ({
         wingmanItems,
         downloadItems,
         currentWingmanInferenceItem,
-        gpuInfo,
     } = useWingman();
     const inferenceActions = useRequestInferenceAction();
 
@@ -111,7 +110,6 @@ const Home = ({
         wingmanDispatch({ field: "tensors", value: tensors });
         wingmanDispatch({ field: "system", value: system });
         wingmanDispatch({ field: "metrics", value: metrics });
-        // wingmanDispatch({ field: "lastTime", value: lastTime });
         wingmanDispatch({ field: "isOnline", value: isOnline });
         wingmanDispatch({ field: "status", value: connectionStatus });
         wingmanDispatch({ field: "wingmanServiceStatus", value: wingmanServiceStatus });
@@ -119,20 +117,22 @@ const Home = ({
         wingmanDispatch({ field: "wingmanItems", value: wingmanItems });
         wingmanDispatch({ field: "downloadItems", value: downloadItems });
         wingmanDispatch({ field: "currentWingmanInferenceItem", value: currentWingmanInferenceItem });
-        wingmanDispatch({ field: "gpuInfo", value: gpuInfo });
     }, [
         pauseMetrics, timeSeries, meta, system, tensors, metrics,
-        // lastTime,
         isOnline, connectionStatus, wingmanServiceStatus,
         downloadItems, wingmanItems,
         downloadServiceStatus, currentWingmanInferenceItem]);
 
+    // useEffect(() =>
+    // {
+    //     wingmanDispatch({ field: "lastTime", value: lastTime });
+    // }, [lastTime]);
+
     const stopConversationRef = useRef<boolean>(false);
 
-    const { data: models, error } = useQuery(
+    const { data: models, error, refetch: refetchModels } = useQuery(
         ["GetModels", apiKey, serverSideApiKeyIsSet],
         ({ signal }) => {
-            // if (!apiKey && !serverSideApiKeyIsSet) return null;
             const m = getModels(
                 {
                     key: apiKey,
@@ -141,7 +141,7 @@ const Home = ({
             );
             return m;
         },
-        { enabled: true, refetchOnMount: false }
+        { enabled: enableAutoModelsRefresh, refetchOnMount: false }
     );
 
     useEffect(() => {
@@ -168,6 +168,10 @@ const Home = ({
         });
 
         saveConversation(conversation);
+    };
+
+    const handleSwitchingModel = (isSwitching: boolean) => {
+        homeDispatch({ field: "isSwitchingModel", value: isSwitching });
     };
 
     // FOLDER OPERATIONS  --------------------------------------------
@@ -240,18 +244,6 @@ const Home = ({
     const changeConversationModel = (model: AIModel | undefined) => {
         if (selectedConversation) {
             let m = model;
-            // if (model && model.item) {
-            //     const vendor = Vendors[model.vendor];
-            //     if (vendor.isDownloadable) {
-            //         const item = model.item as DownloadableItem;
-            //         // if the model has an error it cannot be used
-            //         if (item.hasError) {
-            //             // m = undefined;
-            //             // the model has an error and cannot be used
-            //         }
-            //     }
-            // }
-            // if (selectedConversation.model && selectedConversation.model !== m) {
             if (selectedConversation.model !== m) {
                 setLastConversationModel(selectedConversation.model);
             }
@@ -263,7 +255,7 @@ const Home = ({
     };
 
     const changeGlobalModel = (model: AIModel | undefined) => {
-        setIsSwitchingModel(true);
+        handleSwitchingModel(true);
         homeDispatch({ field: "globalModel", value: model });
     };
 
@@ -352,6 +344,18 @@ const Home = ({
         changeConversationModel(model);
     };
 
+    const handleRefreshModels = () => {
+        setEnableAutoModelsRefresh(false);
+    };
+
+    useEffect(() => {
+        if (!enableAutoModelsRefresh) {
+            refetchModels();
+            setEnableAutoModelsRefresh(true);
+        }
+    }, [enableAutoModelsRefresh]);
+
+
     // EFFECTS  --------------------------------------------
 
     useEffect(() => {
@@ -359,26 +363,30 @@ const Home = ({
             homeDispatch({ field: "showChatbar", value: false });
         }
     }, [selectedConversation]);
-
+        
     useEffect(() => {
         if (models && models.length > 0 && selectedConversation && selectedConversation.model && selectedConversation.model !== currentConversationModel) {
             const vendor = Vendors[selectedConversation.model.vendor];
-            if (vendor.isDownloadable && selectedConversation.model.item === undefined) {
-                // throw new Error(`'selectedConversation.model' is defined as ${selectedConversation.model.id}, but 'selectedConversation.model.item' is undefined. Something has gone wrong within the application.`);
-                toast.error(`Operational Error: Please refresh the page.`);
-                return;
-            }
-            // the selectedConversation's model must be set to a model from the list of available models, e.g., `models`
-            //  so, if the model is not in the list of available models, then set the selectedConversations's model to undefined
-            //  and notify the user that the model is not available, and do not change the globalModel
-            const m = models?.find(m => m.id === selectedConversation.model.id);
+            if (vendor.isDownloadable) {
+                if (selectedConversation.model.item === undefined) {
+                    // throw new Error(`'selectedConversation.model' is defined as ${selectedConversation.model.id}, but 'selectedConversation.model.item' is undefined. Something has gone wrong within the application.`);
+                    toast.error(`Operational Error: Please refresh the page.`);
+                    return;
+                }
+                // the selectedConversation's model must be set to a model from the list of available models, e.g., `models`
+                //  so, if the model is not in the list of available models, then set the selectedConversations's model to undefined
+                //  and notify the user that the model is not available, and do not change the globalModel
+                const m = models?.find(m => m.id === selectedConversation.model.id);
 
-            if (m === undefined) {
-                toast.error(`Model '${selectedConversation.model.name}' is not available. Please select another model.`);
-                setCurrentConversationModel(undefined);
-            } else {
-                let item = undefined;
-                if (vendor.isDownloadable) {
+                if (m === undefined) {
+                    if (selectedConversation.model.name === "OFFLINE") {
+                        toast.error(`No AI Models are active. Please select an AI model to run.`);
+                    } else {
+                        toast.error(`Model '${selectedConversation.model.name}' is not available. Please select another model.`);
+                    }
+                    setCurrentConversationModel(undefined);
+                } else {
+                    let item = undefined;
                     item = m.items?.find((item) => item.quantization === selectedConversation.model.item?.quantization);
                     if (item === undefined) {
                         toast.error(`Model '${selectedConversation.model.name}' is not available. Please select another model.`);
@@ -405,14 +413,17 @@ const Home = ({
                         changeGlobalModel(lastConversationModel);
                         return;
                     }
-                }
 
-                const draftModel = {...m};
-                if (vendor.isDownloadable) {
-                    draftModel.item = item;
+                    const draftModel = {...m};
+                    if (vendor.isDownloadable) {
+                        draftModel.item = item;
+                    }
+                    setCurrentConversationModel(draftModel);
+                    changeGlobalModel(draftModel);
                 }
-                setCurrentConversationModel(draftModel);
-                changeGlobalModel(draftModel);
+            } else {
+                setCurrentConversationModel(selectedConversation.model);
+                changeGlobalModel(selectedConversation.model);
             }
         }
     }, [selectedConversation?.id, selectedConversation?.model, models]);
@@ -562,13 +573,13 @@ const Home = ({
                     const wi = inferenceActions.requestStartInference(
                         globalModel.item!.filePath, globalModel.id, globalModel.item!.filePath, -1);
                     if (wi === undefined) {
-                        setIsSwitchingModel(false);
+                        handleSwitchingModel(false);
                         toast.error(`Target Acquisition Failed: ${globalModel.name}`);
                     }
                 }
             } else {
                 toast.success(`Target Acquired: ${globalModel.name}`);
-                setIsSwitchingModel(false);
+                handleSwitchingModel(false);
             }
         }
     }, [globalModel]);
@@ -580,14 +591,14 @@ const Home = ({
                 //  so, we need to wait until the status is 'inferring' before notifying the user
                 if (currentWingmanInferenceItem.status === "inferring") {
                     toast.success(`Engaging Target: ${globalModel.name}`);
-                    setIsSwitchingModel(false);
+                    handleSwitchingModel(false);
                 } else if (currentWingmanInferenceItem.status === "error") {
                     toast.error(`Target Acquisition Failed: ${globalModel.name}`);
                     // switch the globalModel and selectedConversation.model to undefined
                     // TODO: set the globalModel and selectedConversation.model to defaultModel
                     setCurrentConversationModel(undefined);
                     changeGlobalModel(undefined);                    
-                    setIsSwitchingModel(false);
+                    handleSwitchingModel(false);
                 }
             }
         }
@@ -620,6 +631,7 @@ const Home = ({
                     handleDeleteConversation: () => {},
                     handleChangeModel,
                     handleSyncModel,
+                    handleRefreshModels,
                 }}
             >
                 <Head>

@@ -26,6 +26,10 @@ export interface DownloadableItem
     available: boolean;
     hasError: boolean;
     location: string;
+    downloads: number;
+    likes: number;
+    created: string;
+    updated: string;
 }
 
 export interface AIModel
@@ -40,6 +44,12 @@ export interface AIModel
     apiKey?: string;
     items?: DownloadableItem[];
     item?: DownloadableItem;
+    downloads: number;
+    likes: number;
+    created: string;
+    updated: string;
+    size: string;
+    isInferable?: boolean;
 }
 
 export interface AIModelInstance
@@ -66,7 +76,7 @@ export enum AIModelID
     GPT_3_5_TURBO_PREVIEW = "gpt-3.5-turbo-1106", // 16K tokens
     GPT_3_5_TURBO = "gpt-3.5-turbo", // 4K tokens
     GPT_3_5_TURBO_16K = "gpt-3.5-turbo-16k", // 16K tokens
-    GPT_3_5_TURBO_INSTRUCT = "gpt-3.5-turbo-instruct", // 4K tokens
+    // GPT_3_5_TURBO_INSTRUCT = "gpt-3.5-turbo-instruct", // 4K tokens
     GPT_OFFLINE = "gpt-offline",
 }
 
@@ -100,54 +110,89 @@ export const AIModels: Record<AIModelID, AIModel> = {
         maxLength: 0,
         tokenLimit: 0,
         vendor: Vendors.openai.name,
+        downloads: -1,
+        likes: -1,
+        created: "",
+        updated: "",
+        size: "",
     },
     [AIModelID.GPT_4_PREVIEW]: {
         isa: "AIModel",
         id: AIModelID.GPT_4_PREVIEW,
-        name: "GPT-4 PREVIEW (128K)",
+        name: "GPT-4 PREVIEW",
         maxLength: 128 * 3 * 1024,
         tokenLimit: 128 * 1024,
         vendor: Vendors.openai.name,
+        downloads: -1,
+        likes: -1,
+        created: "",
+        updated: "",
+        size: "128K",
     },
     [AIModelID.GPT_4_VISION_PREVIEW]: {
         isa: "AIModel",
         id: AIModelID.GPT_4_VISION_PREVIEW,
-        name: "GPT-4 Vision PREVIEW (128K)",
+        name: "GPT-4 Vision PREVIEW",
         maxLength: 16 * 3 * 1024,
         tokenLimit: 16 * 1024,
         vendor: Vendors.openai.name,
+        downloads: -1,
+        likes: -1,
+        created: "",
+        updated: "",
+        size: "128K",
     },
     [AIModelID.GPT_4]: {
         isa: "AIModel",
         id: AIModelID.GPT_4,
-        name: "GPT-4 (8K)",
+        name: "GPT-4",
         maxLength: 8 * 3 * 1024,
         tokenLimit: 8 * 1024,
         vendor: Vendors.openai.name,
+        downloads: -1,
+        likes: -1,
+        created: "",
+        updated: "",
+        size: "8K",
     },
     [AIModelID.GPT_4_32K]: {
         isa: "AIModel",
         id: AIModelID.GPT_4_32K,
-        name: "GPT-4 32K",
+        name: "GPT-4",
         maxLength: 32 * 3 * 1024,
         tokenLimit: 32 * 1024,
         vendor: Vendors.openai.name,
+        downloads: -1,
+        likes: -1,
+        created: "",
+        updated: "",
+        size: "32K",
     },
     [AIModelID.GPT_3_5_TURBO_PREVIEW]: {
         isa: "AIModel",
         id: AIModelID.GPT_3_5_TURBO_PREVIEW,
-        name: "GPT-3.5 Turbo PREVIEW (16K)",
+        name: "GPT-3.5 Turbo PREVIEW",
         maxLength: 16 * 3 * 1024,
         tokenLimit: 16 * 1024,
         vendor: Vendors.openai.name,
+        downloads: -1,
+        likes: -1,
+        created: "",
+        updated: "",
+        size: "16K",
     },
     [AIModelID.GPT_3_5_TURBO]: {
         isa: "AIModel",
         id: AIModelID.GPT_3_5_TURBO,
-        name: "GPT-3.5 Turbo (4K)",
+        name: "GPT-3.5 Turbo",
         maxLength: 4 * 3 * 1024,
         tokenLimit: 4 * 1024,
         vendor: Vendors.openai.name,
+        downloads: -1,
+        likes: -1,
+        created: "",
+        updated: "",
+        size: "4K",
     },
     [AIModelID.GPT_3_5_TURBO_16K]: {
         isa: "AIModel",
@@ -156,15 +201,25 @@ export const AIModels: Record<AIModelID, AIModel> = {
         maxLength: 16 * 3 * 1024,
         tokenLimit: 16 * 1024,
         vendor: Vendors.openai.name,
+        downloads: -1,
+        likes: -1,
+        created: "",
+        updated: "",
+        size: "16K",
     },
-    [AIModelID.GPT_3_5_TURBO_INSTRUCT]: {
-        isa: "AIModel",
-        id: AIModelID.GPT_3_5_TURBO_INSTRUCT,
-        name: "GPT-3.5 Turbo Instruct (4K)",
-        maxLength: 4 * 3 * 1024,
-        tokenLimit: 4 * 1024,
-        vendor: Vendors.openai.name,
-    },
+    // [AIModelID.GPT_3_5_TURBO_INSTRUCT]: {
+    //     isa: "AIModel",
+    //     id: AIModelID.GPT_3_5_TURBO_INSTRUCT,
+    //     name: "GPT-3.5 Turbo Instruct",
+    //     maxLength: 4 * 3 * 1024,
+    //     tokenLimit: 4 * 1024,
+    //     vendor: Vendors.openai.name,
+    //     downloads: -1,
+    //     likes: -1,
+    //     created: "",
+    //     updated: "",
+    //     size: "4K",
+    // },
 };
 
 export const AIModelList = (): AIModel[] => {

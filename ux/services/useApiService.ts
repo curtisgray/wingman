@@ -9,18 +9,13 @@ export interface GetModelsRequestProps {
 
 const useApiService = () => {
     const fetchService = useFetch();
-    const getModels = useCallback(
-        (params: GetModelsRequestProps, signal?: AbortSignal) => {
-            return fetchService.post<AIModel[]>(`/api/models`, {
-                body: { key: params.key },
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                signal,
-            });
+    const getModels = (params: GetModelsRequestProps, signal?: AbortSignal) => fetchService.post<AIModel[]>(`/api/models`, {
+        body: { key: params.key },
+        headers: {
+            "Content-Type": "application/json",
         },
-        [fetchService]
-    );
+        signal,
+    });
     const getWingmanItems = useCallback(
         () => fetchService.get<WingmanItem[]>(`/api/inference`),
         [fetchService]

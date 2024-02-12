@@ -1,5 +1,6 @@
-import { ConnectionStatus, DownloadItem, DownloadServerAppItem as DownloadServiceAppItem, WingmanWebSocketMessage } from "./download";
+import { ConnectionStatus, DownloadItem, DownloadServerAppItem as DownloadServiceAppItem } from "./download";
 import { LlamaStats, LlamaStatsMeta, LlamaStatsSystem, LlamaStatsTensors, LlamaStatsTimings } from "./llama_stats";
+import * as si from 'systeminformation'
 
 export type WingmanServiceAppItemStatus = "ready" | "starting" | "preparing" | "inferring" | "stopping" | "stopped" | "error" | "unknown";
 export type WingmanServiceAppItem = {
@@ -106,14 +107,6 @@ export type WingmanContent = {
     ];
 };
 
-export interface GpuInfo
-{
-    isa: "GpuInfo";
-    name: string;
-    totalMemory: number;
-    freeMemory: number;
-}
-
 export interface WingmanStateProps
 {
     pauseMetrics: boolean;
@@ -130,7 +123,6 @@ export interface WingmanStateProps
     wingmanItems: WingmanItem[];
     downloadItems: DownloadItem[];
     currentWingmanInferenceItem: WingmanItem | undefined;
-    gpuInfo: GpuInfo | undefined;
 }
 
 export const isValidWingmanItem = (item: WingmanItem) => item.alias !== undefined && item.alias.trim() !== "";

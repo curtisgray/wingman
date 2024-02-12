@@ -2,23 +2,115 @@ import { AIModel, AIModelID, AIModels, Vendors } from "@/types/ai";
 import { WINGMAN_CONTROL_SERVER_URL } from "@/types/wingman";
 import
 {
-    HF_MODEL_ENDS_WITH,
-    HF_THEBLOKE_MODELS_URL,
-    HF_THEBLOKE_MODEL_URL,
     OPENAI_API_HOST,
     OPENAI_API_TYPE,
     OPENAI_API_VERSION,
     OPENAI_ORGANIZATION,
 } from "@/utils/app/const";
+import * as si from 'systeminformation';
+import os from 'os'
+import { NextApiRequest, NextApiResponse } from "next";
 
 export const config = {
-    runtime: "edge",
+    api: {
+        responseLimit: false,
+    },
 };
 
-const handler = async (req: Request): Promise<Response> =>
+const handler = async (req: NextApiRequest, res: NextApiResponse) =>
 {
+    let controllers: si.Systeminformation.GraphicsControllerData[] = [];
     try {
-        const { key } = (await req.json()) as {
+        const gpuInfo = await si.graphics();
+        controllers = gpuInfo.controllers;
+
+    } catch (error) {
+        throw new Error(`${error}`);
+    }
+
+    const isInferable = (model: AIModel) =>
+    {
+        if (!Vendors[model.vendor].isDownloadable) return true;
+        if (!model.size) return false;
+        // check if the model can be run on the current gpu and memory
+        //   by comparing the model size to the amount of gpu, or memory if
+        //   there is no gpu
+        let noVram = false;
+        let availableMemory = -1;
+        if (controllers.length === 0) {
+            availableMemory = os.freemem();
+        } else {
+            // changed from using 'memoryFree' to 'vram' because the inference
+            //    engine could be using vram and skew the results
+            // TODO: move this entire function to the server and calculate
+            //   the available memory based on whether inference is running
+            // if ('memoryFree' in controllers[0]) availableMemory =
+            //     controllers[0].memoryFree ? controllers[0].memoryFree : -1;
+            // else availableMemory = controllers[0].vram ? controllers[0].vram : -1;
+            availableMemory = controllers[0].vram ? controllers[0].vram : -1;
+        }
+        if (availableMemory === -1) return false;
+
+        // paramSize is the last character of the model size
+        const parameterSizeIndicator = model.size.slice(-1);
+        // check if model is MoE by looking for an 'x' in the size
+        const isMoe = model.size.includes('x');
+        let sizeMultiplier = -1;
+        switch (parameterSizeIndicator) {
+            case 'K':
+                sizeMultiplier = 1000;
+                break;
+            case 'M':
+                sizeMultiplier = 1000000;
+                break;
+            case 'B':
+                sizeMultiplier = 1000000000;
+                break;
+            case 'T':
+                sizeMultiplier = 1000000000000;
+                break;
+            case 'Q':
+                sizeMultiplier = 1000000000000000;
+                break;
+        }
+        if (sizeMultiplier === -1) return false;
+        let moeMultiplier = 1;
+        let parameterValue = 0;
+        if (isMoe) {
+            const moeSize = model.size.split('x');
+            moeMultiplier = Number(moeSize[0]);
+            const parameterSize = Number(moeSize[1].substring(0, moeSize[1].length - 1));
+            parameterValue = parameterSize * moeMultiplier;
+        } else {
+            parameterValue = Number(model.size.substring(0, model.size.length - 1));
+        }
+        const quantizedBits = 4;
+        const quantizedSize = parameterValue * quantizedBits * sizeMultiplier / 8;
+        const quantizedMemRequired = quantizedSize / sizeMultiplier;
+        const normalizedQuantizedMemRequired = quantizedMemRequired * 1024;
+        if (normalizedQuantizedMemRequired <= availableMemory) return true;
+        return false;
+    };
+
+    const setIsInferables = (models: AIModel[]) =>
+    {
+        if (models && models.length > 0) {
+            // set isInferable to true for each model that can be run on the current gpu and memory
+            for (let i = 0; i < models.length; i++) {
+                models[i].isInferable = isInferable(models[i]);
+            }
+        }
+    };
+
+    try {
+        // ensure request body is json
+        let json = {};
+        if (req.headers["content-type"] !== "application/json") {
+            json = JSON.parse(req.body);
+        } else {
+            json = req.body;
+        }
+        const { key } = json as {
             key: string;
         };
 
@@ -100,10 +192,10 @@ const handler = async (req: Request): Promise<Response> =>
         } else {
             throw new Error(`HuggingFace API returned an error ${ores.status}: ${await ores.text()}`);
         }
-        return new Response(JSON.stringify(models), { status: 200 });
+        setIsInferables(models);
+        res.status(200).json(models);
     } catch (error) {
-        console.error(error);
-        return new Response("Error", { status: 500 });
+        throw new Error(`${error}`);
     }
 };
 

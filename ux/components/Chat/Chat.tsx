@@ -29,6 +29,8 @@ import { DownloadProps } from "@/types/download";
 import ChatSettings from "./ChatSettings";
 import ChatStatus from "./ChatStatus";
 import { SelectModel } from "./SelectModel";
+import { AIModel, Vendors } from "@/types/ai";
+import ModelListing from "./ModelListing";
 
 interface Props {
     stopConversationRef: MutableRefObject<boolean>;
@@ -49,6 +51,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             loading,
             prompts,
             globalModel,
+            isSwitchingModel,
+            messageIsStreaming
         },
         handleUpdateConversation,
         dispatch: homeDispatch,
@@ -373,6 +377,13 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     }, [selectedConversation, throttledScrollDown]);
 
     useEffect(() => {
+        if (messageIsStreaming) {
+            // if the message is streaming ensure the settings are closed
+            setShowSettings(false);
+        }
+    }, [messageIsStreaming]);
+
+    useEffect(() => {
         const observer = new IntersectionObserver(
             ([entry]) => {
                 setAutoScrollEnabled(entry.isIntersecting);
@@ -400,9 +411,65 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         return true;
     };
 
+    const handleSwitchingModel = (isSwitching: boolean) => {
+        // homeDispatch({ field: "isSwitchingModel", value: isSwitching });
+    };
+
+    const handleOnboardingDownloadStart = (model: DownloadProps) => {
+        // handleSwitchingModel(true);
+    };
+
+    const handleOnboardingDownloadComplete = (model: DownloadProps) => {
+        // handleSwitchingModel(false);
+    };
+
+    const isModelAvailableToUse = (model: AIModel | undefined) => {
+        if (model === undefined) {
+            return false;
+        }
+        const vendor = Vendors[model.vendor];
+        if (vendor.isDownloadable) {
+            if (model.item === undefined) {
+                return false;
+            }
+            // search for model in the models list and check if the model has an item with the same filePath as the model.item.filePath
+            //  and check if there are no errors in the model.item
+            const m = models?.find(m => m.id === model.id);
+            if (m === undefined) {
+                return false;
+            }
+            const item = m.items?.find((item) => item.quantization === model.item?.quantization);
+            if (item === undefined) {
+                return false;
+            }
+            if (item.hasError) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    const hasDownloadItems = () => {
+        const completedItems = downloadItems?.filter((item) => item.status === "complete");
+        if (completedItems && completedItems.length > 0) {
+            // // if there is only one download and the system is switching models, we can assume the
+            // //   the downloaded model is the one being switched to, so we will wait for the switch
+            // if (completedItems.length === 1)
+            //     if (isSwitchingModel)
+            //         return false;
+            return true;
+        }
+        return false;
+    };
+
+    const hasModelBeenSelected = () => {
+        const modelSelected = selectedConversation?.model !== undefined && selectedConversation?.model?.name !== "OFFLINE";
+        return modelSelected && isModelAvailableToUse(selectedConversation?.model);
+    };
+
     return (
         <div className="relative flex-1 overflow-hidden bg-white dark:bg-[#343541]">
-            {!(apiKey || serverSideApiKeyIsSet || downloadItems?.length > 0) ? ( // no models available so display startup ui
+            {!(apiKey || serverSideApiKeyIsSet || (hasDownloadItems() && hasModelBeenSelected())) ? ( // no models available so display startup ui
                 // TODO: Besides api key, we should also check if the user has selected a model
                 <div className="mx-auto flex h-full w-[300px] flex-col justify-center space-y-6 sm:w-[600px]">
                     <div className="text-center text-4xl font-bold text-black dark:text-white">
@@ -412,11 +479,32 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                         <div className="mb-8">{`Wingman is an open source chat UI.`}</div>
                     </div>
                     <div className="text-gray-500 dark:text-gray-400">
-                        <div className="mb-2">
-                            Wingman allows you to chat with and tune AI models from OpenAI and Meta.
-                        </div>
+                        {!(hasDownloadItems() && hasModelBeenSelected()) && (
+                            <>
+                                <div className="mb-2">
+                                    {t(
+                                        "There appears to be no downloaded models available. Please download a Meta compatible AI model from a list below to get started. You can choose from Recently created models, Popular models by download, or recently Trending models. Just select a model and click the download button to get started."
+                                    )}
+                                </div>
+                                <div className="w-full text-gray-800 dark:text-gray-100 ">
+                                    <ModelListing />
+                                </div>
+                                <div className='mb-4'>
+                                    {t(
+                                        "To engage any one available Llama AI models, search for and select a model from the search box below. The model will be downloaded and launched. Once the model is ready, you can begin using it."
+                                    )}
+                                </div>
+                                <div className="w-full text-gray-800 dark:text-gray-100 ">
+                                    <SelectModel autoDownload={true} miniMode
+                                        onDownloadStart={handleOnboardingDownloadStart}
+                                        onDownloadComplete={handleOnboardingDownloadComplete}
+                                        />
+                                </div>
+                            </>
+                        )}
                         {!(apiKey || serverSideApiKeyIsSet) && (
                             <>
+                                <hr className="my-2 mb-6 mt-6" />
                                 <div className="mb-2">
                                     {t(
                                         "To use OpenAI's chat models, please set your OpenAI API key in the bottom left of the sidebar."
@@ -437,27 +525,14 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                                 </div>
                             </>
                         )}
-                        {!downloadItems?.length && (
-                            <>
-                                <hr className="my-2 mb-8 mt-8" />
-                                <div className="mb-4">
-                                    {t(
-                                        "To use Meta's chat models, please search for and download any model from the dropdown list below."
-                                    )}
-                                </div>
-                                <div className="w-full text-gray-800 dark:text-gray-100 ">
-                                    <SelectModel autoDownload={true} miniMode />
-                                </div>
-                            </>
-                        )}
                     </div>
                 </div>
             ) : modelError ? (
                 <ErrorMessageDiv error={modelError} />
-            ) : (
+            ) : (   // models available so display chat
                 <>
                     <div className="max-h-full overflow-x-hidden" ref={chatContainerRef} onScroll={handleScroll}>
-                        {selectedConversation?.messages.length === 0 ? ( // no messages so display startup settings
+                        {/*selectedConversation?.messages.length === 0 ? ( // no messages so display startup settings
                             <>
                                 <div className="mx-auto flex flex-col space-y-5 md:space-y-10 px-3 pt-5 md:pt-12 sm:max-w-[600px]">
                                     <div className="text-center text-3xl font-semibold text-gray-800 dark:text-gray-100">
@@ -479,7 +554,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                                     )}
                                 </div>
                             </>
-                        ) : (   // messages exist so display chat
+                        ) : */(   // messages exist so display chat
                             <>
                                 <ChatStatus onSettings={handleSettings} onClearConversation={onClearAll} showStatus={!showSettings} />
                                 {showSettings && (

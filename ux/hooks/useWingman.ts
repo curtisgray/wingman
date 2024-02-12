@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { ConnectionStatus, DownloadItem, DownloadServerAppItem } from "@/types/download";
 import { LlamaStats, LlamaStatsTimings, newLlamaStatsTimings, LlamaStatsSystem, newLlamaStatsSystem, LlamaStatsMeta, newLlamaStatsMeta, LlamaStatsTensors, newLlamaStatsTensors } from "@/types/llama_stats";
-import { GpuInfo, WINGMAN_CONTROL_PORT, WingmanItem, WingmanServiceAppItem, WingmanStateProps, hasActiveStatus } from "@/types/wingman";
+import { WINGMAN_CONTROL_PORT, WingmanItem, WingmanServiceAppItem, WingmanStateProps, hasActiveStatus } from "@/types/wingman";
 import { useEffect, useState } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { isEqual } from "lodash";
@@ -13,7 +13,7 @@ function precisionRound(value: number, precision: number)
     return Math.round(value * factor) / factor;
 }
 
-export function useWingman(): WingmanStateProps
+export function useWingman(): { pauseMetrics: boolean; status: ConnectionStatus; isOnline: boolean; timeSeries: LlamaStats[]; meta: LlamaStatsMeta; system: LlamaStatsSystem; tensors: LlamaStatsTensors; metrics: LlamaStatsTimings; wingmanServiceStatus: WingmanServiceAppItem | undefined; downloadServiceStatus: DownloadServerAppItem | undefined; wingmanItems: WingmanItem[]; downloadItems: DownloadItem[]; currentWingmanInferenceItem: WingmanItem | undefined;}
 {
     const fractionDigits = 1;
     const [status, setStatus] = useState<ConnectionStatus>("❓");
@@ -27,7 +27,6 @@ export function useWingman(): WingmanStateProps
     const [wingmanServiceStatus, setWingmanServiceStatus] = useState<WingmanServiceAppItem | undefined>(undefined);
     const [wingmanItems, setWingmanItems] = useState<WingmanItem[]>([]);
     const [downloadItems, setDownloadItems] = useState<DownloadItem[]>([]);
-    const [gpuInfo, setGpuInfo] = useState<GpuInfo|undefined>(undefined);
     const [currentWingmanInferenceItem, setCurrentWingmanInferenceItem] = useState<WingmanItem | undefined>(undefined);
     const [isOnline, setIsOnline] = useState<boolean>(false);
 
@@ -91,10 +90,6 @@ export function useWingman(): WingmanStateProps
             if (json?.DownloadItems) {
                 setDownloadItems(json.DownloadItems);
             }
-            if (json?.GpuInfo) {
-                if (!isEqual(json?.GpuInfo, gpuInfo))
-                    setGpuInfo(json.GpuInfo);
-            }
         }
     }, [lastMessage, pauseMetrics]);
 
@@ -113,6 +108,5 @@ export function useWingman(): WingmanStateProps
         wingmanItems,
         downloadItems,
         currentWingmanInferenceItem,
-        gpuInfo,
     };
 }

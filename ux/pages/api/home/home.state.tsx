@@ -15,6 +15,7 @@ export interface HomeStateProps {
     models: AIModel[];
     defaultModel: AIModel | undefined;
     globalModel: AIModel | undefined;
+    isSwitchingModel: boolean;
     folders: FolderInterface[];
     conversations: Conversation[];
     selectedConversation: Conversation | undefined;
@@ -41,6 +42,7 @@ export const initialState: HomeStateProps = {
     models: [],
     defaultModel: undefined,
     globalModel: undefined,
+    isSwitchingModel: false,
     folders: [],
     conversations: [],
     selectedConversation: undefined,
