@@ -7,4 +7,5 @@ export interface Prompt {
     content: string;
     model: AIModel;
     folderId: string | null;
+    system: boolean;
 }

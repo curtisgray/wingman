@@ -6,6 +6,7 @@ export interface WingmanContextProps
 {
     state: WingmanStateProps;
     dispatch: Dispatch<ActionType<WingmanStateProps>>;
+    handleUpdateWingmanStatusMessage: (statusMessage: string) => void;
 }
 
 const WingmanContext = createContext<WingmanContextProps>(undefined!);

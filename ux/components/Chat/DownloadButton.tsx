@@ -92,7 +92,8 @@ const DownloadButton = ({ modelRepo, filePath,
                         setDisabled(true);
                         if (isDownloading && !downloadCompleted){
                             setProgress(downloadItem.progress);
-                            setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
+                            // setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
+                            setProgressText(`${downloadItem.downloadSpeed}`);
                             setDownloadCompleted(true);
                             onComplete(downloadItem);
                             handleRefreshModels();
@@ -108,7 +109,8 @@ const DownloadButton = ({ modelRepo, filePath,
                         setDownloadStatus(`Aircraft in Flight - ${downloadItem.progress.toPrecision(3)}%}`);
                         setDisabled(false);
                         setProgress(downloadItem.progress);
-                        setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
+                        // setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
+                        setProgressText(`${downloadItem.downloadSpeed}`);
                         localIsDownloading = true;
                         onProgress(downloadItem.progress);
                         break;
@@ -118,7 +120,8 @@ const DownloadButton = ({ modelRepo, filePath,
                             setDownloadStatus("Flight Aborted");
                             setDisabled(false);
                             setProgress(downloadItem.progress);
-                            setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
+                            // setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
+                            setProgressText(`${downloadItem.downloadSpeed}`);
                             localIsDownloading = false;
                             setDownloadStarted(false);
                             onCancelled(downloadItem);
@@ -195,7 +198,7 @@ const DownloadButton = ({ modelRepo, filePath,
     return (
         <button type="button" disabled={disabled}
             onClick={handleRequestOrCancelDownload}
-            className={className == undefined ? "flex flex-col w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded" : className}>
+            className={className == undefined ? "flex flex-col w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 px-4 rounded" : className}>
             {
                 children == undefined ?
                     (
@@ -208,7 +211,7 @@ const DownloadButton = ({ modelRepo, filePath,
                                 max="100"
                                 className="mt-2 w-full"
                             ></progress>}
-                            {/* {showProgressText && isDownloading && ` ${progressText}`} */}
+                            <span className="text-sm">{showProgressText && isDownloading && ` ${progressText}`}</span>
                         </>
                     ) : children
             }

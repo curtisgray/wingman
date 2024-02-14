@@ -13,12 +13,14 @@ import { KeyValuePair } from "@/types/data";
 import { FolderInterface, FolderType } from "@/types/folder";
 import { AIModel, AIModelID, AIModels, Vendors, fallbackModelID } from "@/types/ai";
 import { Prompt } from "@/types/prompt";
-import {
+import
+{
     cleanConversationHistory,
     cleanSelectedConversation,
 } from "@/utils/app/clean";
 import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from "@/utils/app/const";
-import {
+import
+{
     saveConversation,
     saveConversations,
     updateConversation,
@@ -38,10 +40,12 @@ import { WingmanStateProps } from "@/types/wingman";
 import { initialWingmanState } from "./wingman.state";
 import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 import toast from "react-hot-toast";
-import * as si from 'systeminformation'
-import os from 'os'
+import * as si from 'systeminformation';
+import os from 'os';
+import Spinner from "@/components/Spinner";
 
-interface Props {
+interface Props
+{
     serverSideApiKeyIsSet: boolean;
     serverSidePluginKeysSet: boolean;
     defaultModelId: AIModelID;
@@ -51,7 +55,8 @@ const Home = ({
     serverSideApiKeyIsSet,
     serverSidePluginKeysSet,
     defaultModelId,
-}: Props) => {
+}: Props) =>
+{
     const { t } = useTranslation("chat");
     const { getModels } = useApiService();
     const { getModelsError } = useErrorService();
@@ -82,6 +87,9 @@ const Home = ({
     });
 
     const {
+        state: {
+            wingmanStatusMessage,
+        },
         dispatch: wingmanDispatch,
     } = wingmanContextValue;
 
@@ -132,7 +140,8 @@ const Home = ({
 
     const { data: models, error, refetch: refetchModels } = useQuery(
         ["GetModels", apiKey, serverSideApiKeyIsSet],
-        ({ signal }) => {
+        ({ signal }) =>
+        {
             const m = getModels(
                 {
                     key: apiKey,
@@ -144,7 +153,8 @@ const Home = ({
         { enabled: enableAutoModelsRefresh, refetchOnMount: false }
     );
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         if (models) {
             homeDispatch({ field: "models", value: models });
             // identify the model named 'default' and set it as the default model
@@ -155,13 +165,15 @@ const Home = ({
         }
     }, [models, homeDispatch]);
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         homeDispatch({ field: "modelError", value: getModelsError(error) });
     }, [homeDispatch, error, getModelsError]);
 
     // FETCH MODELS ----------------------------------------------
 
-    const handleSelectConversation = (conversation: Conversation) => {
+    const handleSelectConversation = (conversation: Conversation) =>
+    {
         homeDispatch({
             field: "selectedConversation",
             value: conversation,
@@ -170,13 +182,16 @@ const Home = ({
         saveConversation(conversation);
     };
 
-    const handleSwitchingModel = (isSwitching: boolean) => {
+    const handleSwitchingModel = (isSwitching: boolean) =>
+    {
         homeDispatch({ field: "isSwitchingModel", value: isSwitching });
+        console.log(`Switching Model: ${isSwitching}`);
     };
 
     // FOLDER OPERATIONS  --------------------------------------------
 
-    const handleCreateFolder = (name: string, type: FolderType) => {
+    const handleCreateFolder = (name: string, type: FolderType) =>
+    {
         const newFolder: FolderInterface = {
             id: uuidv4(),
             name,
@@ -189,12 +204,14 @@ const Home = ({
         saveFolders(updatedFolders);
     };
 
-    const handleDeleteFolder = (folderId: string) => {
+    const handleDeleteFolder = (folderId: string) =>
+    {
         const updatedFolders = folders.filter((f) => f.id !== folderId);
         homeDispatch({ field: "folders", value: updatedFolders });
         saveFolders(updatedFolders);
 
-        const updatedConversations: Conversation[] = conversations.map((c) => {
+        const updatedConversations: Conversation[] = conversations.map((c) =>
+        {
             if (c.folderId === folderId) {
                 return {
                     ...c,
@@ -208,7 +225,8 @@ const Home = ({
         homeDispatch({ field: "conversations", value: updatedConversations });
         saveConversations(updatedConversations);
 
-        const updatedPrompts: Prompt[] = prompts.map((p) => {
+        const updatedPrompts: Prompt[] = prompts.map((p) =>
+        {
             if (p.folderId === folderId) {
                 return {
                     ...p,
@@ -223,8 +241,10 @@ const Home = ({
         savePrompts(updatedPrompts);
     };
 
-    const handleUpdateFolder = (folderId: string, name: string) => {
-        const updatedFolders = folders.map((f) => {
+    const handleUpdateFolder = (folderId: string, name: string) =>
+    {
+        const updatedFolders = folders.map((f) =>
+        {
             if (f.id === folderId) {
                 return {
                     ...f,
@@ -241,7 +261,8 @@ const Home = ({
     };
 
     // CONVERSATION OPERATIONS  --------------------------------------------
-    const changeConversationModel = (model: AIModel | undefined) => {
+    const changeConversationModel = (model: AIModel | undefined) =>
+    {
         if (selectedConversation) {
             let m = model;
             if (selectedConversation.model !== m) {
@@ -254,12 +275,14 @@ const Home = ({
         }
     };
 
-    const changeGlobalModel = (model: AIModel | undefined) => {
+    const changeGlobalModel = (model: AIModel | undefined) =>
+    {
         handleSwitchingModel(true);
         homeDispatch({ field: "globalModel", value: model });
     };
 
-    const handleSyncModel = (model: AIModel | undefined) => {
+    const handleSyncModel = (model: AIModel | undefined) =>
+    {
         if (selectedConversation) {
             handleUpdateConversation(selectedConversation, {
                 key: "model",
@@ -268,19 +291,15 @@ const Home = ({
         }
     };
 
-    const handleNewConversation = () => {
+    const handleNewConversation = () =>
+    {
         const lastConversation = conversations[conversations.length - 1];
 
         const newConversation: Conversation = {
             id: uuidv4(),
             name: `${t('New Conversation')}`,
             messages: [],
-            model: lastConversation?.model || {
-                id: AIModels[defaultModelId].id,
-                name: AIModels[defaultModelId].name,
-                maxLength: AIModels[defaultModelId].maxLength,
-                tokenLimit: AIModels[defaultModelId].tokenLimit,
-            },
+            model: lastConversation?.model || AIModels[defaultModelId],
             inferringAlias: "",
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
             temperature: lastConversation?.temperature ?? DEFAULT_TEMPERATURE,
@@ -301,7 +320,8 @@ const Home = ({
     const handleUpdateConversation = (
         conversation: Conversation,
         data: KeyValuePair
-    ) => {
+    ) =>
+    {
         const updatedConversation = {
             ...conversation,
             [data.key]: data.value,
@@ -316,7 +336,8 @@ const Home = ({
         homeDispatch({ field: "conversations", value: all });
     };
 
-    const handleDuplicateConversation = (conversation: Conversation) => {
+    const handleDuplicateConversation = (conversation: Conversation) =>
+    {
         const conversationCopy: Conversation = {
             id: uuidv4(),
             name: `${conversation.name} (copy)`,
@@ -339,16 +360,24 @@ const Home = ({
         homeDispatch({ field: "loading", value: false });
     };
 
-    const handleChangeModel = (model: AIModel | undefined) => {
+    const handleChangeModel = (model: AIModel | undefined) =>
+    {
         // change model for the current conversation
         changeConversationModel(model);
     };
 
-    const handleRefreshModels = () => {
+    const handleRefreshModels = () =>
+    {
         setEnableAutoModelsRefresh(false);
     };
 
-    useEffect(() => {
+    const handleUpdateWingmanStatusMessage = (statusMessage: string) =>
+    {
+        wingmanDispatch({ field: "wingmanStatusMessage", value: statusMessage });
+    };
+
+    useEffect(() =>
+    {
         if (!enableAutoModelsRefresh) {
             refetchModels();
             setEnableAutoModelsRefresh(true);
@@ -358,13 +387,15 @@ const Home = ({
 
     // EFFECTS  --------------------------------------------
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         if (window.innerWidth < 640) {
             homeDispatch({ field: "showChatbar", value: false });
         }
     }, [selectedConversation]);
-        
-    useEffect(() => {
+
+    useEffect(() =>
+    {
         if (models && models.length > 0 && selectedConversation && selectedConversation.model && selectedConversation.model !== currentConversationModel) {
             const vendor = Vendors[selectedConversation.model.vendor];
             if (vendor.isDownloadable) {
@@ -379,7 +410,7 @@ const Home = ({
                 const m = models?.find(m => m.id === selectedConversation.model.id);
 
                 if (m === undefined) {
-                    if (selectedConversation.model.name === "OFFLINE") {
+                    if (selectedConversation.model.id === AIModelID.NO_MODEL_SELECTED) {
                         toast.error(`No AI Models are active. Please select an AI model to run.`);
                     } else {
                         toast.error(`Model '${selectedConversation.model.name}' is not available. Please select another model.`);
@@ -414,7 +445,7 @@ const Home = ({
                         return;
                     }
 
-                    const draftModel = {...m};
+                    const draftModel = { ...m };
                     if (vendor.isDownloadable) {
                         draftModel.item = item;
                     }
@@ -428,7 +459,8 @@ const Home = ({
         }
     }, [selectedConversation?.id, selectedConversation?.model, models]);
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         defaultModelId &&
             homeDispatch({ field: "defaultModelId", value: defaultModelId });
         serverSideApiKeyIsSet &&
@@ -450,7 +482,8 @@ const Home = ({
 
     // ON LOAD --------------------------------------------
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         const settings = getSettings();
         if (settings.theme) {
             homeDispatch({
@@ -555,56 +588,57 @@ const Home = ({
         t,
     ]);
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         if (globalModel !== undefined) {
             const vendor = Vendors[globalModel.vendor];
             // check if the globalModel is downloadable, e.g., running on the Wingman server
             //  if so, then start the model running on the Wingman server
             if (vendor.isDownloadable) {
-                if (globalModel.item === undefined) {
-                    // whenever the globalModel changes, the globalModel.item must be defined, otherwise
-                    //   something has gone wrong in setting the global model
-                    //   so, return.
-                    return;
-                    // throw new Error(`'globalModel' is defined as ${globalModel.id}, but 'globalModel.item' is undefined. Something has gone wrong within the application.`);
-                } else {
+                if (globalModel.item !== undefined) {
                     // issue a request to start the model running on the Wingman server
                     //  and wait for the currentWingmanInferenceItem to be set to the globalModel
                     const wi = inferenceActions.requestStartInference(
                         globalModel.item!.filePath, globalModel.id, globalModel.item!.filePath, -1);
                     if (wi === undefined) {
-                        handleSwitchingModel(false);
                         toast.error(`Target Acquisition Failed: ${globalModel.name}`);
                     }
                 }
             } else {
-                toast.success(`Target Acquired: ${globalModel.name}`);
-                handleSwitchingModel(false);
+                if (globalModel.id !== AIModelID.NO_MODEL_SELECTED) {
+                    toast.success(`Target Acquired: ${globalModel.name}`);
+                }
             }
+            handleSwitchingModel(false);
         }
     }, [globalModel]);
 
-    useEffect(() => {   // this effect is for notifying the user on the status of the currentWingmanInferenceItem when the globalModel changes
+    useEffect(() =>
+    {   // this effect is for notifying the user on the status of the currentWingmanInferenceItem when the globalModel changes
         if (currentWingmanInferenceItem) {
-            if (isSwitchingModel && globalModel && globalModel.item && globalModel.item.filePath === currentWingmanInferenceItem.filePath) {
-                // this can be called several times while the currentWingmanInferenceItem's status is changing,
-                //  so, we need to wait until the status is 'inferring' before notifying the user
+            if (isSwitchingModel) {
+                if (globalModel && globalModel.item && globalModel.item.filePath === currentWingmanInferenceItem.filePath) {
+                    // this can be called several times while the currentWingmanInferenceItem's status is changing,
+                    //  so, we need to wait until the status is 'inferring' before notifying the user
+                    if (currentWingmanInferenceItem.status === "inferring") {
+                        toast.success(`Engaging Target: ${globalModel.name}`);
+                    } else if (currentWingmanInferenceItem.status === "error") {
+                        toast.error(`Target Acquisition Failed: ${globalModel.name}`);
+                        // switch the globalModel and selectedConversation.model to undefined
+                        // TODO: set the globalModel and selectedConversation.model to defaultModel
+                        setCurrentConversationModel(undefined);
+                        changeGlobalModel(undefined);
+                    }
+                }
                 if (currentWingmanInferenceItem.status === "inferring") {
-                    toast.success(`Engaging Target: ${globalModel.name}`);
-                    handleSwitchingModel(false);
-                } else if (currentWingmanInferenceItem.status === "error") {
-                    toast.error(`Target Acquisition Failed: ${globalModel.name}`);
-                    // switch the globalModel and selectedConversation.model to undefined
-                    // TODO: set the globalModel and selectedConversation.model to defaultModel
-                    setCurrentConversationModel(undefined);
-                    changeGlobalModel(undefined);                    
                     handleSwitchingModel(false);
                 }
             }
         }
     }, [currentWingmanInferenceItem, models]);
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         if (isSwitchingModel) {
             homeDispatch({ field: "loading", value: true });
         } else {
@@ -612,10 +646,27 @@ const Home = ({
         }
     }, [isSwitchingModel]);
 
+    const isModelInferring = () =>
+    {
+        if (!globalModel && selectedConversation?.model === undefined)
+            return true;
+        if (globalModel) {
+            if (!Vendors[globalModel.vendor].isDownloadable) {
+                return true;
+            } else if (globalModel.id === currentWingmanInferenceItem?.modelRepo) {
+                if (currentWingmanInferenceItem?.status === "inferring") {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
     return (
         <WingmanContext.Provider
             value={{
                 ...wingmanContextValue,
+                handleUpdateWingmanStatusMessage
             }}
         >
             <HomeContext.Provider
@@ -628,7 +679,7 @@ const Home = ({
                     handleSelectConversation,
                     handleUpdateConversation,
                     handleDuplicateConversation,
-                    handleDeleteConversation: () => {},
+                    handleDeleteConversation: () => { },
                     handleChangeModel,
                     handleSyncModel,
                     handleRefreshModels,
@@ -643,6 +694,16 @@ const Home = ({
                     />
                     <link rel="icon" href="/favicon.ico" />
                 </Head>
+                {!isModelInferring() && (
+                    <div className="fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-95 z-50 flex items-center justify-center fadeIn">
+                        <div className="flex flex-col items-center justify-center">
+                            <span className="animate-pulse inline-flex h-2 w-2 mx-1 rounded-full bg-orange-400"></span>
+                            <p className="text-white text-lg mt-4">
+                                {`${t('Working')}...`}
+                            </p>
+                        </div>
+                    </div>
+                )}
                 {selectedConversation && (
                     <main
                         className={`flex h-screen w-screen flex-col text-sm text-black dark:text-white ${lightMode}`}
@@ -664,7 +725,8 @@ const Home = ({
 };
 export default Home;
 
-export const getServerSideProps: GetServerSideProps = async ({ locale }) => {
+export const getServerSideProps: GetServerSideProps = async ({ locale }) =>
+{
     const defaultModelId =
         (process.env.DEFAULT_MODEL &&
             Object.values(AIModelID).includes(

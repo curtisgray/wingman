@@ -8,7 +8,7 @@ interface Props {
 
 export const Prompts: FC<Props> = ({ prompts }) => {
     return (
-        <div className="flex w-full flex-col gap-1">
+        <div className="flex w-full flex-col gap-1 text-neutral-900 dark:text-white">
             {prompts
                 .slice()
                 .reverse()

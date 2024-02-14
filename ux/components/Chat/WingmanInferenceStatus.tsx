@@ -7,17 +7,18 @@ import { IconRotateRectangle } from "@tabler/icons-react";
 import { Tooltip } from "react-tooltip";
 import HomeContext from "@/pages/api/home/home.context";
 import Image from "next/image";
-import { AIModel, Vendors } from "@/types/ai";
+import { AIModel, AIModelID, Vendors } from "@/types/ai";
 
 const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, showModel = true, showQuantization = true, showAlias = false, className = "" }) =>
 {
     const {
         state: { wingmanItems, currentWingmanInferenceItem, isOnline },
+        handleUpdateWingmanStatusMessage,
     } = useContext(WingmanContext);
 
     const {
         state: { models, globalModel },
-        handleSyncModel
+        handleSyncModel,
     } = useContext(HomeContext)
 
     const [wingmanItem, setWingmanItem] = useState<WingmanItem | undefined>(undefined);
@@ -60,6 +61,7 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
 
     const displaySyncModelControl = () =>
     {
+        return <></>;
         if (downloadableModelSelected)
             return <><IconRotateRectangle size={18} className="rounded-sm cursor-pointer" onClick={handleSyncModelLocal}
                 data-tooltip-id="sync-selected-model" data-tooltip-content="Engage the AI model that's currently running on the server" />
@@ -148,10 +150,14 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
         }
     }, [wingmanItems, currentWingmanInferenceItem, globalModel, models]);
     
+    useEffect(() =>
+    {
+        handleUpdateWingmanStatusMessage(wingmanStatusLabel);
+    }, [wingmanStatusLabel]);
 
     const displayModelVendor = (model: AIModel | undefined) =>
     {
-        if (!model) return <></>;
+        if (!model || model.id === AIModelID.NO_MODEL_SELECTED) return <></>;
         const vendor = Vendors[model.vendor];
         return (
             <div className="flex space-x-1">

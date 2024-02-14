@@ -102,6 +102,32 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         }
     };
 
+    const fetchWithRetry = async (url: string, retries: number = 3, delay: number = 1000): Promise<Response> =>
+    {
+        for (let i = 0; i < retries; i++) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`API returned an error ${response.status}: ${await response.text()}`);
+                }
+                return response; // Return the successful response
+            } catch (error: unknown) {
+                if (error instanceof Error) {
+                    console.error(`Attempt ${i + 1} failed with error: ${error.message}`);
+                    throw error;
+                } else if (error instanceof TypeError && error.message === "Failed to fetch") { // Check if the error is a network error that might indicate the service is down
+                    console.log("The service might be down. Retrying...");
+                    if (i === retries - 1) throw new Error("Service is down or unreachable after maximum retries");
+                    await new Promise(resolve => setTimeout(resolve, delay)); // Wait before retrying
+                } else {
+                    // If it's a different type of error, rethrow it immediately without retrying
+                    throw error;
+                }
+            }
+        }
+        throw new Error("Service is down or unreachable after maximum retries");
+    };
+
     try {
         // ensure request body is json
         let json = {};
@@ -185,7 +211,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
                 .filter(Boolean));
         }
 
-        const ores = await fetch(`${WINGMAN_CONTROL_SERVER_URL}/api/models`);
+        const ores = await fetchWithRetry(`${WINGMAN_CONTROL_SERVER_URL}/api/models`);
         if (ores.ok) {
             const res = await ores.json();
             models.push(...res.models);
@@ -194,8 +220,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         }
         setIsInferables(models);
         res.status(200).json(models);
-    } catch (error) {
-        throw new Error(`${error}`);
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            console.log(error.message); // Safe to access `message` because we've checked the type
+        } else {
+            console.log("An unknown error occurred");
+        }
     }
 };
 

@@ -24,7 +24,6 @@ const ChatSettings = ({ models, conversation, prompts, onChangeSystemPrompt, onC
                 {models.length > 0 && (
                     <div className="flex h-full w-full flex-col space-y-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-600 text-gray-800 dark:text-gray-100 ">
                         <div className="flex self-center space-x-2">
-                            <span>Engaged: </span>
                             <WingmanInferenceStatus showTitle={false} />
                         </div>
                         <ModelListing />

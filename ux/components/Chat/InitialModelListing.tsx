@@ -16,18 +16,15 @@ interface Props {
     onSelect?: (model: AIModel) => void;
     isDisabled?: boolean;
     iconSize?: number;
+    initialModelId?: string;
 }
 
 interface ModelCategories {
-    'My Models': AIModel[];
-    'Recently Added': AIModel[];
-    Popular: AIModel[];
-    Trending: AIModel[];
+    'Starting AI Model': AIModel[];
 }
 
-export default function ModelListing({ onSelect = () => { }, isDisabled: disabled = false, iconSize = 20 }: Props) {
-    const listSize = 10;
-    const [categories, setCategories] = useState<ModelCategories>({ 'My Models': [], 'Recently Added': [], Popular: [], Trending: [] });
+export default function InitialModelListing({ onSelect = () => { }, isDisabled: disabled = false, iconSize = 20, initialModelId = "TheBloke/phi-2-dpo" }: Props) {
+    const [categories, setCategories] = useState<ModelCategories>({ 'Starting AI Model': [] });
     const [selectedTabIndex, setSelectedTabIndex] = useState(0)
 
     const {
@@ -45,42 +42,12 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
 
     const createCategories = (models: AIModel[]): ModelCategories => {
         // filter the models to get the downloaded and OpenAI models
-        const downloadedModels = models.filter((model) => {
-            return !Vendors[model.vendor].isDownloadable || model.items?.some((item) => item.isDownloaded);
+        const startingModels = models.filter((model) => {
+            return Vendors[model.vendor].isDownloadable && model.id === initialModelId;
         });
-        const downloadableModels = models.filter((model) => {
-            return Vendors[model.vendor].isDownloadable;
-        });
-        // format the models into the categories
-        // 1. Recent - sort the models by date and get the first listSize
-        // 2. Popular - sort the models by downloads and get the first listSize
-        // 3. Trending - sort the models by date and likes and get the first listSize
-        // sort models by date descending
-        const sortedModelsByDate = downloadableModels.sort((a, b) => {
-            // convert model.updated to date, then to a number and subtract
-            return new Date(b.created).getTime() - new Date(a.created).getTime()
-        })
-        // get the first listSize models
-        const recentModels = sortedModelsByDate.slice(0, listSize)
-        // sort models by downloads descending
-        const sortedModelsByDownloads = downloadableModels.sort((a, b) => {
-            return b.downloads - a.downloads
-        })
-        // get the first listSize models
-        const popularModels = sortedModelsByDownloads.slice(0, listSize)
-        // sort models by date and likes descending to derive trending models
-        //  to do that we will take the 100 most recent models and sort them by likes
-        const sortedModelsByLikes = sortedModelsByDate.slice(0, 50).sort((a, b) => {
-            return b.likes - a.likes
-        })
-        // get the first listSize models
-        const trendingModels = sortedModelsByLikes.slice(0, listSize)
 
         return {
-            'My Models': downloadedModels,
-            'Recently Added': recentModels,
-            Popular: popularModels,
-            Trending: trendingModels,
+            'Starting AI Model': startingModels,
         }
     };
 
@@ -251,7 +218,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
     return (
         <div className='w-full px-2 py-4 sm:px-0 mt-4 mb-4'>
             <Tab.Group selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
-                <Tab.List className='flex space-x-1 rounded-xl bg-blue-900/20 p-1'>
+                {/* <Tab.List className='flex space-x-1 rounded-xl bg-blue-900/20 p-1'>
                     {Object.keys(categories).map(category => (
                         <Tab
                             key={category}
@@ -268,13 +235,13 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                             {category}
                         </Tab>
                     ))}
-                </Tab.List>
+                </Tab.List> */}
                 <Tab.Panels className='mt-2'>
                     {Object.values(categories).map((items, idx) => (
                         <Tab.Panel
                             key={idx}
                             className={classNames(
-                                'rounded-xl bg-white p-3 h-72 overflow-y-auto',
+                                'rounded-xl bg-white p-3 overflow-y-auto',
                                 'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2'
                             )}
                         >

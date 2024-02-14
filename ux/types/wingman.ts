@@ -123,6 +123,7 @@ export interface WingmanStateProps
     wingmanItems: WingmanItem[];
     downloadItems: DownloadItem[];
     currentWingmanInferenceItem: WingmanItem | undefined;
+    wingmanStatusMessage: string;
 }
 
 export const isValidWingmanItem = (item: WingmanItem) => item.alias !== undefined && item.alias.trim() !== "";

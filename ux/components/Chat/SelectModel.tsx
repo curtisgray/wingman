@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { memo, useContext, useEffect, useState } from "react";
-import { AIModel, DownloadableItem, Vendors } from "@/types/ai";
-import { IconCircleCheck, IconExclamationCircle, IconExternalLink, IconPlaneDeparture, IconRefresh, IconRefreshDot, IconPlaneOff } from "@tabler/icons-react";
+import { AIModel, AIModelID, DownloadableItem, Vendors } from "@/types/ai";
+import { IconCircleCheck, IconExclamationCircle, IconExternalLink, IconPlaneDeparture, IconRefresh, IconRefreshDot, IconPlaneOff, IconApi, IconCrown } from "@tabler/icons-react";
 import Image from "next/image";
 import Select, { ActionMeta, SingleValue } from "react-select";
 import DownloadButton from "./DownloadButton";
@@ -13,7 +13,6 @@ import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 import { Tooltip } from "react-tooltip";
 import { getSettings, saveSettings } from "@/utils/app/settings";
 import { Settings } from "@/types/settings";
-import WingmanContext from "@/pages/api/home/wingman.context";
 
 export type ModelOption = {
     value: string;
@@ -42,7 +41,7 @@ export type SelectModelProps = {
 
 const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete = () => { }, onDownloadStart = () => { },
     className = "", isDisabled: disabled = false, miniMode = false,
-    allowDownload = true, autoDownload = true, iconSize = 24 }: SelectModelProps) => {
+    allowDownload = true, autoDownload = true, iconSize = 20 }: SelectModelProps) => {
     const settings: Settings = getSettings();
 
     const [selectableModels, setSelectableModels] = useState<AIModel[]>([]);
@@ -233,15 +232,18 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
         if (Vendors[model.vendor].isDownloadable) {
             if (model.isInferable) {
                 return <div className="text-sky-400">
-                    <IconPlaneDeparture size={23} />
+                    <IconPlaneDeparture size={iconSize} />
                 </div>;
             } else {
                 return <div className="text-neutral-500">
-                    <IconPlaneOff size={23} />
+                    <IconPlaneOff size={iconSize} />
                 </div>;
             }
         }
-        return <></>;
+        return <div className="text-green-800">
+            <IconApi size={iconSize} data-tooltip-id="is-api-inferred" data-tooltip-content="Always cleared for takeoff" />
+            <Tooltip id="is-api-inferred" />
+        </div>;
     };
 
     const displayModelName = (model: AIModel | undefined) => {
@@ -290,8 +292,11 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                 );
             }
         }
+        if (model.id === AIModelID.NO_MODEL_SELECTED)
+            return <span>{`Search ...`}</span>;
         if (model.id === defaultModelId)
-            return <span>Default ({name})</span>;
+            return <span>{name}</span>;
+        // return <span>Default ({name})</span>;
         else return <span>{name}</span>;
     };
 
@@ -456,17 +461,30 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                         </div>
                         <div className="flex justify-between">
                             <div className="flex items-center">
-                                <label htmlFor="showDownloadedItemsOnly">Show downloaded AI models only</label>
+                                <label htmlFor="showDownloadedItemsOnly">
+                                    <div className="text-green-700">
+                                        <IconCircleCheck size={iconSize} data-tooltip-id="show-downloaded-only" data-tooltip-content="Show only AI models that have already been downloaded" />
+                                        <Tooltip id="show-downloaded-only" />
+                                    </div>
+                                </label>
                                 <input id="showDownloadedItemsOnly" type="checkbox" className="w-8 h-5" checked={showDownloadedItemsOnly} onChange={(e) => setShowDownloadedItemsOnly(e.target.checked)} />
                             </div>
                             <div className="flex items-center">
-                                <label htmlFor="showReadyForTakeoffOnly"><div className="text-sky-400">
-                                    <IconPlaneDeparture size={23} />
-                                </div></label>
+                                <label htmlFor="showReadyForTakeoffOnly">
+                                    <div className="text-sky-400">
+                                        <IconPlaneDeparture size={iconSize} data-tooltip-id="ready-for-takeoff" data-tooltip-content="Show only AI models that are likely to run" />
+                                        <Tooltip id="ready-for-takeoff" />
+                                    </div>
+                                </label>
                                 <input id="showReadyForTakeoffOnly" type="checkbox" className="w-8 h-5" checked={showReadyForTakeoffOnly} onChange={(e) => setShowReadyForTakeoffOnly(e.target.checked)} />
                             </div>
                             <div className="flex items-center">
-                                <label htmlFor="expertMode">Expert Mode</label>
+                                <label htmlFor="expert-mode">
+                                    <div className="text-indigo-600">
+                                        <IconCrown size={iconSize} data-tooltip-id="expert-mode" data-tooltip-content="Enable expert search options" />
+                                        <Tooltip id="expert-mode" />
+                                    </div>
+                                </label>
                                 <input id="expertMode" type="checkbox" className="w-8 h-5" checked={expertMode} onChange={(e) => setExpertMode(e.target.checked)} />
                             </div>
                         </div>
@@ -481,7 +499,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                     <>
                     <Select
                         isLoading={isLoadingModelList || isChangingModel}
-                        placeholder={(t("Select a model").length > 0) || ""}
+                        placeholder={(t("Search for a model").length > 0) || ""}
                         options={optionsGroupedModels}
                         value={{
                             label: displayModel(model),
@@ -548,7 +566,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                             className="flex items-center"
                             rel="noreferrer"
                         >
-                            <IconExternalLink size={18} className={"inline mr-1"} />
+                            <IconExternalLink size={iconSize} className={"inline mr-1"} />
                             {t("View OpenAI Account Usage")}
                         </a>
                     </div>

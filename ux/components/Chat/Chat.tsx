@@ -29,8 +29,9 @@ import { DownloadProps } from "@/types/download";
 import ChatSettings from "./ChatSettings";
 import ChatStatus from "./ChatStatus";
 import { SelectModel } from "./SelectModel";
-import { AIModel, Vendors } from "@/types/ai";
+import { AIModel, AIModelID, Vendors } from "@/types/ai";
 import ModelListing from "./ModelListing";
+import InitialModelListing from "./InitialModelListing";
 
 interface Props {
     stopConversationRef: MutableRefObject<boolean>;
@@ -452,18 +453,13 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     const hasDownloadItems = () => {
         const completedItems = downloadItems?.filter((item) => item.status === "complete");
         if (completedItems && completedItems.length > 0) {
-            // // if there is only one download and the system is switching models, we can assume the
-            // //   the downloaded model is the one being switched to, so we will wait for the switch
-            // if (completedItems.length === 1)
-            //     if (isSwitchingModel)
-            //         return false;
             return true;
         }
         return false;
     };
 
     const hasModelBeenSelected = () => {
-        const modelSelected = selectedConversation?.model !== undefined && selectedConversation?.model?.name !== "OFFLINE";
+        const modelSelected = selectedConversation?.model !== undefined && selectedConversation?.model?.id !== AIModelID.NO_MODEL_SELECTED;
         return modelSelected && isModelAvailableToUse(selectedConversation?.model);
     };
 
@@ -483,15 +479,16 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                             <>
                                 <div className="mb-2">
                                     {t(
-                                        "There appears to be no downloaded models available. Please download a Meta compatible AI model from a list below to get started. You can choose from Recently created models, Popular models by download, or recently Trending models. Just select a model and click the download button to get started."
+                                        "To get started using Wingman, we have pre-selected a small, highly-capable Meta Llama AI model that can run on most PC's. Download and engage the Meta compatible AI model below. To download, select the 'Download' button. Once the model download is completed, select 'Engage' to begin using the model."
                                     )}
                                 </div>
                                 <div className="w-full text-gray-800 dark:text-gray-100 ">
-                                    <ModelListing />
+                                    <InitialModelListing initialModelId="TheBloke/phi-2-dpo-GGUF" />
+                                    {/* <ModelListing /> */}
                                 </div>
                                 <div className='mb-4'>
                                     {t(
-                                        "To engage any one available Llama AI models, search for and select a model from the search box below. The model will be downloaded and launched. Once the model is ready, you can begin using it."
+                                        "To engage any one of the available Llama AI models, search for and select a model from the search box below. The model will be downloaded and launched. Once the model is ready, you can begin using it."
                                     )}
                                 </div>
                                 <div className="w-full text-gray-800 dark:text-gray-100 ">

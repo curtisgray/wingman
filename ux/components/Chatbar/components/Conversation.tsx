@@ -1,8 +1,12 @@
 import SidebarActionButton from "@/components/Buttons/SidebarActionButton";
+// import { ChatSettingsModal } from "@/components/Chat/ChatSettingsModal";
 import ChatbarContext from "@/components/Chatbar/Chatbar.context";
+import PromptbarContext from "@/components/Promptbar/PromptBar.context";
 import HomeContext from "@/pages/api/home/home.context";
 import { Conversation } from "@/types/chat";
+import { Prompt } from "@/types/prompt";
 import {
+    IconAdjustments,
     IconCheck,
     IconCopy,
     IconMessage,
@@ -21,9 +25,10 @@ import {
 
 interface Props {
     conversation: Conversation;
+    // prompts: Prompt[];
 }
 
-export const ConversationComponent = ({ conversation }: Props) => {
+export const ConversationComponent = ({ conversation}: Props) => {
     const {
         state: { selectedConversation, messageIsStreaming },
         handleSelectConversation,
@@ -31,12 +36,18 @@ export const ConversationComponent = ({ conversation }: Props) => {
         handleDuplicateConversation,
     } = useContext(HomeContext);
 
+    // const {
+    //     dispatch: promptDispatch,
+    //     handleUpdatePrompt,
+    // } = useContext(PromptbarContext);
+
     const { handleDeleteConversation } = useContext(ChatbarContext);
 
     const [isDeleting, setIsDeleting] = useState(false);
     const [isRenaming, setIsRenaming] = useState(false);
     const [isDuplicating, setIsDuplicating] = useState(false);
     const [renameValue, setRenameValue] = useState("");
+    const [showChatSettingsModal, setShowChatSettingsModal] = useState(false);
 
     const handleEnterDown = (e: KeyboardEvent<HTMLDivElement>) => {
         if (e.key === "Enter") {
@@ -55,6 +66,16 @@ export const ConversationComponent = ({ conversation }: Props) => {
                 JSON.stringify(conversation)
             );
         }
+    };
+
+    const handleOpenChatSettingsModal = () => {
+        console.log("Open chat settings modal");
+    };
+
+    const handleChatSettingsUpdate = (prompt: Prompt) =>
+    {
+        // handleUpdatePrompt(prompt);
+        // promptDispatch({ field: "searchTerm", value: "" });
     };
 
     const handleRename = (conversation: Conversation) => {
@@ -172,10 +193,16 @@ export const ConversationComponent = ({ conversation }: Props) => {
                 !isDuplicating && (
                     <div className="absolute right-1 z-10 flex text-gray-300">
                         <SidebarActionButton
+                            handleClick={handleOpenChatSettingsModal}
+                            toolTipText="Edit conversation settings..."
+                        >
+                        <IconAdjustments size={18} />
+                        </SidebarActionButton>
+                        <SidebarActionButton
                             handleClick={handleDuplicateModel}
                             toolTipText="Duplicate conversation..."
                         >
-                            <IconCopy size={18} color="yellow" />
+                            <IconCopy size={18} />
                         </SidebarActionButton>
                         <SidebarActionButton
                             handleClick={handleOpenRenameModal}
@@ -191,6 +218,15 @@ export const ConversationComponent = ({ conversation }: Props) => {
                         </SidebarActionButton>
                     </div>
                 )}
+                {/* {
+                    showChatSettingsModal && (
+                        <ChatSettingsModal
+                            prompts={prompts}
+                            onClose={() => setShowChatSettingsModal(false)}
+                            onUpdateConversationSettings={handleChatSettingsUpdate}
+                        />
+                    )
+                } */}
         </div>
     );
 };

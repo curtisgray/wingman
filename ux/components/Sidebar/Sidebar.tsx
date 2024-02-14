@@ -6,6 +6,7 @@ import {
 import { IconFolderPlus, IconMistOff, IconPlus } from "@tabler/icons-react";
 import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { Tooltip } from "react-tooltip";
 
 interface Props<T> {
     isOpen: boolean;
@@ -111,10 +112,14 @@ const Sidebar = <T,>({
                 {footerComponent}
             </div>
 
-            <CloseSidebarButton onClick={toggleOpen} side={side} />
+            <CloseSidebarButton onClick={toggleOpen} side={side} data-tooltip-id="close-sidebar" data-tooltip-content="Hide sidebar" />
+            <Tooltip id="close-sidebar" />
         </div>
     ) : (
-        <OpenSidebarButton onClick={toggleOpen} side={side} />
+        <>
+            <OpenSidebarButton onClick={toggleOpen} side={side} data-tooltip-id="open-sidebar" data-tooltip-content="Show sidebar" />
+            <Tooltip id="open-sidebar" />
+        </>
     );
 };
 

@@ -77,11 +77,11 @@ export enum AIModelID
     GPT_3_5_TURBO = "gpt-3.5-turbo", // 4K tokens
     GPT_3_5_TURBO_16K = "gpt-3.5-turbo-16k", // 16K tokens
     // GPT_3_5_TURBO_INSTRUCT = "gpt-3.5-turbo-instruct", // 4K tokens
-    GPT_OFFLINE = "gpt-offline",
+    NO_MODEL_SELECTED = "no-model-selected",
 }
 
 // in case the `DEFAULT_MODEL` environment variable is not set or set to an unsupported model
-export const fallbackModelID = AIModelID.GPT_OFFLINE;
+export const fallbackModelID = AIModelID.NO_MODEL_SELECTED;
 
 export const Vendors: Record<string, VendorInfo> = {
     openai: {
@@ -103,10 +103,10 @@ export const Vendors: Record<string, VendorInfo> = {
 };
 
 export const AIModels: Record<AIModelID, AIModel> = {
-    [AIModelID.GPT_OFFLINE]: {
+    [AIModelID.NO_MODEL_SELECTED]: {
         isa: "AIModel",
-        id: AIModelID.GPT_OFFLINE,
-        name: "OFFLINE",
+        id: AIModelID.NO_MODEL_SELECTED,
+        name: "No Model Selected",
         maxLength: 0,
         tokenLimit: 0,
         vendor: Vendors.openai.name,

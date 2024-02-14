@@ -13,7 +13,11 @@ import { useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { v4 as uuidv4 } from "uuid";
 
-const Promptbar = () => {
+interface Props {
+    isSystem: boolean;
+}
+
+const Promptbar = ({ isSystem = false}) => {
     const { t } = useTranslation("promptbar");
 
     const promptBarContextValue = useCreateReducer<PromptbarInitialState>({
@@ -45,6 +49,7 @@ const Promptbar = () => {
                 content: "",
                 model: AIModels[defaultModelId],
                 folderId: null,
+                system: isSystem,
             };
 
             const updatedPrompts = [...prompts, newPrompt];
