@@ -4,20 +4,51 @@ import { Settings } from "@/types/settings";
 import { getSettings, saveSettings } from "@/utils/app/settings";
 import { useTranslation } from "next-i18next";
 import { FC, useContext, useEffect, useReducer, useRef } from "react";
+import ChatSettings from "./ChatSettings";
 
 interface Props {
     open: boolean;
     onClose: () => void;
 }
 
-export const SettingDialog: FC<Props> = ({ open, onClose }) => {
-    const { t } = useTranslation("settings");
-    const settings: Settings = getSettings();
-    const { state, dispatch } = useCreateReducer<Settings>({
-        initialState: settings,
-    });
-    const { dispatch: homeDispatch } = useContext(HomeContext);
+export const ChatSettingsDialog: FC<Props> = ({ open, onClose }) => {
+    const { t } = useTranslation("chat"); // TODO: Change to appropriate namespace when translations are added
+    // const settings: Settings = getSettings();
+    // const { state, dispatch } = useCreateReducer<Settings>({
+    //     initialState: settings,
+    // });
+    const {
+        state: {
+            selectedConversation,
+            models,
+            prompts        },
+        handleUpdateConversation,
+    } = useContext(HomeContext);
+
     const modalRef = useRef<HTMLDivElement>(null);
+
+    const handleChangeSystemPrompt = (prompt: string) =>
+    {
+        if (selectedConversation) {
+            handleUpdateConversation(selectedConversation, {
+                key: "systemPrompt",
+                value: prompt,
+            });
+        }
+    };
+
+    const handleChangeTemperature = (temperature: number) =>
+    {
+        if (selectedConversation) {
+            handleUpdateConversation(
+                selectedConversation,
+                {
+                    key: "temperature",
+                    value: temperature,
+                }
+            );
+        }
+    };
 
     useEffect(() => {
         const handleMouseDown = (e: MouseEvent) => {
@@ -29,7 +60,7 @@ export const SettingDialog: FC<Props> = ({ open, onClose }) => {
             }
         };
 
-        const handleMouseUp = (e: MouseEvent) => {
+        const handleMouseUp = () => {
             window.removeEventListener("mouseup", handleMouseUp);
             onClose();
         };
@@ -42,8 +73,8 @@ export const SettingDialog: FC<Props> = ({ open, onClose }) => {
     }, [onClose]);
 
     const handleSave = () => {
-        homeDispatch({ field: "lightMode", value: state.theme });
-        saveSettings(state);
+        // homeDispatch({ field: "lightMode", value: state.theme });
+        // saveSettings(state);
     };
 
     // Render nothing if the dialog is not open.
@@ -63,30 +94,10 @@ export const SettingDialog: FC<Props> = ({ open, onClose }) => {
 
                     <div
                         ref={modalRef}
-                        className="dark:border-netural-400 inline-block max-h-[400px] transform overflow-y-auto rounded-lg border border-gray-300 bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:max-h-[600px] sm:w-full sm:max-w-lg sm:p-6 sm:align-middle"
+                        className="dark:border-netural-400 inline-block max-h-[400px] transform overflow-y-auto rounded-lg border border-neutral-300 bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all dark:bg-neutral-900 sm:my-8 sm:max-h-[700px] sm:w-full sm:max-w-fit sm:p-6 sm:align-middle"
                         role="dialog"
                     >
-                        <div className="text-lg pb-4 font-bold text-black dark:text-neutral-200">
-                            {t("Settings")}
-                        </div>
-
-                        <div className="text-sm font-bold mb-2 text-black dark:text-neutral-200">
-                            {t("Theme")}
-                        </div>
-
-                        <select
-                            className="w-full cursor-pointer bg-transparent p-2 text-neutral-700 dark:text-neutral-200"
-                            value={state.theme}
-                            onChange={(event) =>
-                                dispatch({
-                                    field: "theme",
-                                    value: event.target.value,
-                                })
-                            }
-                        >
-                            <option value="dark">{t("Dark mode")}</option>
-                            <option value="light">{t("Light mode")}</option>
-                        </select>
+                        <ChatSettings models={models} conversation={selectedConversation!} prompts={prompts} onChangeSystemPrompt={handleChangeSystemPrompt} onChangeTemperature={handleChangeTemperature} />
 
                         <button
                             type="button"
@@ -96,7 +107,7 @@ export const SettingDialog: FC<Props> = ({ open, onClose }) => {
                                 onClose();
                             }}
                         >
-                            {t("Save")}
+                            {t("Close")}
                         </button>
                     </div>
                 </div>

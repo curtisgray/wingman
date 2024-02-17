@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { memo, useContext, useEffect, useState } from "react";
 import { AIModel, AIModelID, DownloadableItem, Vendors } from "@/types/ai";
-import { IconCircleCheck, IconExclamationCircle, IconExternalLink, IconPlaneDeparture, IconRefresh, IconRefreshDot, IconPlaneOff, IconApi, IconCrown } from "@tabler/icons-react";
+import { IconCircleCheck, IconExclamationCircle, IconExternalLink, IconPlaneTilt, IconRefresh, IconRefreshDot, IconPlaneOff, IconApi, IconCrown } from "@tabler/icons-react";
 import Image from "next/image";
 import Select, { ActionMeta, SingleValue } from "react-select";
 import DownloadButton from "./DownloadButton";
@@ -13,6 +13,8 @@ import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 import { Tooltip } from "react-tooltip";
 import { getSettings, saveSettings } from "@/utils/app/settings";
 import { Settings } from "@/types/settings";
+import WingmanContext from "@/pages/api/home/wingman.context";
+import { displayModelVendor } from "./Util";
 
 export type ModelOption = {
     value: string;
@@ -64,6 +66,10 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
         handleChangeModel,
         handleRefreshModels: globalHandleRefreshModels,
     } = useContext(HomeContext);
+
+    const {
+        state: { isOnline },
+    } = useContext(WingmanContext);
 
     const handleSaveSettings = () => {
         const newSettings: Settings = {
@@ -212,27 +218,12 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
         }
     };
 
-    const displayModelVendor = (model: AIModel | undefined) => {
-        if (!model) return <></>;
-        const vendor = Vendors[model.vendor];
-        return (
-            <div className="flex space-x-1">
-                <Image
-                    src={vendor.logo}
-                    width={iconSize}
-                    alt={vendor.displayName}
-                />
-                <span className="pt-1">{vendor.displayName}</span>
-            </div>
-        );
-    };
-
     const displayClearedForTakeoff = (model: AIModel) =>
     {
         if (Vendors[model.vendor].isDownloadable) {
             if (model.isInferable) {
                 return <div className="text-sky-400">
-                    <IconPlaneDeparture size={iconSize} />
+                    <IconPlaneTilt size={iconSize} />
                 </div>;
             } else {
                 return <div className="text-neutral-500">
@@ -455,33 +446,33 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                     <div className="flex flex-col space-y-4">
                         <div className="flex pb-2">
                             <label className="text-left text-neutral-700 dark:text-neutral-400">
-                                {t("To engage a Llama AI model, search for and select a model from the search box below. The model will be downloaded and launched. Once the model is ready, you can begin using it.")}
+                                {t("To engage any available AI model, use the search box below.")}
                             </label>
                             <span className="flex-grow"></span>
                         </div>
-                        <div className="flex justify-between">
-                            <div className="flex items-center">
+                        <div className="flex space-x-2">
+                            <div className="flex items-center" data-tooltip-id="show-downloaded-only" data-tooltip-content="Show only AI models that have already been downloaded">
                                 <label htmlFor="showDownloadedItemsOnly">
                                     <div className="text-green-700">
-                                        <IconCircleCheck size={iconSize} data-tooltip-id="show-downloaded-only" data-tooltip-content="Show only AI models that have already been downloaded" />
+                                        <IconCircleCheck size={iconSize} />
                                         <Tooltip id="show-downloaded-only" />
                                     </div>
                                 </label>
                                 <input id="showDownloadedItemsOnly" type="checkbox" className="w-8 h-5" checked={showDownloadedItemsOnly} onChange={(e) => setShowDownloadedItemsOnly(e.target.checked)} />
                             </div>
-                            <div className="flex items-center">
+                            <div className="flex items-center" data-tooltip-id="ready-for-takeoff" data-tooltip-content="Show only AI models that are likely to run">
                                 <label htmlFor="showReadyForTakeoffOnly">
                                     <div className="text-sky-400">
-                                        <IconPlaneDeparture size={iconSize} data-tooltip-id="ready-for-takeoff" data-tooltip-content="Show only AI models that are likely to run" />
+                                        <IconPlaneTilt size={iconSize} />
                                         <Tooltip id="ready-for-takeoff" />
                                     </div>
                                 </label>
                                 <input id="showReadyForTakeoffOnly" type="checkbox" className="w-8 h-5" checked={showReadyForTakeoffOnly} onChange={(e) => setShowReadyForTakeoffOnly(e.target.checked)} />
                             </div>
-                            <div className="flex items-center">
+                            <div className="flex items-center" data-tooltip-id="expert-mode" data-tooltip-content="Enable expert search options">
                                 <label htmlFor="expert-mode">
                                     <div className="text-indigo-600">
-                                        <IconCrown size={iconSize} data-tooltip-id="expert-mode" data-tooltip-content="Enable expert search options" />
+                                        <IconCrown size={iconSize} />
                                         <Tooltip id="expert-mode" />
                                     </div>
                                 </label>
@@ -490,55 +481,56 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                         </div>
                         <div className="flex pb-2">
                             <label className="text-left">
-                                {displayModelVendor(model)}
+                                {displayModelVendor(model, true, false)}
                             </label>
                         </div>
                     </div>
                 )}
                 <div className="flex rounded-lg space-x-2 items-center">
                     <>
-                    <Select
-                        isLoading={isLoadingModelList || isChangingModel}
-                        placeholder={(t("Search for a model").length > 0) || ""}
-                        options={optionsGroupedModels}
-                        value={{
-                            label: displayModel(model),
-                            value: model?.id,
-                        } as ModelOption}
-                        isSearchable={true}
-                        // hideSelectedOptions={true}
-                        onChange={handleChangeSelectedModel}
-                        className="model-select-container w-full text-neutral-900 bg-slate-700"
-                        classNamePrefix="model-select"
-                        instanceId={"model-select"}
-                        isDisabled={disabled}
-                        data-tooltip-id="model-select"
-                        data-tooltip-content="Select or search for an AI model"
-                    />
-                        <Tooltip id="model-select" data-tooltip-id="model-select" data-tooltip-content="Search for AI models" />
+                        <Select
+                            isLoading={isLoadingModelList || isChangingModel}
+                            // placeholder={(t("Search for an AI model").length > 0) || ""}
+                            placeholder="Search ..."
+                            options={optionsGroupedModels}
+                            value={{
+                                label: displayModel(model),
+                                value: model?.id,
+                            } as ModelOption}
+                            isSearchable={true}
+                            // hideSelectedOptions={true}
+                            onChange={handleChangeSelectedModel}
+                            className="model-select-container w-full text-neutral-900 bg-slate-700"
+                            classNamePrefix="model-select"
+                            instanceId={"model-select"}
+                            isDisabled={disabled || !isOnline}
+                            data-tooltip-id="model-select"
+                            data-tooltip-content="Select or search for an AI model"
+                        />
+                        <Tooltip id="model-select" />
                     </>
                     {expertMode && model?.vendor !== undefined && Vendors[model.vendor].isDownloadable &&
                     (
                         <>
-                        <Select
-                            isLoading={isLoadingModelList || isChangingModel}
-                            placeholder={(t("Select an optimization").length > 0) || ""}
-                            options={optionsOptimizations}
-                            value={{
-                                label: displayQuantization(model?.item),
-                                value: selectedQuantization,
-                            } as QuantizationOption}
-                            isSearchable={true}
-                            // hideSelectedOptions={true}
-                            onChange={handleDownloadableItemChange}
-                            className="optimization-select-container w-4/12 text-neutral-900"
-                            classNamePrefix="optimization-select"
-                            instanceId={"optimization-select"}
-                            isDisabled={disabled}
-                            data-tooltip-id="optimization-select"
-                            data-tooltip-content="Select or search for an optimization"
-                        />
-                            <Tooltip id="optimization-select" data-tooltip-id="optimization-select" data-tooltip-content="Select an optimization" />
+                            <Select
+                                isLoading={isLoadingModelList || isChangingModel}
+                                placeholder={(t("Select an optimization").length > 0) || ""}
+                                options={optionsOptimizations}
+                                value={{
+                                    label: displayQuantization(model?.item),
+                                    value: selectedQuantization,
+                                } as QuantizationOption}
+                                isSearchable={true}
+                                // hideSelectedOptions={true}
+                                onChange={handleDownloadableItemChange}
+                                className="optimization-select-container w-4/12 text-neutral-900"
+                                classNamePrefix="optimization-select"
+                                instanceId={"optimization-select"}
+                                isDisabled={disabled || !isOnline}
+                                data-tooltip-id="optimization-select"
+                                data-tooltip-content="Select or search for an optimization"
+                            />
+                            <Tooltip id="optimization-select" />
                         </>
                     )}
                     <>

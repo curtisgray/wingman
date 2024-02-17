@@ -30,6 +30,8 @@ export interface HomeStateProps {
     defaultModelId: AIModelID | undefined;
     serverSideApiKeyIsSet: boolean;
     serverSidePluginKeysSet: boolean;
+    serverSideHostAddress: string;
+    hostAddress: string;
 }
 
 export const initialState: HomeStateProps = {
@@ -57,4 +59,6 @@ export const initialState: HomeStateProps = {
     defaultModelId: undefined,
     serverSideApiKeyIsSet: false,
     serverSidePluginKeysSet: false,
+    serverSideHostAddress: "",
+    hostAddress: "",
 };

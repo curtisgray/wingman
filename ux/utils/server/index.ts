@@ -44,7 +44,7 @@ export const OpenAIStream = async (
             host = OPENAI_API_HOST;
             vendorDisplayName = "OpenAI API";
             break;
-        case "huggingface":
+        case "meta":
             host = WINGMAN_INFERENCE_SERVER_URL;
             vendorDisplayName = "Wingman";
             break;
@@ -76,7 +76,7 @@ export const OpenAIStream = async (
         },
         method: "POST",
         body: JSON.stringify({
-            ...((vendor === "openai" || vendor === "huggingface") && { model: model.id }),
+            ...((vendor === "openai" || vendor === "meta") && { model: model.id }),
             messages: [
                 {
                     role: "system",

@@ -8,6 +8,7 @@ import { Tooltip } from "react-tooltip";
 import HomeContext from "@/pages/api/home/home.context";
 import Image from "next/image";
 import { AIModel, AIModelID, Vendors } from "@/types/ai";
+import { displayModelVendor } from "./Util";
 
 const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, showModel = true, showQuantization = true, showAlias = false, className = "" }) =>
 {
@@ -154,23 +155,6 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
     {
         handleUpdateWingmanStatusMessage(wingmanStatusLabel);
     }, [wingmanStatusLabel]);
-
-    const displayModelVendor = (model: AIModel | undefined) =>
-    {
-        if (!model || model.id === AIModelID.NO_MODEL_SELECTED) return <></>;
-        const vendor = Vendors[model.vendor];
-        return (
-            <div className="flex space-x-1">
-                <Image
-                    src={vendor.logo}
-                    width={18}
-                    alt={vendor.displayName}
-                />
-                <span className="">{vendor.displayName}</span>
-                <span className="">{model.name}</span>
-            </div>
-        );
-    };
 
     // if running an API model, just return the name of the model
     if (globalModel && !Vendors[globalModel.vendor].isDownloadable)

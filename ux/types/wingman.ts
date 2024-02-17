@@ -130,7 +130,9 @@ export const isValidWingmanItem = (item: WingmanItem) => item.alias !== undefine
 export const WINGMAN_TABLE = "wingman";
 
 // TODO: move port config to the global context allowing for dynamic port assignment
+// export const WINGMAN_SERVER_DEFAULT_HOST = "localhost";
+export const WINGMAN_SERVER_DEFAULT_HOST = "192.168.0.55";
 export const WINGMAN_INFERENCE_PORT = 6567;
 export const WINGMAN_CONTROL_PORT = 6568;   // both http and websocket is handled by this port
-export const WINGMAN_CONTROL_SERVER_URL = `http://localhost:${WINGMAN_CONTROL_PORT}`;
-export const WINGMAN_INFERENCE_SERVER_URL = `http://127.0.0.1:${WINGMAN_INFERENCE_PORT}`;
+export const WINGMAN_CONTROL_SERVER_URL = `http://${WINGMAN_SERVER_DEFAULT_HOST}:${WINGMAN_CONTROL_PORT}`;
+export const WINGMAN_INFERENCE_SERVER_URL = `http://${WINGMAN_SERVER_DEFAULT_HOST}:${WINGMAN_INFERENCE_PORT}`;

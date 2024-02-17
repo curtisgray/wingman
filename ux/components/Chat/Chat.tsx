@@ -60,7 +60,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     } = useContext(HomeContext);
 
     const {
-        state: { downloadItems },
+        state: { downloadItems, isOnline, currentWingmanInferenceItem },
     } = useContext(WingmanContext);
 
     const [currentMessage, setCurrentMessage] = useState<Message>();
@@ -424,30 +424,16 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         // handleSwitchingModel(false);
     };
 
-    const isModelAvailableToUse = (model: AIModel | undefined) => {
-        if (model === undefined) {
-            return false;
-        }
-        const vendor = Vendors[model.vendor];
-        if (vendor.isDownloadable) {
-            if (model.item === undefined) {
-                return false;
-            }
-            // search for model in the models list and check if the model has an item with the same filePath as the model.item.filePath
-            //  and check if there are no errors in the model.item
-            const m = models?.find(m => m.id === model.id);
-            if (m === undefined) {
-                return false;
-            }
-            const item = m.items?.find((item) => item.quantization === model.item?.quantization);
-            if (item === undefined) {
-                return false;
-            }
-            if (item.hasError) {
-                return false;
+    const isModelInferring = (model: AIModel | undefined) =>
+    {
+        if (model === undefined || globalModel === undefined || currentWingmanInferenceItem === undefined) return false;
+        if (model.id === AIModelID.NO_MODEL_SELECTED) return false;
+        if (model.id === globalModel?.id) {
+            if (currentWingmanInferenceItem?.status === "inferring") {
+                return true;
             }
         }
-        return true;
+        return false;
     };
 
     const hasDownloadItems = () => {
@@ -459,23 +445,31 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     };
 
     const hasModelBeenSelected = () => {
-        const modelSelected = selectedConversation?.model !== undefined && selectedConversation?.model?.id !== AIModelID.NO_MODEL_SELECTED;
-        return modelSelected && isModelAvailableToUse(selectedConversation?.model);
+        if (selectedConversation?.model) {
+            if (selectedConversation?.model?.id === AIModelID.NO_MODEL_SELECTED) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    };
+
+    const showOnboarding = () => {
+        return !(apiKey && serverSideApiKeyIsSet) && (!hasDownloadItems() || !hasModelBeenSelected() || !isModelInferring(selectedConversation?.model));
     };
 
     return (
-        <div className="relative flex-1 overflow-hidden bg-white dark:bg-[#343541]">
-            {!(apiKey || serverSideApiKeyIsSet || (hasDownloadItems() && hasModelBeenSelected())) ? ( // no models available so display startup ui
+        <div className="relative flex-1 overflow-hidden bg-white dark:bg-gray-900">
+            {( showOnboarding() ) ? ( // no models available so display startup ui
                 // TODO: Besides api key, we should also check if the user has selected a model
                 <div className="mx-auto flex h-full w-[300px] flex-col justify-center space-y-6 sm:w-[600px]">
                     <div className="text-center text-4xl font-bold text-black dark:text-white">
                         Welcome to Wingman
                     </div>
                     <div className="text-center text-lg text-black dark:text-white">
-                        <div className="mb-8">{`Wingman is an open source chat UI.`}</div>
+                        <div className="mb-8">{`The easiest way to launch AI locally.`}</div>
                     </div>
                     <div className="text-gray-500 dark:text-gray-400">
-                        {!(hasDownloadItems() && hasModelBeenSelected()) && (
                             <>
                                 <div className="mb-2">
                                     {t(
@@ -484,22 +478,26 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                                 </div>
                                 <div className="w-full text-gray-800 dark:text-gray-100 ">
                                     <InitialModelListing initialModelId="TheBloke/phi-2-dpo-GGUF" />
-                                    {/* <ModelListing /> */}
                                 </div>
                                 <div className='mb-4'>
                                     {t(
-                                        "To engage any one of the available Llama AI models, search for and select a model from the search box below. The model will be downloaded and launched. Once the model is ready, you can begin using it."
+                                        "To engage any available AI model, use the search box below."
                                     )}
                                 </div>
                                 <div className="w-full text-gray-800 dark:text-gray-100 ">
-                                    <SelectModel autoDownload={true} miniMode
-                                        onDownloadStart={handleOnboardingDownloadStart}
-                                        onDownloadComplete={handleOnboardingDownloadComplete}
-                                        />
+                                    {!isOnline && (
+                                        <div className="mb-2 p-3 rounded-lg w-full text-center text-gray-100 dark:text-gray-800 dark:bg-gray-100 bg-gray-800">
+                                            {t("Wingman is offline. Check that the Wingman service is running.")}
+                                        </div>
+                                    )}
+                                    {isOnline && 
+                                        <SelectModel autoDownload={true} miniMode
+                                            onDownloadStart={handleOnboardingDownloadStart}
+                                            onDownloadComplete={handleOnboardingDownloadComplete} />
+                                    }
                                 </div>
                             </>
-                        )}
-                        {!(apiKey || serverSideApiKeyIsSet) && (
+                        {!(apiKey && serverSideApiKeyIsSet) && (
                             <>
                                 <hr className="my-2 mb-6 mt-6" />
                                 <div className="mb-2">
@@ -529,34 +527,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             ) : (   // models available so display chat
                 <>
                     <div className="max-h-full overflow-x-hidden" ref={chatContainerRef} onScroll={handleScroll}>
-                        {/*selectedConversation?.messages.length === 0 ? ( // no messages so display startup settings
-                            <>
-                                <div className="mx-auto flex flex-col space-y-5 md:space-y-10 px-3 pt-5 md:pt-12 sm:max-w-[600px]">
-                                    <div className="text-center text-3xl font-semibold text-gray-800 dark:text-gray-100">
-                                        {models.length === 0 ? (
-                                            <div>
-                                                <Spinner
-                                                    size="16px"
-                                                    className="mx-auto"
-                                                />
-                                            </div>
-                                        ) : (
-                                            "Wingman"
-                                        )}
-                                    </div>
-
-                                    {models.length > 0 && (
-                                        <ChatSettings models={models} conversation={selectedConversation} prompts={prompts}
-                                            onChangeSystemPrompt={handleChangeSystemPrompt} onChangeTemperature={handleChangeTemperature} />
-                                    )}
-                                </div>
-                            </>
-                        ) : */(   // messages exist so display chat
                             <>
                                 <ChatStatus onSettings={handleSettings} onClearConversation={onClearAll} showStatus={!showSettings} />
-                                {showSettings && (
-                                    <ChatSettings models={models} conversation={selectedConversation!} prompts={prompts} onChangeSystemPrompt={handleChangeSystemPrompt} onChangeTemperature={handleChangeTemperature} />
-                                )}
 
                                 {selectedConversation?.messages.map(
                                     (message, index) => (
@@ -583,11 +555,10 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                                 {loading && <ChatLoader />}
 
                                 <div
-                                    className="h-[162px] bg-white dark:bg-[#343541]"
+                                    className="h-[162px] bg-white dark:bg-gray-900"
                                     ref={messagesEndRef}
                                 />
                             </>
-                        )}
                     </div>
 
                     <ChatInput

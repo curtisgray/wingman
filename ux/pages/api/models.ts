@@ -47,7 +47,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
             // if ('memoryFree' in controllers[0]) availableMemory =
             //     controllers[0].memoryFree ? controllers[0].memoryFree : -1;
             // else availableMemory = controllers[0].vram ? controllers[0].vram : -1;
-            availableMemory = controllers[0].vram ? controllers[0].vram : -1;
+            let index = 0;
+            if (controllers.length > 1)
+                index = 1;
+            availableMemory = controllers[index].vram || -1;
         }
         if (availableMemory === -1) return false;
 
@@ -221,7 +224,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         setIsInferables(models);
         res.status(200).json(models);
     } catch (error: unknown) {
-        if (error instanceof Error) {
+    if (error instanceof Error) {
             console.log(error.message); // Safe to access `message` because we've checked the type
         } else {
             console.log("An unknown error occurred");

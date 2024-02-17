@@ -211,7 +211,7 @@ const DownloadButton = ({ modelRepo, filePath,
                                 max="100"
                                 className="mt-2 w-full"
                             ></progress>}
-                            <span className="text-sm">{showProgressText && isDownloading && ` ${progressText}`}</span>
+                            <span className="text-xs self-center">{showProgressText && isDownloading && ` ${progressText}`}</span>
                         </>
                     ) : children
             }

@@ -20,11 +20,11 @@ interface Props {
 const ChatSettings = ({ models, conversation, prompts, onChangeSystemPrompt, onChangeTemperature }: Props) => {
     return (
         <>
-            <div className="mx-auto flex flex-col space-y-5 md:space-y-10 px-3 pt-5 md:pt-12 sm:max-w-[600px]">
+            <div className="mx-auto flex flex-col space-y-5 md:space-y-10 pt-5 sm:max-w-3xl">
                 {models.length > 0 && (
                     <div className="flex h-full w-full flex-col space-y-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-600 text-gray-800 dark:text-gray-100 ">
                         <div className="flex self-center space-x-2">
-                            <WingmanInferenceStatus showTitle={false} />
+                            <WingmanInferenceStatus showTitle={false} showQuantization={false} />
                         </div>
                         <ModelListing />
                         <SelectModel autoDownload={true} />

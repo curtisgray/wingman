@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { ConnectionStatus, DownloadItem, DownloadServerAppItem } from "@/types/download";
 import { LlamaStats, LlamaStatsTimings, newLlamaStatsTimings, LlamaStatsSystem, newLlamaStatsSystem, LlamaStatsMeta, newLlamaStatsMeta, LlamaStatsTensors, newLlamaStatsTensors } from "@/types/llama_stats";
-import { WINGMAN_CONTROL_PORT, WingmanItem, WingmanServiceAppItem, WingmanStateProps, hasActiveStatus } from "@/types/wingman";
+import { WINGMAN_CONTROL_PORT, WINGMAN_SERVER_DEFAULT_HOST, WingmanItem, WingmanServiceAppItem, WingmanStateProps, hasActiveStatus } from "@/types/wingman";
 import { useEffect, useState } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { isEqual } from "lodash";
@@ -33,7 +33,7 @@ export function useWingman(): { pauseMetrics: boolean; status: ConnectionStatus;
     const {
         lastMessage,
         readyState,
-    } = useWebSocket(`ws://localhost:${WINGMAN_CONTROL_PORT}`,
+    } = useWebSocket(`ws://${WINGMAN_SERVER_DEFAULT_HOST}:${WINGMAN_CONTROL_PORT}`,
         {
             shouldReconnect: (_closeEvent) => true,
             reconnectAttempts: 9999999,

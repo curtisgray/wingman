@@ -1,11 +1,11 @@
-import { useContext, useEffect, useState } from 'react'
+import { useCallback, useContext, useEffect, useState } from 'react'
 import { Tab } from '@headlessui/react'
 import HomeContext from '@/pages/api/home/home.context'
-import { AIModel, Vendors } from '@/types/ai';
+import { AIModel, AIModelID, Vendors } from '@/types/ai';
 import DownloadButton from './DownloadButton';
 import WingmanContext from '@/pages/api/home/wingman.context';
 import { timeAgo } from '@/types/download';
-import { IconApi, IconPlaneDeparture, IconPlaneOff } from '@tabler/icons-react';
+import { IconApi, IconPlaneTilt, IconPlaneOff } from '@tabler/icons-react';
 import { Tooltip } from 'react-tooltip';
 
 function classNames (...classes: string[]) {
@@ -33,14 +33,15 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
     } = useContext(HomeContext);
 
     const {
-        state: { currentWingmanInferenceItem },
+        state: { currentWingmanInferenceItem, isOnline },
     } = useContext(WingmanContext);
 
     const isDownloadable = (model: AIModel) => {
         return Vendors[model.vendor].isDownloadable;
     };
 
-    const createCategories = (models: AIModel[]): ModelCategories => {
+    // wrap createCategories in a useCallback to prevent it from being recreated on every render
+    const createCategories = useCallback((models: AIModel[]) => {
         // filter the models to get the downloaded and OpenAI models
         const startingModels = models.filter((model) => {
             return Vendors[model.vendor].isDownloadable && model.id === initialModelId;
@@ -49,7 +50,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
         return {
             'Starting AI Model': startingModels,
         }
-    };
+    }, [initialModelId]);
 
     const handleDownloadComplete = () => {};
     const handleDownloadStart = () => {};
@@ -75,7 +76,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
 
     useEffect(() => {
         setCategories(createCategories(models));
-    }, [models]);
+    }, [models, createCategories]);
 
     const displayModelName = (model: AIModel) => {
         if (Vendors[model.vendor].isDownloadable) {
@@ -91,7 +92,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
         if (Vendors[model.vendor].isDownloadable) {
             if (model.isInferable) {
                 return <div className="ml-auto text-sky-400">
-                    <IconPlaneDeparture size={iconSize} data-tooltip-id="is-inferable" data-tooltip-content="Cleared for takeoff" />
+                    <IconPlaneTilt size={iconSize} data-tooltip-id="is-inferable" data-tooltip-content="Cleared for takeoff" />
                     <Tooltip id="is-inferable" />
                </div>;
             } else {
@@ -108,9 +109,34 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
         }
     };
 
-    const displayDownload = (model: AIModel) => {
+    const isModelInferringOnServer = (model: AIModel) =>
+    {
+        if (currentWingmanInferenceItem === undefined) return false;
+        if (model.id === currentWingmanInferenceItem.modelRepo) {
+            if (currentWingmanInferenceItem.status === "inferring") {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    const isModelBeingUsed = (model: AIModel | undefined) =>
+    {
+        if (model === undefined || globalModel === undefined || currentWingmanInferenceItem === undefined) return false;
+        if (model.id === AIModelID.NO_MODEL_SELECTED) return false;
+        if (model.id === globalModel?.id) {
+            // return true if stat is is queued, preparing, or inferring
+            const statuses = ["queued", "preparing", "inferring"];
+            if (statuses.includes(currentWingmanInferenceItem.status)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    const displayDownloadInference = (model: AIModel) => {
         if (Vendors[model.vendor].isDownloadable) {
-            if (!model.items) return;
+            if (!model.items) return <></>;
             const middleIndex = Math.floor(
                 (model.items?.length as number) / 2
             )
@@ -121,13 +147,8 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                 // a model can be inferring on the server, but not engaged. another model, say from an API, can be engaged
                 //   even while the server is inferring a different model. thus we need to check for both cases
                 // check if the model is currently engaged
-                let isEngaged = false;
-                if (globalModel?.id === model.id) {
-                    isEngaged = true;
-                }
                 // check if the model is currently inferring on the server, but not engaged
-                if (currentWingmanInferenceItem?.modelRepo === model.id) {
-                    if (isEngaged) {
+                if (isModelBeingUsed(model)) {
                         return <div className="self-center m-4">
                             <button type="button"
                                 className="w-24 bg-orange-800 hover:bg-orange-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
@@ -136,7 +157,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                                 Engaged
                             </button>
                         </div>
-                    } else {
+                } else {
                         return <div className="self-center m-4">
                             <button type="button"
                                 className="w-24 bg-emerald-800 hover:bg-emerald-500 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
@@ -145,14 +166,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                                 Engage
                             </button>
                         </div>
-                    }
                 }
-                return <div className="self-center m-4" style={disabled ? {pointerEvents: "none", opacity: "0.4"} : {}}>
-                    <button type="button" disabled={disabled}
-                        className="w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
-                        onClick={() => handleStartInference(model)}
-                    >Engage</button>
-                </div>
             } else {
                 return <div className="self-center m-4" style={disabled ? {pointerEvents: "none", opacity: "0.4"} : {}}>
                     <DownloadButton modelRepo={model.id}
@@ -166,16 +180,12 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                 </div>;
             }
         } else {
-            // if the global model is the same as the current model display 'Mission Underway', otherwise display 'Engage'
+            // if the global model is the same as the current model display 'Engaged', otherwise display 'Engage'
             if (globalModel?.id === model.id) {
                 return <div className="self-center m-4">
-                    <button type="button"
-
-                        className="w-24 bg-orange-600 hover:bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
-                        disabled
-                    >
+                    <div className="w-24 bg-orange-600 hover:bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded">
                         Engaged
-                    </button>
+                    </div>
                 </div>
             } else {
                 return <div className="self-center m-4" style={disabled ? {pointerEvents: "none", opacity: "0.4"} : {}}>
@@ -218,24 +228,6 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
     return (
         <div className='w-full px-2 py-4 sm:px-0 mt-4 mb-4'>
             <Tab.Group selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
-                {/* <Tab.List className='flex space-x-1 rounded-xl bg-blue-900/20 p-1'>
-                    {Object.keys(categories).map(category => (
-                        <Tab
-                            key={category}
-                            className={({ selected }) =>
-                                classNames(
-                                    'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
-                                    'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
-                                    selected
-                                        ? 'bg-white text-blue-700 shadow'
-                                        : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
-                                )
-                            }
-                        >
-                            {category}
-                        </Tab>
-                    ))}
-                </Tab.List> */}
                 <Tab.Panels className='mt-2'>
                     {Object.values(categories).map((items, idx) => (
                         <Tab.Panel
@@ -245,12 +237,17 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                                 'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2'
                             )}
                         >
-                            {(items.length === 0) && 
+                            {!isOnline &&
+                                <div className="flex h-full justify-center items-center dark:text-neutral-700 text-neutral-400">
+                                    <h3>Wingman is offline</h3>
+                                </div>
+                            }
+                            {isOnline && (items.length === 0) && 
                                 <div className="flex h-full justify-center items-center dark:text-neutral-700 text-neutral-400">
                                     <h3>Nothing to Show</h3>
                                 </div>
                             }
-                            {(items.length > 0) && 
+                            {isOnline && (items.length > 0) && 
                                 <ul>
                                     {items.map((item: AIModel) => (
                                         <li
@@ -265,7 +262,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                                                 {displayModelMetrics(item)}
                                             </div>
                                             {displayClearedForTakeoff(item)}
-                                            {displayDownload(item)}
+                                            {displayDownloadInference(item)}
                                         </li>
                                     ))}
                                 </ul>

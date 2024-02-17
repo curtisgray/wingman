@@ -1,11 +1,11 @@
 import { useContext, useEffect, useState } from 'react'
 import { Tab } from '@headlessui/react'
 import HomeContext from '@/pages/api/home/home.context'
-import { AIModel, Vendors } from '@/types/ai';
+import { AIModel, AIModelID, Vendors } from '@/types/ai';
 import DownloadButton from './DownloadButton';
 import WingmanContext from '@/pages/api/home/wingman.context';
 import { timeAgo } from '@/types/download';
-import { IconApi, IconPlaneDeparture, IconPlaneOff } from '@tabler/icons-react';
+import { IconApi, IconPlaneTilt, IconPlaneOff, IconPropeller } from '@tabler/icons-react';
 import { Tooltip } from 'react-tooltip';
 
 function classNames (...classes: string[]) {
@@ -36,7 +36,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
     } = useContext(HomeContext);
 
     const {
-        state: { currentWingmanInferenceItem },
+        state: { currentWingmanInferenceItem, isOnline, downloadItems },
     } = useContext(WingmanContext);
 
     const isDownloadable = (model: AIModel) => {
@@ -44,10 +44,31 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
     };
 
     const createCategories = (models: AIModel[]): ModelCategories => {
+        if (!isOnline) return { 'My Models': [], 'Recently Added': [], Popular: [], Trending: [] };
+
         // filter the models to get the downloaded and OpenAI models
-        const downloadedModels = models.filter((model) => {
+        let downloadedModels = models.filter((model) => {
             return !Vendors[model.vendor].isDownloadable || model.items?.some((item) => item.isDownloaded);
         });
+        // put any currently downloading models at the top of the `downloadedModels` list
+        if (downloadItems) {
+            const activeDownloads = downloadItems.filter((item) => item.status === 'queued' || item.status === 'downloading');
+            activeDownloads.forEach((item) => {
+                const model = models.find((model) => model.id === item.modelRepo);
+                if (model) {
+                    downloadedModels = [model, ...downloadedModels];
+                }
+            });
+        }
+        // put the inferring model at the top of the `downloadedModels` list, after any currently downloading models
+        if (globalModel) {
+            const inferringModel = models.find((model) => model.id === globalModel.id);
+            if (inferringModel) {
+                downloadedModels = [inferringModel, ...downloadedModels];
+                // remove duplicates
+                downloadedModels = downloadedModels.filter((model, index, self) => self.findIndex((m) => m.id === model.id) === index);
+            }
+        }
         const downloadableModels = models.filter((model) => {
             return Vendors[model.vendor].isDownloadable;
         });
@@ -114,7 +135,9 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
         if (Vendors[model.vendor].isDownloadable) {
             // split the repo owner and name and return 'name (repo owner)'
             const [owner, repo] = model.name.split('/');
-            return <div className="flex space-x-1"><span>{repo}</span><span className="text-xs">{owner}</span></div>;
+            const cleanName = repo.replace(/-/g, ' ');
+            // return <div className="flex space-x-1"><span>{repo}</span><span className="text-xs">{owner}</span></div>;
+            return <div className="flex space-x-1"><span>{cleanName}</span></div>;
         } else {
             return <div className="flex space-x-1"><span>{model.name}</span></div>;
         }
@@ -124,7 +147,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
         if (Vendors[model.vendor].isDownloadable) {
             if (model.isInferable) {
                 return <div className="ml-auto text-sky-400">
-                    <IconPlaneDeparture size={iconSize} data-tooltip-id="is-inferable" data-tooltip-content="Cleared for takeoff" />
+                    <IconPlaneTilt size={iconSize} data-tooltip-id="is-inferable" data-tooltip-content="Cleared for takeoff" />
                     <Tooltip id="is-inferable" />
                </div>;
             } else {
@@ -141,53 +164,78 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
         }
     };
 
-    const displayDownload = (model: AIModel) => {
+    const isGlobalModel = (model: AIModel | undefined) =>
+    {
+        if (model === undefined || globalModel === undefined) return false;
+        if (model.id === AIModelID.NO_MODEL_SELECTED) return false;
+        if (model.id === globalModel?.id) return true;
+        return false;
+    };
+
+    const isModelInferring = (model: AIModel | undefined) =>
+    {
+        const statuses = ["queued", "preparing", "inferring"];
+        if (currentWingmanInferenceItem
+            && currentWingmanInferenceItem.modelRepo === model?.id
+            && statuses.includes(currentWingmanInferenceItem?.status as string)) {
+            return true;
+        }
+        return false;
+    };
+
+    const displayDownloadInference = (model: AIModel) =>
+    {
         if (Vendors[model.vendor].isDownloadable) {
-            if (!model.items) return;
+            if (!model.items) return <></>;
             const middleIndex = Math.floor(
                 (model.items?.length as number) / 2
-            )
-            const quantization = model.items?.[middleIndex]?.quantization as string
+            );
+            const quantization = model.items?.[middleIndex]?.quantization as string;
             const item = model.items?.find((item) => item?.quantization === quantization);
             if (!item) return <></>;
             if (item.isDownloaded) {
                 // a model can be inferring on the server, but not engaged. another model, say from an API, can be engaged
                 //   even while the server is inferring a different model. thus we need to check for both cases
                 // check if the model is currently engaged
-                let isEngaged = false;
-                if (globalModel?.id === model.id) {
-                    isEngaged = true;
-                }
                 // check if the model is currently inferring on the server, but not engaged
-                if (currentWingmanInferenceItem?.modelRepo === model.id) {
-                    if (isEngaged) {
+                if (isGlobalModel(model)) {
+                    return <div className="self-center m-4">
+                        <button type="button"
+                            className="w-24 bg-orange-800 disabled:shadow-none disabled:cursor-default text-neutral-900 dark:text-white py-2 rounded"
+                            disabled
+                        >
+                            <div className="flex space-x-1 items-center justify-center">
+                                <IconPropeller className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />
+                                <span>Engaged</span>
+                            </div>
+                        </button>
+                    </div>;
+                } else {
+                    if (isModelInferring(model)) {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-24 bg-orange-800 hover:bg-orange-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
-                                disabled
+                                className="w-24 bg-emerald-800 hover:bg-emerald-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
+                                onClick={() => handleStartInference(model)}
                             >
-                                Engaged
+                                <div className="flex space-x-1 items-center justify-center">
+                                    <IconPropeller className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />
+                                    <span>Engage</span>
+                                </div>
                             </button>
-                        </div>
+                        </div>;
                     } else {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-24 bg-emerald-800 hover:bg-emerald-500 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
+                                className="w-24 bg-gray-800 hover:bg-gray-500 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
                                 onClick={() => handleStartInference(model)}
                             >
                                 Engage
                             </button>
-                        </div>
+                        </div>;
                     }
                 }
-                return <div className="self-center m-4" style={disabled ? {pointerEvents: "none", opacity: "0.4"} : {}}>
-                    <button type="button" disabled={disabled}
-                        className="w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
-                        onClick={() => handleStartInference(model)}
-                    >Engage</button>
-                </div>
             } else {
-                return <div className="self-center m-4" style={disabled ? {pointerEvents: "none", opacity: "0.4"} : {}}>
+                return <div className="self-center m-4" style={disabled ? { pointerEvents: "none", opacity: "0.4" } : {}}>
                     <DownloadButton modelRepo={model.id}
                         filePath={item.filePath}
                         showFileName={false}
@@ -199,26 +247,22 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                 </div>;
             }
         } else {
-            // if the global model is the same as the current model display 'Mission Underway', otherwise display 'Engage'
+            // if the global model is the same as the current model display 'Engaged', otherwise display 'Engage'
             if (globalModel?.id === model.id) {
                 return <div className="self-center m-4">
-                    <button type="button"
-
-                        className="w-24 bg-orange-600 hover:bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
-                        disabled
-                    >
+                    <div className="w-24 bg-orange-600 hover:bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded">
                         Engaged
-                    </button>
-                </div>
+                    </div>
+                </div>;
             } else {
-                return <div className="self-center m-4" style={disabled ? {pointerEvents: "none", opacity: "0.4"} : {}}>
+                return <div className="self-center m-4" style={disabled ? { pointerEvents: "none", opacity: "0.4" } : {}}>
                     <button type="button" disabled={disabled}
                         className="w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
                         onClick={() => handleStartInference(model)}
                     >
                         Engage
                     </button>
-                </div>
+                </div>;
             }
         }
     };
@@ -278,6 +322,11 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                                 'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2'
                             )}
                         >
+                            {!isOnline &&
+                                <div className="flex h-full justify-center items-center dark:text-neutral-700 text-neutral-400">
+                                    <h3>Wingman is offline</h3>
+                                </div>
+                            }
                             {(items.length === 0) && 
                                 <div className="flex h-full justify-center items-center dark:text-neutral-700 text-neutral-400">
                                     <h3>Nothing to Show</h3>
@@ -298,7 +347,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                                                 {displayModelMetrics(item)}
                                             </div>
                                             {displayClearedForTakeoff(item)}
-                                            {displayDownload(item)}
+                                            {displayDownloadInference(item)}
                                         </li>
                                     ))}
                                 </ul>

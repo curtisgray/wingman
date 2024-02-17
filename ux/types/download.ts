@@ -175,8 +175,17 @@ export const UnstripFormatFromModelRepo = (modelRepo: string): string =>
 export const StripFormatFromModelRepo = (modelRepo: string): string =>
 {
     if (!modelRepo) throw new Error("modelRepo is required, but is empty");
-    if (modelRepo.endsWith(HF_MODEL_ENDS_WITH)) return modelRepo.substr(0, modelRepo.length - HF_MODEL_ENDS_WITH.length);
-    return modelRepo;
+    let modelRepoStripped = modelRepo;
+    if (modelRepo.endsWith(HF_MODEL_ENDS_WITH)) {
+        modelRepoStripped = modelRepo.substr(0, modelRepo.length - HF_MODEL_ENDS_WITH.length);
+    }
+    // check if the modelRepo has a '/' in it
+    if (modelRepoStripped.includes("/")) {
+        const [owner, repo] = modelRepoStripped.split('/');
+        modelRepoStripped = `${repo}`;
+    }
+    const cleanName = modelRepoStripped.replace(/-/g, ' ');
+    return cleanName;
 };
 
 export const quantizationNameFromQuantization = (quantization: string): string =>

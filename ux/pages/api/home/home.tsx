@@ -40,21 +40,20 @@ import { WingmanStateProps } from "@/types/wingman";
 import { initialWingmanState } from "./wingman.state";
 import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 import toast from "react-hot-toast";
-import * as si from 'systeminformation';
-import os from 'os';
-import Spinner from "@/components/Spinner";
 
 interface Props
 {
     serverSideApiKeyIsSet: boolean;
     serverSidePluginKeysSet: boolean;
     defaultModelId: AIModelID;
+    serverSideHostAddress: string;
 }
 
 const Home = ({
     serverSideApiKeyIsSet,
     serverSidePluginKeysSet,
     defaultModelId,
+    serverSideHostAddress,
 }: Props) =>
 {
     const { t } = useTranslation("chat");
@@ -473,11 +472,17 @@ const Home = ({
                 field: "serverSidePluginKeysSet",
                 value: serverSidePluginKeysSet,
             });
+        serverSideHostAddress &&
+            homeDispatch({
+                field: "serverSideHostAddress",
+                value: serverSideHostAddress,
+            });
     }, [
         defaultModelId,
         homeDispatch,
         serverSideApiKeyIsSet,
         serverSidePluginKeysSet,
+        serverSideHostAddress,
     ]);
 
     // ON LOAD --------------------------------------------
@@ -496,7 +501,6 @@ const Home = ({
 
         if (serverSideApiKeyIsSet) {
             homeDispatch({ field: "apiKey", value: "" });
-
             localStorage.removeItem("apiKey");
         } else if (apiKey) {
             homeDispatch({ field: "apiKey", value: apiKey });
@@ -508,6 +512,14 @@ const Home = ({
             localStorage.removeItem("pluginKeys");
         } else if (pluginKeys) {
             homeDispatch({ field: "pluginKeys", value: pluginKeys });
+        }
+
+        const hostAddress = localStorage.getItem("hostAddress");
+        if (serverSideHostAddress) {
+            homeDispatch({ field: "hostAddress", value: "" });
+            localStorage.removeItem("hostAddress");
+        } else if (hostAddress) {
+            homeDispatch({ field: "hostAddress", value: hostAddress });
         }
 
         if (window.innerWidth < 640) {
@@ -586,6 +598,7 @@ const Home = ({
         serverSideApiKeyIsSet,
         serverSidePluginKeysSet,
         t,
+        serverSideHostAddress,
     ]);
 
     useEffect(() =>
@@ -646,20 +659,20 @@ const Home = ({
         }
     }, [isSwitchingModel]);
 
-    const isModelInferring = () =>
+    const isWaiting = () =>
     {
         if (!globalModel && selectedConversation?.model === undefined)
-            return true;
+            return false;    // special case where no model is selected
         if (globalModel) {
             if (!Vendors[globalModel.vendor].isDownloadable) {
-                return true;
+                return false;
             } else if (globalModel.id === currentWingmanInferenceItem?.modelRepo) {
                 if (currentWingmanInferenceItem?.status === "inferring") {
-                    return true;
+                    return false;
                 }
             }
         }
-        return false;
+        return true;
     };
 
     return (
@@ -687,15 +700,15 @@ const Home = ({
             >
                 <Head>
                     <title>Wingman</title>
-                    <meta name="description" content="The convienent chat UI." />
+                    <meta name="description" content="The easiest way to launch Llama locally." />
                     <meta
                         name="viewport"
                         content="height=device-height ,width=device-width, initial-scale=1, user-scalable=no"
                     />
                     <link rel="icon" href="/favicon.ico" />
                 </Head>
-                {!isModelInferring() && (
-                    <div className="fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-95 z-50 flex items-center justify-center fadeIn">
+                {/* {isWaiting() && (
+                    <div className="fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-95 z-150 flex items-center justify-center fadeIn">
                         <div className="flex flex-col items-center justify-center">
                             <span className="animate-pulse inline-flex h-2 w-2 mx-1 rounded-full bg-orange-400"></span>
                             <p className="text-white text-lg mt-4">
@@ -703,7 +716,7 @@ const Home = ({
                             </p>
                         </div>
                     </div>
-                )}
+                )} */}
                 {selectedConversation && (
                     <main
                         className={`flex h-screen w-screen flex-col text-sm text-black dark:text-white ${lightMode}`}
@@ -747,6 +760,7 @@ export const getServerSideProps: GetServerSideProps = async ({ locale }) =>
     return {
         props: {
             serverSideApiKeyIsSet: !!process.env.OPENAI_API_KEY,
+            serverSideHostAddress: !!process.env.WINGMAN_HOST_ADDRESS,
             defaultModelId,
             serverSidePluginKeysSet,
             ...(await serverSideTranslations(locale ?? "en", [

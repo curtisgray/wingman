@@ -1,15 +1,10 @@
-import huggingfaceImage from "@/assets/huggingface.png";
-import openaiLightImage from "@/assets/openai-white.png";
-import { StaticImageData } from "next/image";
-
-export type VendorName = "openai" | "huggingface";
+export type VendorName = "openai" | "meta";
 
 export interface VendorInfo
 {
     isa: "VendorInfo";
     name: VendorName;
     displayName: string;
-    logo: StaticImageData;
     isDownloadable: boolean;
     isEnabled: boolean;
 }
@@ -88,15 +83,20 @@ export const Vendors: Record<string, VendorInfo> = {
         isa: "VendorInfo",
         name: "openai",
         displayName: "OpenAI",
-        logo: openaiLightImage,
         isDownloadable: false,
+        isEnabled: true,
+    },
+    meta: {
+        isa: "VendorInfo",
+        name: "meta",
+        displayName: "Meta",
+        isDownloadable: true,
         isEnabled: true,
     },
     huggingface: {
         isa: "VendorInfo",
-        name: "huggingface",
-        displayName: "HuggingFace",
-        logo: huggingfaceImage,
+        name: "meta",
+        displayName: "Meta",
         isDownloadable: true,
         isEnabled: true,
     },

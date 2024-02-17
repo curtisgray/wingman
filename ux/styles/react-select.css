@@ -30,7 +30,7 @@
  */
 @layer components {
   .my-react-select-container .my-react-select__control {
-    @apply bg-white dark:bg-[#343541] border-2 border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500;
+    @apply bg-white dark:bg-gray-700 border-2 border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500;
   }
 
   .my-react-select-container .my-react-select__control--is-focused {
@@ -38,11 +38,11 @@
   }
 
   .my-react-select-container .my-react-select__menu {
-    @apply bg-neutral-100 dark:bg-[#343541] border-2 border-neutral-300 dark:border-neutral-600;
+    @apply bg-neutral-100 dark:bg-gray-700 border-2 border-neutral-300 dark:border-neutral-600;
   }
 
   .my-react-select-container .my-react-select__option {
-    @apply text-neutral-600 dark:text-neutral-200 bg-neutral-100 hover:bg-neutral-200 dark:bg-[#343541] dark:hover:bg-neutral-800;
+    @apply text-neutral-600 dark:text-neutral-200 bg-neutral-100 hover:bg-neutral-200 dark:bg-gray-700 dark:hover:bg-neutral-800;
   }
 
   .my-react-select-container .my-react-select__indicator-separator {

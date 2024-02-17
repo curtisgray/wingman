@@ -1,10 +1,12 @@
 import { useFetch } from "@/hooks/useFetch";
+import HomeContext from "@/pages/api/home/home.context";
 import { AIModel } from "@/types/ai";
 import { WingmanItem } from "@/types/wingman";
-import { useCallback } from "react";
+import { useCallback, useContext } from "react";
 
 export interface GetModelsRequestProps {
     key: string;
+    url: string;
 }
 
 const useApiService = () => {
@@ -16,14 +18,9 @@ const useApiService = () => {
         },
         signal,
     });
-    const getWingmanItems = useCallback(
-        () => fetchService.get<WingmanItem[]>(`/api/inference`),
-        [fetchService]
-    );
 
     return {
         getModels,
-        getWingmanItems,
     };
 };
 
