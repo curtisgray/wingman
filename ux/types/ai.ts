@@ -1,4 +1,4 @@
-export type VendorName = "openai" | "meta";
+export type VendorName = "openai" | "meta" | "huggingface"; // TODO: remove "huggingface" as it's only used in pre-release backend code
 
 export interface VendorInfo
 {

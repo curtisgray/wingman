@@ -26,13 +26,13 @@ const WingmanRenderBox = ({ className = "" }: WingmanRenderBoxProps) =>
                     </p>
                 </div>
                 {isGenerating === false && <div className="grid items-center">
-                    {/* <button className="text-center rounded h-12 p-4 bg-neutral-50 text-xs font-medium uppercase leading-normal text-neutral-800"
+                    {/* <button className="text-center rounded h-12 p-4 bg-gray-50 text-xs font-medium uppercase leading-normal text-gray-800"
                         onClick={sendDronePrompt}>drone</button>
-                    <button className="text-center rounded h-12 p-4 bg-neutral-50 text-xs font-medium uppercase leading-normal text-neutral-800"
+                    <button className="text-center rounded h-12 p-4 bg-gray-50 text-xs font-medium uppercase leading-normal text-gray-800"
                         onClick={sendRedditPrompt}>reddit</button> */}
                 </div>}
                 {isGenerating === true && <div className="grid items-center">
-                    <button className="text-center rounded h-12 p-4 bg-neutral-50 text-xs font-medium uppercase leading-normal text-neutral-800"
+                    <button className="text-center rounded h-12 p-4 bg-gray-50 text-xs font-medium uppercase leading-normal text-gray-800"
                         onClick={stopGenerating}>stop</button>
                 </div>}
             </div>

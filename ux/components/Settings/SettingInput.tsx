@@ -40,7 +40,7 @@ export const SettingInput: FC<SettingInputProps> = ({ value, labelText = "", onC
 
             <input
                 ref={inputRef}
-                className="ml-2 h-[20px] flex-1 overflow-hidden overflow-ellipsis border-b border-neutral-400 bg-transparent pr-1 text-[12.5px] leading-3 text-left text-white outline-none focus:border-neutral-100"
+                className="ml-2 h-[20px] flex-1 overflow-hidden overflow-ellipsis border-b border-gray-400 bg-transparent pr-1 text-xs leading-3 text-left text-white outline-none focus:border-gray-100"
                 type={`${hideInput ? "password" : "text"}`}
                 value={newValue}
                 onChange={(e) => setNewValue(e.target.value)}
@@ -50,7 +50,7 @@ export const SettingInput: FC<SettingInputProps> = ({ value, labelText = "", onC
 
             <div className="flex w-[40px]">
                 <IconCheck
-                    className="ml-auto min-w-[20px] text-neutral-400 hover:text-neutral-100"
+                    className="ml-auto min-w-[20px] text-gray-400 hover:text-gray-100"
                     size={18}
                     onClick={(e) => {
                         e.stopPropagation();
@@ -59,7 +59,7 @@ export const SettingInput: FC<SettingInputProps> = ({ value, labelText = "", onC
                 />
 
                 <IconX
-                    className="ml-auto min-w-[20px] text-neutral-400 hover:text-neutral-100"
+                    className="ml-auto min-w-[20px] text-gray-400 hover:text-gray-100"
                     size={18}
                     onClick={(e) => {
                         e.stopPropagation();

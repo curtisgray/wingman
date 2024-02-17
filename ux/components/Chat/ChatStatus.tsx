@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
 import WingmanInferenceStatus from "./WingmanInferenceStatus";
-import { IconSettings } from "@tabler/icons-react";
 import HomeContext from "@/pages/api/home/home.context";
 import { Vendors } from "@/types/ai";
 import { displayVendorIcon } from "./Util";
@@ -46,11 +45,11 @@ const ChatStatus = ({ onSettings, onClearConversation, iconSize = 18, showStatus
     };
 
     return (
-        <div className="sticky top-0 z-10 flex justify-center border border-b-neutral-300 bg-neutral-100 py-2 text-sm text-neutral-500 dark:border-none dark:bg-gray-700 dark:text-neutral-200">
+        <div className="sticky top-0 z-10 flex justify-center border border-b-gray-300 bg-gray-100 py-2 text-sm text-gray-500 dark:border-none dark:bg-gray-700 dark:text-gray-200">
             {showStatus && (displayGlobalModel())}
-            <button type="button" title="Open settings" style={disabled ? { pointerEvents: "none", opacity: "0.4" } : {}} className="ml-2 cursor-pointer hover:opacity-50" onClick={onSettings}>
+            {/* <button type="button" title="Open settings" style={disabled ? { pointerEvents: "none", opacity: "0.4" } : {}} className="ml-2 cursor-pointer hover:opacity-50" onClick={onSettings}>
                 <IconSettings size={iconSize} />
-            </button>
+            </button> */}
             {/* <button type="button" title="Clear conversation" style={disabled ? {pointerEvents: "none", opacity: "0.4"} : {}} className="ml-2 cursor-pointer hover:opacity-50" onClick={onClearConversation}>
                 <IconClearAll size={iconSize} />
             </button> */}

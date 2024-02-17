@@ -7,6 +7,7 @@ import WingmanContext from '@/pages/api/home/wingman.context';
 import { timeAgo } from '@/types/download';
 import { IconApi, IconPlaneTilt, IconPlaneOff } from '@tabler/icons-react';
 import { Tooltip } from 'react-tooltip';
+import { displayModelName } from './Util';
 
 function classNames (...classes: string[]) {
     return classes.filter(Boolean).join(' ')
@@ -78,16 +79,6 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
         setCategories(createCategories(models));
     }, [models, createCategories]);
 
-    const displayModelName = (model: AIModel) => {
-        if (Vendors[model.vendor].isDownloadable) {
-            // split the repo owner and name and return 'name (repo owner)'
-            const [owner, repo] = model.name.split('/');
-            return <div className="flex space-x-1"><span>{repo}</span><span className="text-xs">{owner}</span></div>;
-        } else {
-            return <div className="flex space-x-1"><span>{model.name}</span></div>;
-        }
-    };
-
     const displayClearedForTakeoff = (model: AIModel) => {
         if (Vendors[model.vendor].isDownloadable) {
             if (model.isInferable) {
@@ -96,7 +87,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                     <Tooltip id="is-inferable" />
                </div>;
             } else {
-                return <div className="ml-auto text-neutral-400">
+                return <div className="ml-auto text-gray-400">
                     <IconPlaneOff size={iconSize} data-tooltip-id="is-not-inferable" data-tooltip-content="Not cleared for takeoff" />
                     <Tooltip id="is-not-inferable" />
                 </div>;
@@ -151,7 +142,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                 if (isModelBeingUsed(model)) {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-24 bg-orange-800 hover:bg-orange-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
+                                className="w-24 bg-orange-800 hover:bg-orange-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
                                 disabled
                             >
                                 Engaged
@@ -160,7 +151,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                 } else {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-24 bg-emerald-800 hover:bg-emerald-500 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
+                                className="w-24 bg-emerald-800 hover:bg-emerald-500 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
                                 onClick={() => handleStartInference(model)}
                             >
                                 Engage
@@ -183,14 +174,14 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
             // if the global model is the same as the current model display 'Engaged', otherwise display 'Engage'
             if (globalModel?.id === model.id) {
                 return <div className="self-center m-4">
-                    <div className="w-24 bg-orange-600 hover:bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded">
+                    <div className="w-24 bg-orange-600 hover:bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded">
                         Engaged
                     </div>
                 </div>
             } else {
                 return <div className="self-center m-4" style={disabled ? {pointerEvents: "none", opacity: "0.4"} : {}}>
                     <button type="button" disabled={disabled}
-                        className="w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
+                        className="w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
                         onClick={() => handleStartInference(model)}
                     >
                         Engage
@@ -204,7 +195,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
         const vendor = Vendors[item.vendor];
         if (isDownloadable(item)) {
             return <>
-                <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-neutral-400'>
+                <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-gray-400'>
                     {/* <li>{new Date(item.updated).toLocaleDateString()}</li> */}
                     <li>{timeAgo(new Date(item.updated))}</li>
                     <li>&middot;</li>
@@ -216,7 +207,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
         } else {
             const tokenInKb = Math.round(item.tokenLimit / 1024);
             return <>
-                <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-neutral-400'>
+                <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-gray-400'>
                     <li>{vendor.displayName}</li>
                     <li>&middot;</li>
                     <li>context size {`${tokenInKb}K`}</li>
@@ -238,12 +229,12 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                             )}
                         >
                             {!isOnline &&
-                                <div className="flex h-full justify-center items-center dark:text-neutral-700 text-neutral-400">
+                                <div className="flex h-full justify-center items-center dark:text-gray-700 text-gray-400">
                                     <h3>Wingman is offline</h3>
                                 </div>
                             }
                             {isOnline && (items.length === 0) && 
-                                <div className="flex h-full justify-center items-center dark:text-neutral-700 text-neutral-400">
+                                <div className="flex h-full justify-center items-center dark:text-gray-700 text-gray-400">
                                     <h3>Nothing to Show</h3>
                                 </div>
                             }
@@ -255,7 +246,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                                             className='flex items-center justify-between hover:bg-gray-100'
                                         >
                                             <div className = 'relative rounded-md p-2'>
-                                                <h3 className='text-base font-medium leading-5 dark:text-neutral-700 text-neutral-400'>
+                                                <h3 className='text-base font-medium leading-5 dark:text-gray-700 text-gray-400'>
                                                     {displayModelName(item)}
                                                 </h3>
 

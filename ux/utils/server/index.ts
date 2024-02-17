@@ -8,11 +8,7 @@ import {
 } from "../app/const";
 import { Message } from "@/types/chat";
 import { AIModel, VendorName } from "@/types/ai";
-import {
-    ParsedEvent,
-    ReconnectInterval,
-    createParser,
-} from "eventsource-parser";
+import { ParsedEvent, ReconnectInterval, createParser } from "eventsource-parser";
 import { WINGMAN_INFERENCE_SERVER_URL } from "@/types/wingman";
 
 export class OpenAIError extends Error {
@@ -44,6 +40,7 @@ export const OpenAIStream = async (
             host = OPENAI_API_HOST;
             vendorDisplayName = "OpenAI API";
             break;
+        case "huggingface": // TODO: remove "huggingface" as it's only used in pre-release backend code
         case "meta":
             host = WINGMAN_INFERENCE_SERVER_URL;
             vendorDisplayName = "Wingman";

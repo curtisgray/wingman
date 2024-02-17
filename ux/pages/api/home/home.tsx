@@ -719,9 +719,9 @@ const Home = ({
                 )} */}
                 {selectedConversation && (
                     <main
-                        className={`flex h-screen w-screen flex-col text-sm text-black dark:text-white ${lightMode}`}
+                        className={`flex flex-col h-screen w-screen ${lightMode}`}
                     >
-                        <div className="flex h-full w-full pt-[48px] sm:pt-0">
+                        <div className="flex h-full w-full bg-white text-black dark:text-white dark:bg-gray-900">
                             <Chatbar />
 
                             <div className="flex flex-1">

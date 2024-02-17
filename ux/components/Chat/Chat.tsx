@@ -459,14 +459,14 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     };
 
     return (
-        <div className="relative flex-1 overflow-hidden bg-white dark:bg-gray-900">
+        <div className="relative flex-1 overflow-hidden bg-gray-100 dark:bg-gray-800">
             {( showOnboarding() ) ? ( // no models available so display startup ui
                 // TODO: Besides api key, we should also check if the user has selected a model
                 <div className="mx-auto flex h-full w-[300px] flex-col justify-center space-y-6 sm:w-[600px]">
-                    <div className="text-center text-4xl font-bold text-black dark:text-white">
+                    <div className="text-center text-4xl font-bold">
                         Welcome to Wingman
                     </div>
-                    <div className="text-center text-lg text-black dark:text-white">
+                    <div className="text-center text-lg">
                         <div className="mb-8">{`The easiest way to launch AI locally.`}</div>
                     </div>
                     <div className="text-gray-500 dark:text-gray-400">
@@ -476,7 +476,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                                         "To get started using Wingman, we have pre-selected a small, highly-capable Meta Llama AI model that can run on most PC's. Download and engage the Meta compatible AI model below. To download, select the 'Download' button. Once the model download is completed, select 'Engage' to begin using the model."
                                     )}
                                 </div>
-                                <div className="w-full text-gray-800 dark:text-gray-100 ">
+                                <div className="w-full">
                                     <InitialModelListing initialModelId="TheBloke/phi-2-dpo-GGUF" />
                                 </div>
                                 <div className='mb-4'>
@@ -484,10 +484,10 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                                         "To engage any available AI model, use the search box below."
                                     )}
                                 </div>
-                                <div className="w-full text-gray-800 dark:text-gray-100 ">
+                                <div className="w-full">
                                     {!isOnline && (
-                                        <div className="mb-2 p-3 rounded-lg w-full text-center text-gray-100 dark:text-gray-800 dark:bg-gray-100 bg-gray-800">
-                                            {t("Wingman is offline. Check that the Wingman service is running.")}
+                                    <div className="mb-2 p-3 rounded-lg w-full text-center text-gray-100 bg-gray-800 dark:text-gray-800 dark:bg-white">
+                                            {t("Search not available while offline.")}
                                         </div>
                                     )}
                                     {isOnline && 
@@ -526,39 +526,32 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                 <ErrorMessageDiv error={modelError} />
             ) : (   // models available so display chat
                 <>
-                    <div className="max-h-full overflow-x-hidden" ref={chatContainerRef} onScroll={handleScroll}>
-                            <>
-                                <ChatStatus onSettings={handleSettings} onClearConversation={onClearAll} showStatus={!showSettings} />
+                    <div className="max-h-full overflow-x-hidden"
+                        ref={chatContainerRef} onScroll={handleScroll}>
+                        <ChatStatus onSettings={handleSettings} onClearConversation={onClearAll} showStatus={!showSettings} />
 
-                                {selectedConversation?.messages.map(
-                                    (message, index) => (
-                                        <MemoizedChatMessage
-                                            key={index}
-                                            message={message}
-                                            messageIndex={index}
-                                            onEdit={(editedMessage) => {
-                                                setCurrentMessage(
-                                                    editedMessage
-                                                );
-                                                // discard edited message and the ones that come after then resend
-                                                handleSend(
-                                                    editedMessage,
-                                                    selectedConversation
-                                                        ?.messages.length -
-                                                        index
-                                                );
-                                            }}
-                                        />
-                                    )
-                                )}
-
-                                {loading && <ChatLoader />}
-
-                                <div
-                                    className="h-[162px] bg-white dark:bg-gray-900"
-                                    ref={messagesEndRef}
+                        {selectedConversation?.messages.map(
+                            (message, index) => (
+                                <MemoizedChatMessage
+                                    key={index}
+                                    message={message}
+                                    messageIndex={index}
+                                    onEdit={(editedMessage) => {
+                                        setCurrentMessage(editedMessage);
+                                        // discard edited message and the ones that come after then resend
+                                        handleSend(
+                                            editedMessage,
+                                            selectedConversation?.messages.length - index
+                                        );
+                                    }}
                                 />
-                            </>
+                            )
+                        )}
+
+                        {loading && <ChatLoader />}
+
+                        {/* add a buffer at the bottom of the messages list */}
+                        <div ref={messagesEndRef} className="h-[153.333px]" />
                     </div>
 
                     <ChatInput

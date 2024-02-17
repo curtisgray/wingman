@@ -64,7 +64,6 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
     const {
         state: { models, globalModel, defaultModelId },
         handleChangeModel,
-        handleRefreshModels: globalHandleRefreshModels,
     } = useContext(HomeContext);
 
     const {
@@ -226,7 +225,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                     <IconPlaneTilt size={iconSize} />
                 </div>;
             } else {
-                return <div className="text-neutral-500">
+                return <div className="text-gray-500">
                     <IconPlaneOff size={iconSize} />
                 </div>;
             }
@@ -445,7 +444,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                 {!miniMode && (
                     <div className="flex flex-col space-y-4">
                         <div className="flex pb-2">
-                            <label className="text-left text-neutral-700 dark:text-neutral-400">
+                            <label className="text-left text-gray-700 dark:text-gray-400">
                                 {t("To engage any available AI model, use the search box below.")}
                             </label>
                             <span className="flex-grow"></span>
@@ -500,7 +499,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                             isSearchable={true}
                             // hideSelectedOptions={true}
                             onChange={handleChangeSelectedModel}
-                            className="model-select-container w-full text-neutral-900 bg-slate-700"
+                            className="model-select-container w-full text-gray-900 bg-slate-700"
                             classNamePrefix="model-select"
                             instanceId={"model-select"}
                             isDisabled={disabled || !isOnline}
@@ -523,7 +522,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                                 isSearchable={true}
                                 // hideSelectedOptions={true}
                                 onChange={handleDownloadableItemChange}
-                                className="optimization-select-container w-4/12 text-neutral-900"
+                                className="optimization-select-container w-4/12 text-gray-900"
                                 classNamePrefix="optimization-select"
                                 instanceId={"optimization-select"}
                                 isDisabled={disabled || !isOnline}

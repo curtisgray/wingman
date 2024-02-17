@@ -7,6 +7,7 @@ import WingmanContext from '@/pages/api/home/wingman.context';
 import { timeAgo } from '@/types/download';
 import { IconApi, IconPlaneTilt, IconPlaneOff, IconPropeller } from '@tabler/icons-react';
 import { Tooltip } from 'react-tooltip';
+import { displayModelName } from './Util';
 
 function classNames (...classes: string[]) {
     return classes.filter(Boolean).join(' ')
@@ -43,68 +44,6 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
         return Vendors[model.vendor].isDownloadable;
     };
 
-    const createCategories = (models: AIModel[]): ModelCategories => {
-        if (!isOnline) return { 'My Models': [], 'Recently Added': [], Popular: [], Trending: [] };
-
-        // filter the models to get the downloaded and OpenAI models
-        let downloadedModels = models.filter((model) => {
-            return !Vendors[model.vendor].isDownloadable || model.items?.some((item) => item.isDownloaded);
-        });
-        // put any currently downloading models at the top of the `downloadedModels` list
-        if (downloadItems) {
-            const activeDownloads = downloadItems.filter((item) => item.status === 'queued' || item.status === 'downloading');
-            activeDownloads.forEach((item) => {
-                const model = models.find((model) => model.id === item.modelRepo);
-                if (model) {
-                    downloadedModels = [model, ...downloadedModels];
-                }
-            });
-        }
-        // put the inferring model at the top of the `downloadedModels` list, after any currently downloading models
-        if (globalModel) {
-            const inferringModel = models.find((model) => model.id === globalModel.id);
-            if (inferringModel) {
-                downloadedModels = [inferringModel, ...downloadedModels];
-                // remove duplicates
-                downloadedModels = downloadedModels.filter((model, index, self) => self.findIndex((m) => m.id === model.id) === index);
-            }
-        }
-        const downloadableModels = models.filter((model) => {
-            return Vendors[model.vendor].isDownloadable;
-        });
-        // format the models into the categories
-        // 1. Recent - sort the models by date and get the first listSize
-        // 2. Popular - sort the models by downloads and get the first listSize
-        // 3. Trending - sort the models by date and likes and get the first listSize
-        // sort models by date descending
-        const sortedModelsByDate = downloadableModels.sort((a, b) => {
-            // convert model.updated to date, then to a number and subtract
-            return new Date(b.created).getTime() - new Date(a.created).getTime()
-        })
-        // get the first listSize models
-        const recentModels = sortedModelsByDate.slice(0, listSize)
-        // sort models by downloads descending
-        const sortedModelsByDownloads = downloadableModels.sort((a, b) => {
-            return b.downloads - a.downloads
-        })
-        // get the first listSize models
-        const popularModels = sortedModelsByDownloads.slice(0, listSize)
-        // sort models by date and likes descending to derive trending models
-        //  to do that we will take the 100 most recent models and sort them by likes
-        const sortedModelsByLikes = sortedModelsByDate.slice(0, 50).sort((a, b) => {
-            return b.likes - a.likes
-        })
-        // get the first listSize models
-        const trendingModels = sortedModelsByLikes.slice(0, listSize)
-
-        return {
-            'My Models': downloadedModels,
-            'Recently Added': recentModels,
-            Popular: popularModels,
-            Trending: trendingModels,
-        }
-    };
-
     const handleDownloadComplete = () => {};
     const handleDownloadStart = () => {};
     const handleDownloadInitialized = () => {};
@@ -128,20 +67,76 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
     };
 
     useEffect(() => {
-        setCategories(createCategories(models));
-    }, [models]);
+        const createCategories = (models: AIModel[]): ModelCategories =>
+        {
+            if (!isOnline) return { 'My Models': [], 'Recently Added': [], Popular: [], Trending: [] };
 
-    const displayModelName = (model: AIModel) => {
-        if (Vendors[model.vendor].isDownloadable) {
-            // split the repo owner and name and return 'name (repo owner)'
-            const [owner, repo] = model.name.split('/');
-            const cleanName = repo.replace(/-/g, ' ');
-            // return <div className="flex space-x-1"><span>{repo}</span><span className="text-xs">{owner}</span></div>;
-            return <div className="flex space-x-1"><span>{cleanName}</span></div>;
-        } else {
-            return <div className="flex space-x-1"><span>{model.name}</span></div>;
-        }
-    };
+            // filter the models to get the downloaded and OpenAI models
+            let downloadedModels = models.filter((model) =>
+            {
+                return !Vendors[model.vendor].isDownloadable || model.items?.some((item) => item.isDownloaded);
+            });
+            // put any currently downloading models at the top of the `downloadedModels` list
+            if (downloadItems) {
+                const activeDownloads = downloadItems.filter((item) => item.status === 'queued' || item.status === 'downloading');
+                activeDownloads.forEach((item) =>
+                {
+                    const model = models.find((model) => model.id === item.modelRepo);
+                    if (model) {
+                        downloadedModels = [model, ...downloadedModels];
+                    }
+                });
+            }
+            // put the inferring model at the top of the `downloadedModels` list, after any currently downloading models
+            if (globalModel) {
+                const inferringModel = models.find((model) => model.id === globalModel.id);
+                if (inferringModel) {
+                    downloadedModels = [inferringModel, ...downloadedModels];
+                    // remove duplicates
+                    downloadedModels = downloadedModels.filter((model, index, self) => self.findIndex((m) => m.id === model.id) === index);
+                }
+            }
+            const downloadableModels = models.filter((model) =>
+            {
+                return Vendors[model.vendor].isDownloadable;
+            });
+            // format the models into the categories
+            // 1. Recent - sort the models by date and get the first listSize
+            // 2. Popular - sort the models by downloads and get the first listSize
+            // 3. Trending - sort the models by date and likes and get the first listSize
+            // sort models by date descending
+            const sortedModelsByDate = downloadableModels.sort((a, b) =>
+            {
+                // convert model.updated to date, then to a number and subtract
+                return new Date(b.created).getTime() - new Date(a.created).getTime();
+            });
+            // get the first listSize models
+            const recentModels = sortedModelsByDate.slice(0, listSize);
+            // sort models by downloads descending
+            const sortedModelsByDownloads = downloadableModels.sort((a, b) =>
+            {
+                return b.downloads - a.downloads;
+            });
+            // get the first listSize models
+            const popularModels = sortedModelsByDownloads.slice(0, listSize);
+            // sort models by date and likes descending to derive trending models
+            //  to do that we will take the 100 most recent models and sort them by likes
+            const sortedModelsByLikes = sortedModelsByDate.slice(0, 50).sort((a, b) =>
+            {
+                return b.likes - a.likes;
+            });
+            // get the first listSize models
+            const trendingModels = sortedModelsByLikes.slice(0, listSize);
+
+            return {
+                'My Models': downloadedModels,
+                'Recently Added': recentModels,
+                Popular: popularModels,
+                Trending: trendingModels,
+            };
+        };
+        setCategories(createCategories(models));
+    }, [models, isOnline, downloadItems, globalModel]);
 
     const displayClearedForTakeoff = (model: AIModel) => {
         if (Vendors[model.vendor].isDownloadable) {
@@ -151,7 +146,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                     <Tooltip id="is-inferable" />
                </div>;
             } else {
-                return <div className="ml-auto text-neutral-400">
+                return <div className="ml-auto text-gray-400">
                     <IconPlaneOff size={iconSize} data-tooltip-id="is-not-inferable" data-tooltip-content="Not cleared for takeoff" />
                     <Tooltip id="is-not-inferable" />
                 </div>;
@@ -201,7 +196,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                 if (isGlobalModel(model)) {
                     return <div className="self-center m-4">
                         <button type="button"
-                            className="w-24 bg-orange-800 disabled:shadow-none disabled:cursor-default text-neutral-900 dark:text-white py-2 rounded"
+                            className="w-24 bg-orange-800 disabled:shadow-none disabled:cursor-default text-gray-900 dark:text-white py-2 rounded"
                             disabled
                         >
                             <div className="flex space-x-1 items-center justify-center">
@@ -214,7 +209,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                     if (isModelInferring(model)) {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-24 bg-emerald-800 hover:bg-emerald-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
+                                className="w-24 bg-emerald-800 hover:bg-emerald-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
                                 onClick={() => handleStartInference(model)}
                             >
                                 <div className="flex space-x-1 items-center justify-center">
@@ -226,7 +221,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                     } else {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-24 bg-gray-800 hover:bg-gray-500 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
+                                className="w-24 bg-gray-800 hover:bg-gray-500 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
                                 onClick={() => handleStartInference(model)}
                             >
                                 Engage
@@ -250,14 +245,14 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
             // if the global model is the same as the current model display 'Engaged', otherwise display 'Engage'
             if (globalModel?.id === model.id) {
                 return <div className="self-center m-4">
-                    <div className="w-24 bg-orange-600 hover:bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded">
+                    <div className="w-24 bg-orange-600 hover:bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded">
                         Engaged
                     </div>
                 </div>;
             } else {
                 return <div className="self-center m-4" style={disabled ? { pointerEvents: "none", opacity: "0.4" } : {}}>
                     <button type="button" disabled={disabled}
-                        className="w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 rounded"
+                        className="w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
                         onClick={() => handleStartInference(model)}
                     >
                         Engage
@@ -271,7 +266,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
         const vendor = Vendors[item.vendor];
         if (isDownloadable(item)) {
             return <>
-                <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-neutral-400'>
+                <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-gray-400'>
                     {/* <li>{new Date(item.updated).toLocaleDateString()}</li> */}
                     <li>{timeAgo(new Date(item.updated))}</li>
                     <li>&middot;</li>
@@ -283,7 +278,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
         } else {
             const tokenInKb = Math.round(item.tokenLimit / 1024);
             return <>
-                <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-neutral-400'>
+                <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-gray-400'>
                     <li>{vendor.displayName}</li>
                     <li>&middot;</li>
                     <li>context size {`${tokenInKb}K`}</li>
@@ -323,12 +318,12 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                             )}
                         >
                             {!isOnline &&
-                                <div className="flex h-full justify-center items-center dark:text-neutral-700 text-neutral-400">
+                                <div className="flex h-full justify-center items-center dark:text-gray-700 text-gray-400">
                                     <h3>Wingman is offline</h3>
                                 </div>
                             }
                             {(items.length === 0) && 
-                                <div className="flex h-full justify-center items-center dark:text-neutral-700 text-neutral-400">
+                                <div className="flex h-full justify-center items-center dark:text-gray-700 text-gray-400">
                                     <h3>Nothing to Show</h3>
                                 </div>
                             }
@@ -340,7 +335,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                                             className='flex items-center justify-between hover:bg-gray-100'
                                         >
                                             <div className = 'relative rounded-md p-2'>
-                                                <h3 className='text-base font-medium leading-5 dark:text-neutral-700 text-neutral-400'>
+                                                <h3 className='text-base font-medium leading-5 dark:text-gray-700 text-gray-400'>
                                                     {displayModelName(item)}
                                                 </h3>
 

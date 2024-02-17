@@ -198,7 +198,7 @@ const DownloadButton = ({ modelRepo, filePath,
     return (
         <button type="button" disabled={disabled}
             onClick={handleRequestOrCancelDownload}
-            className={className == undefined ? "flex flex-col w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-neutral-900 dark:text-white py-2 px-4 rounded" : className}>
+            className={className == undefined ? "flex flex-col w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 px-4 rounded" : className}>
             {
                 children == undefined ?
                     (

@@ -1,4 +1,3 @@
-import { HostAddress } from "@/components/Settings/HostAddress";
 import { Import } from "../../Settings/Import";
 import { Key } from "../../Settings/Key";
 import { SidebarButton } from "../../Sidebar/SidebarButton";
@@ -7,10 +6,9 @@ import { ClearConversations } from "./ClearConversations";
 import { PluginKeys } from "./PluginKeys";
 import { SettingDialog } from "@/components/Settings/SettingDialog";
 import HomeContext from "@/pages/api/home/home.context";
-import { IconFileExport, IconRobot, IconSettings } from "@tabler/icons-react";
+import { IconBrush, IconFileExport, IconRobot, IconSettings } from "@tabler/icons-react";
 import { useTranslation } from "next-i18next";
 import { useContext, useState } from "react";
-import { WINGMAN_SERVER_DEFAULT_HOST } from "@/types/wingman";
 import { ChatSettingsDialog } from "@/components/Chat/ChatSettingsDialog";
 
 export const ChatbarSettings = () => {
@@ -55,15 +53,9 @@ export const ChatbarSettings = () => {
                 onClick={() => handleExportData()}
             />
 
-            {/* <SidebarButton
-                text={t("Settings")}
-                icon={<IconSettings size={18} />}
-                onClick={() => setIsSettingDialog(true)}
-            /> */}
-
             <SidebarButton
                 text={t("Theme")}
-                icon={<IconSettings size={18} />}
+                icon={<IconBrush size={18} />}
                 onClick={() => setIsSettingDialog(true)}
             />
 

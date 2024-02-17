@@ -99,7 +99,7 @@ const Folder = ({
                             <IconCaretRight size={18} />
                         )}
                         <input
-                            className="mr-12 flex-1 overflow-hidden overflow-ellipsis border-neutral-400 bg-transparent text-left text-[12.5px] leading-3 text-white outline-none focus:border-neutral-100"
+                            className="mr-12 flex-1 overflow-hidden overflow-ellipsis border-gray-400 bg-transparent text-left text-xs leading-3 text-white outline-none focus:border-gray-100"
                             type="text"
                             value={renameValue}
                             onChange={(e) => setRenameValue(e.target.value)}
@@ -122,7 +122,7 @@ const Folder = ({
                             <IconCaretRight size={18} />
                         )}
 
-                        <div className="relative max-h-5 flex-1 overflow-hidden text-ellipsis whitespace-nowrap break-all text-left text-[12.5px] leading-3">
+                        <div className="relative max-h-5 flex-1 overflow-hidden text-ellipsis whitespace-nowrap break-all text-left text-xs leading-3">
                             {currentFolder.name}
                         </div>
                     </button>

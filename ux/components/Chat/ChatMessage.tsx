@@ -131,17 +131,17 @@ export const ChatMessage: FC<Props> = memo(
             <div
                 className={`group md:px-4 ${
                     message.role === "assistant"
-                        ? "border-b border-black/10 bg-gray-50 text-gray-800 dark:border-gray-900/50 dark:bg-gray-700 dark:text-gray-100"
-                        : "border-b border-black/10 bg-white text-gray-800 dark:border-gray-900/50 dark:bg-gray-700 dark:text-gray-100"
+                        ? "border-b border-black/10 dark:border-gray-900/50"
+                        : "border-b border-black/10 dark:border-gray-900/50"
                 }`}
                 style={{ overflowWrap: "anywhere" }}
             >
                 <div className="relative m-auto flex p-4 text-base md:max-w-2xl md:gap-6 md:py-6 lg:max-w-2xl lg:px-0 xl:max-w-3xl">
-                    <div className="min-w-[40px] text-right font-bold">
+                    <div className="min-w-[40px] text-right font-bold text-inherit">
                         {message.role === "assistant" ? (
-                            <IconRobot size={30} />
+                            <IconRobot size={24} />
                         ) : (
-                            <IconUser size={30} />
+                            <IconUser size={24} />
                         )}
                     </div>
 
@@ -152,7 +152,7 @@ export const ChatMessage: FC<Props> = memo(
                                     <div className="flex w-full flex-col">
                                         <textarea
                                             ref={textareaRef}
-                                            className="w-full resize-none whitespace-pre-wrap border-none dark:bg-gray-700"
+                                            className="w-full resize-none whitespace-pre-wrap border-none"
                                             value={messageContent}
                                             onChange={handleInputChange}
                                             onKeyDown={handlePressEnter}
@@ -184,7 +184,7 @@ export const ChatMessage: FC<Props> = memo(
                                                 {t("Save & Submit")}
                                             </button>
                                             <button
-                                                className="h-[40px] rounded-md border border-neutral-300 px-4 py-1 text-sm font-medium text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                                                className="h-[40px] rounded-md border border-gray-300 px-4 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
                                                 onClick={() => {
                                                     setMessageContent(
                                                         message.content

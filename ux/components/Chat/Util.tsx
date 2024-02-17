@@ -27,3 +27,16 @@ export const displayModelVendor = (model: AIModel | undefined, showVendor: boole
         </div>
     );
 };
+
+export const displayModelName = (model: AIModel) =>
+{
+    if (Vendors[model.vendor].isDownloadable) {
+        // split the repo owner and name and return 'name (repo owner)'
+        const [owner, repo] = model.name.split('/');
+        const cleanName = repo.replace(/-/g, ' ');
+        // return <div className="flex space-x-1"><span>{repo}</span><span className="text-xs">{owner}</span></div>;
+        return <div className="flex space-x-1"><span>{cleanName}</span></div>;
+    } else {
+        return <div className="flex space-x-1"><span>{model.name}</span></div>;
+    }
+};
