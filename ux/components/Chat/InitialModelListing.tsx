@@ -5,7 +5,7 @@ import { AIModel, AIModelID, Vendors } from '@/types/ai';
 import DownloadButton from './DownloadButton';
 import WingmanContext from '@/pages/api/home/wingman.context';
 import { timeAgo } from '@/types/download';
-import { IconApi, IconPlaneTilt, IconPlaneOff } from '@tabler/icons-react';
+import { IconApi, IconPlaneTilt, IconPlaneOff, IconPropeller } from '@tabler/icons-react';
 import { Tooltip } from 'react-tooltip';
 import { displayModelName } from './Util';
 
@@ -44,14 +44,23 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
     // wrap createCategories in a useCallback to prevent it from being recreated on every render
     const createCategories = useCallback((models: AIModel[]) => {
         // filter the models to get the downloaded and OpenAI models
-        const startingModels = models.filter((model) => {
-            return Vendors[model.vendor].isDownloadable && model.id === initialModelId;
-        });
+        let startingModels: AIModel[] = [];
+        if (currentWingmanInferenceItem && currentWingmanInferenceItem.status === "inferring") {
+            startingModels = models.filter((model) => {
+                return model.isInferable && model.id === currentWingmanInferenceItem.modelRepo;
+            });
+        }
+
+        if (startingModels.length === 0) {
+            startingModels = models.filter((model) => {
+                return Vendors[model.vendor].isDownloadable && model.id === initialModelId;
+            });
+        }
 
         return {
             'Starting AI Model': startingModels,
         }
-    }, [initialModelId]);
+    }, [initialModelId, currentWingmanInferenceItem]);
 
     const handleDownloadComplete = () => {};
     const handleDownloadStart = () => {};
@@ -100,38 +109,33 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
         }
     };
 
-    const isModelInferringOnServer = (model: AIModel) =>
+    const isGlobalModel = (model: AIModel | undefined) =>
     {
-        if (currentWingmanInferenceItem === undefined) return false;
-        if (model.id === currentWingmanInferenceItem.modelRepo) {
-            if (currentWingmanInferenceItem.status === "inferring") {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    const isModelBeingUsed = (model: AIModel | undefined) =>
-    {
-        if (model === undefined || globalModel === undefined || currentWingmanInferenceItem === undefined) return false;
+        if (model === undefined || globalModel === undefined) return false;
         if (model.id === AIModelID.NO_MODEL_SELECTED) return false;
-        if (model.id === globalModel?.id) {
-            // return true if stat is is queued, preparing, or inferring
-            const statuses = ["queued", "preparing", "inferring"];
-            if (statuses.includes(currentWingmanInferenceItem.status)) {
-                return true;
-            }
+        if (model.id === globalModel?.id) return true;
+        return false;
+    };
+
+    const isModelInferring = (model: AIModel | undefined) =>
+    {
+        const statuses = ["queued", "preparing", "inferring"];
+        if (currentWingmanInferenceItem
+            && currentWingmanInferenceItem.modelRepo === model?.id
+            && statuses.includes(currentWingmanInferenceItem?.status as string)) {
+            return true;
         }
         return false;
     };
 
-    const displayDownloadInference = (model: AIModel) => {
+    const displayDownloadInference = (model: AIModel) =>
+    {
         if (Vendors[model.vendor].isDownloadable) {
             if (!model.items) return <></>;
             const middleIndex = Math.floor(
                 (model.items?.length as number) / 2
-            )
-            const quantization = model.items?.[middleIndex]?.quantization as string
+            );
+            const quantization = model.items?.[middleIndex]?.quantization as string;
             const item = model.items?.find((item) => item?.quantization === quantization);
             if (!item) return <></>;
             if (item.isDownloaded) {
@@ -139,27 +143,44 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                 //   even while the server is inferring a different model. thus we need to check for both cases
                 // check if the model is currently engaged
                 // check if the model is currently inferring on the server, but not engaged
-                if (isModelBeingUsed(model)) {
-                        return <div className="self-center m-4">
-                            <button type="button"
-                                className="w-24 bg-orange-800 hover:bg-orange-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
-                                disabled
-                            >
-                                Engaged
-                            </button>
-                        </div>
+                if (isGlobalModel(model)) {
+                    return <div className="self-center m-4">
+                        <button type="button"
+                            className="w-24 bg-orange-800 disabled:shadow-none disabled:cursor-default text-gray-900 dark:text-white py-2 rounded"
+                            disabled
+                        >
+                            <div className="flex space-x-1 items-center justify-center">
+                                <IconPropeller className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />
+                                <span>Engaged</span>
+                            </div>
+                        </button>
+                    </div>;
                 } else {
+                    if (isModelInferring(model)) {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-24 bg-emerald-800 hover:bg-emerald-500 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
+                                className="w-24 bg-emerald-800 hover:bg-emerald-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
+                                onClick={() => handleStartInference(model)}
+                            >
+                                <div className="flex space-x-1 items-center justify-center">
+                                    <IconPropeller className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />
+                                    <span>Engage</span>
+                                </div>
+                            </button>
+                        </div>;
+                    } else {
+                        return <div className="self-center m-4">
+                            <button type="button"
+                                className="w-24 bg-gray-800 hover:bg-gray-500 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
                                 onClick={() => handleStartInference(model)}
                             >
                                 Engage
                             </button>
-                        </div>
+                        </div>;
+                    }
                 }
             } else {
-                return <div className="self-center m-4" style={disabled ? {pointerEvents: "none", opacity: "0.4"} : {}}>
+                return <div className="self-center m-4" style={disabled ? { pointerEvents: "none", opacity: "0.4" } : {}}>
                     <DownloadButton modelRepo={model.id}
                         filePath={item.filePath}
                         showFileName={false}
@@ -177,16 +198,16 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                     <div className="w-24 bg-orange-600 hover:bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded">
                         Engaged
                     </div>
-                </div>
+                </div>;
             } else {
-                return <div className="self-center m-4" style={disabled ? {pointerEvents: "none", opacity: "0.4"} : {}}>
+                return <div className="self-center m-4" style={disabled ? { pointerEvents: "none", opacity: "0.4" } : {}}>
                     <button type="button" disabled={disabled}
                         className="w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
                         onClick={() => handleStartInference(model)}
                     >
                         Engage
                     </button>
-                </div>
+                </div>;
             }
         }
     };

@@ -402,9 +402,9 @@ export const ChatInput = ({
                 >
                     Wingman
                 </a>
-                .{" "}
+                {" "}
                 {t(
-                    "Wingman is a convienent chat UI for OpenAI and LLaMA models aiming to exceed ChatGPT's interface and functionality."
+                    "is the best way to run OpenAI and LLaMA models."
                 )}
             </div>
         </div>

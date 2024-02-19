@@ -455,7 +455,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     };
 
     const showOnboarding = () => {
-        return !(apiKey && serverSideApiKeyIsSet) && (!hasDownloadItems() || !hasModelBeenSelected() || !isModelInferring(selectedConversation?.model));
+        return !(apiKey && serverSideApiKeyIsSet)
+            && (!hasDownloadItems() || !hasModelBeenSelected() || !isModelInferring(selectedConversation?.model));
     };
 
     return (

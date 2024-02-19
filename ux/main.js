@@ -1,13 +1,13 @@
 const { app, BrowserWindow } = require('electron');
-// const { fork, execPath } = require('child_process');
 const child_process = require('node:child_process');
-const path = require('node:path');
-const process = require('node:process');
-const fs = require('node:fs');
+const path = require('path');
+const fs = require('fs');
+const os = require('os');
 
+const WINGMAN_UI_PORT = 6568;
 let serverProcess = null;
 
-const createWindow = () =>
+const startNextJsServer = () =>
 {
     // ensure the .next exists before starting the server
     const nextDir = path.join(__dirname, '.next');
@@ -16,20 +16,12 @@ const createWindow = () =>
         console.error('The .next directory does not exist. Something went wrong. Exiting...');
         process.exit(1);
     }
-    // node ./node_modules/next/dist/bin/next start
-    // if on windows use node_modules\.bin\next.cmd, otherwise use node_modules/.bin/next
-    // if (process.platform === 'win32') {
-    //     nodeExe = path.join(__dirname, 'node_modules', '.bin', 'next.cmd');
-    // } else {
-    //     nodeExe = path.join(__dirname, 'node_modules', '.bin', 'next');
-    // }
-    const nodeExe = path.join(__dirname, 'node_modules', 'next', 'dist', 'bin', 'next');
-    // serverProcess = execFile(nodeExe, ['start'], (error, stdout, stderr) =>
     // execPath the next.js server. set cwd to the root of the project
-    serverProcess = child_process.fork(nodeExe, ['start', '-p', '6567'], { cwd: __dirname });
-    // serverProcess = child_process.fork('node', [nodeExe, 'start'], { cwd: __dirname });
-    // serverProcess = child_process.execFile(nodeExe, ['start'], { cwd: __dirname });
-    // serverProcess = child_process.execFile(nodeExe, { cwd: __dirname });
+    const exe = path.join(__dirname, 'node_modules', 'next', 'dist', 'bin', 'next');
+    serverProcess = child_process.fork(exe, ['start', '-p', `${WINGMAN_UI_PORT}`], { cwd: __dirname, stdio: 'pipe' });
+    // const exe = path.join(nextDir, 'server', 'pages', 'index.js');
+    // serverProcess = child_process.spawn(exe, { cwd: __dirname });
+
     serverProcess.on('error', (error) =>
     {
         if (error)
@@ -46,6 +38,22 @@ const createWindow = () =>
     {
         console.log('Server process exited with code:', code, 'and signal:', signal);
     });
+    serverProcess.stdout.on('data', (data) =>
+    {
+        console.log('Server stdout:', data.toString());
+    });
+    serverProcess.stderr.on('data', (data) =>
+    {
+        console.error('Server stderr:', data.toString());
+    });
+    serverProcess.on('close', (code) =>
+    {
+        console.log('Server process closed with code:', code);
+    });
+};
+
+const createWindow = () =>
+{
     const win = new BrowserWindow({
         width: 1366,
         height: 1080,
@@ -53,13 +61,28 @@ const createWindow = () =>
             nodeIntegration: true,
             // contextIsolation: false,
             // enableRemoteModule: true,
+            preload: path.join(__dirname, 'preload.js'),
         },
     });
 
-    win.loadURL('http://localhost:6567');
+    win.loadURL(`http://localhost:${WINGMAN_UI_PORT}`);
+    // win.loadFile('index.html') ;
+    // win.webContents.openDevTools();
 };
+
+startNextJsServer();
 
 app.whenReady().then(() =>
 {
     createWindow();
+
+    app.on('activate', () =>
+    {
+        if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
+});
+
+app.on('window-all-closed', () =>
+{
+    if (process.platform !== 'darwin') app.quit();
 });
