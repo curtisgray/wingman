@@ -1,11 +1,21 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, BrowserView } = require('electron');
+
+// run this as early in the main process as possible
+if (require('electron-squirrel-startup')) app.quit();
+// const { updateElectronApp } = require('update-electron-app');
 const child_process = require('node:child_process');
 const path = require('path');
 const fs = require('fs');
-const os = require('os');
+// const os = require('os');
 
 const WINGMAN_UI_PORT = 6569;
 let serverProcess = null;
+let mainWindow;
+
+const tell = (channel, data) =>
+{
+    mainWindow?.webContents.send(channel, data);
+};
 
 const startNextJsServer = () =>
 {
@@ -13,7 +23,7 @@ const startNextJsServer = () =>
     const nextDir = path.join(__dirname, '.next');
     if (!fs.existsSync(nextDir))
     {
-        console.error('The .next directory does not exist. Something went wrong. Exiting...');
+        tell('The .next directory does not exist. Something went wrong. Exiting...');
         process.exit(1);
     }
     // execPath the next.js server. set cwd to the root of the project
@@ -25,40 +35,39 @@ const startNextJsServer = () =>
     const args = ['next', 'start', '-p', `${WINGMAN_UI_PORT}`];
     serverProcess = child_process.spawn(exe, args, { cwd: __dirname, stdio: 'pipe', shell: true });
 
-
     serverProcess.on('error', (error) =>
     {
         if (error)
         {
-            console.error('Error starting server:', error);
+            tell('Error starting server:', error);
             return;
         }
     });
     serverProcess.on('message', (message) =>
     {
-        console.log('Message from server:', message);
+        tell('Message from server:', message);
     });
     serverProcess.on('exit', (code, signal) =>
     {
-        console.log('Server process exited with code:', code, 'and signal:', signal);
+        tell('Server process exited with code:', code, 'and signal:', signal);
     });
     serverProcess.stdout.on('data', (data) =>
     {
-        console.log('Server stdout:', data.toString());
+        tell('Server stdout:', data.toString());
     });
     serverProcess.stderr.on('data', (data) =>
     {
-        console.error('Server stderr:', data.toString());
+        tell('Server stderr:', data.toString());
     });
     serverProcess.on('close', (code) =>
     {
-        console.log('Server process closed with code:', code);
+        tell('Server process closed with code:', code);
     });
 };
 
 const createWindow = () =>
 {
-    const win = new BrowserWindow({
+    win = new BrowserWindow({
         width: 1366,
         height: 1080,
         webPreferences: {
@@ -70,9 +79,24 @@ const createWindow = () =>
     });
 
     win.loadURL(`http://localhost:${WINGMAN_UI_PORT}`);
-    // win.loadFile('index.html') ;
+    // win.loadFile('index.html');
+    const view = new BrowserView();
+    win.setBrowserView(view);
+    // set the bounds of the view to the size of bottom third of the main window,
+    //   and update it's dimensions on resize
+    const [width, height] = win.getSize();
+    view.setBounds({ x: 0, y: height - height / 3, width: width, height: height / 3 });
+    view.setAutoResize({ width: true, height: true });
+
+    view.webContents.loadURL('index.html');
+    // win.webContents.on('did-finish-load', () =>
+    // {
+    //     win.webContents.send('ping', 'whoooooooh!');
+
     // win.webContents.openDevTools();
 };
+
+// updateElectronApp(); // additional configuration options available
 
 startNextJsServer();
 

@@ -24,6 +24,9 @@
         "package": "electron-forge package",
         "make": "electron-forge make"
     },
+    "config": {
+        "forge": "./forge.config.js"
+    },
     "dependencies": {
         "@dqbd/tiktoken": "^1.0.13",
         "@headlessui/react": "^1.7.18",
@@ -50,6 +53,7 @@
         "remark-math": "^5.1.1",
         "sqlite3": "^5.1.6",
         "systeminformation": "^5.21.25",
+        "update-electron-app": "^3.0.0",
         "use-immer": "^0.9.0",
         "uuid": "^9.0.0",
         "winston": "^3.11.0",

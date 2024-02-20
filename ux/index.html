@@ -14,4 +14,11 @@
         <span id="chrome-version"></span>, and Electron
         <span id="electron-version"></span>.
     </body>
+    <!-- <script src="utils.js"></script> -->
+    <script>
+        require('electron').ipcRenderer.on('tell', function (event, message) {
+            console.log(message);
+        })
+    </script>
+
 </html>
