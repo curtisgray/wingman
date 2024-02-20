@@ -17,10 +17,11 @@ Wingman is more than just an application; it's a gateway to a more accessible an
 
 - ✅ Add All GPT Models
 - ✅ Duplicate existing conversations
-- ⏳ Add local Llama support (in progress)
+- ✅ Add local Llama support (in progress)
 - ✅ Download Llama models locally
+- ⏳Desktop app
 - ✉️ Silk Tuning
-- ⏳ Swift Switch
+- ✅ Swift Switch
 - ✉️ Extend conversation beyond original context
 
 **Legend**:
