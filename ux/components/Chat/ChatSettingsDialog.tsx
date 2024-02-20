@@ -1,9 +1,6 @@
-import { useCreateReducer } from "@/hooks/useCreateReducer";
 import HomeContext from "@/pages/api/home/home.context";
-import { Settings } from "@/types/settings";
-import { getSettings, saveSettings } from "@/utils/app/settings";
 import { useTranslation } from "next-i18next";
-import { FC, useContext, useEffect, useReducer, useRef } from "react";
+import { FC, useContext, useEffect, useRef } from "react";
 import ChatSettings from "./ChatSettings";
 
 interface Props {
@@ -13,15 +10,13 @@ interface Props {
 
 export const ChatSettingsDialog: FC<Props> = ({ open, onClose }) => {
     const { t } = useTranslation("chat"); // TODO: Change to appropriate namespace when translations are added
-    // const settings: Settings = getSettings();
-    // const { state, dispatch } = useCreateReducer<Settings>({
-    //     initialState: settings,
-    // });
+
     const {
         state: {
             selectedConversation,
             models,
-            prompts        },
+            prompts
+        },
         handleUpdateConversation,
     } = useContext(HomeContext);
 
@@ -72,11 +67,6 @@ export const ChatSettingsDialog: FC<Props> = ({ open, onClose }) => {
         };
     }, [onClose]);
 
-    const handleSave = () => {
-        // homeDispatch({ field: "lightMode", value: state.theme });
-        // saveSettings(state);
-    };
-
     // Render nothing if the dialog is not open.
     if (!open) {
         return <></>;
@@ -103,7 +93,6 @@ export const ChatSettingsDialog: FC<Props> = ({ open, onClose }) => {
                             type="button"
                             className="w-full px-4 py-2 mt-6 border rounded-lg shadow border-gray-500 text-gray-900 hover:bg-gray-100 focus:outline-none dark:border-gray-800 dark:border-opacity-50 dark:bg-white dark:text-black dark:hover:bg-gray-300"
                             onClick={() => {
-                                handleSave();
                                 onClose();
                             }}
                         >

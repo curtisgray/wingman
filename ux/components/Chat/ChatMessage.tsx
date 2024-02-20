@@ -145,7 +145,7 @@ export const ChatMessage: FC<Props> = memo(
                         )}
                     </div>
 
-                    <div className="prose mt-[-2px] w-full dark:prose-invert">
+                    <div className="prose mt-[-2px] w-full prose-gray-invert dark:prose-gray">
                         {message.role === "user" ? (
                             <div className="flex w-full">
                                 {isEditing ? (

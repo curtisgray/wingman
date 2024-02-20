@@ -40,7 +40,6 @@ export const OpenAIStream = async (
             host = OPENAI_API_HOST;
             vendorDisplayName = "OpenAI API";
             break;
-        case "huggingface": // TODO: remove "huggingface" as it's only used in pre-release backend code
         case "meta":
             host = WINGMAN_INFERENCE_SERVER_URL;
             vendorDisplayName = "Wingman";

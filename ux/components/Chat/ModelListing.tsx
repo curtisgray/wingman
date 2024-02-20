@@ -29,7 +29,8 @@ interface ModelCategories {
 export default function ModelListing({ onSelect = () => { }, isDisabled: disabled = false, iconSize = 20 }: Props) {
     const listSize = 10;
     const [categories, setCategories] = useState<ModelCategories>({ 'My Models': [], 'Recently Added': [], Popular: [], Trending: [] });
-    const [selectedTabIndex, setSelectedTabIndex] = useState(0)
+    const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+    const [startingInference, setStartingInference] = useState(false);
 
     const {
         state: { models, globalModel },
@@ -48,6 +49,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
     const handleDownloadStart = () => {};
     const handleDownloadInitialized = () => {};
     const handleStartInference = (model: AIModel) => {
+        setStartingInference(true);
         if (Vendors[model.vendor].isDownloadable) {
             if (!model.items) return;
             const middleIndex = Math.floor(
@@ -88,14 +90,29 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                 });
             }
             // put the inferring model at the top of the `downloadedModels` list, after any currently downloading models
-            if (globalModel) {
-                const inferringModel = models.find((model) => model.id === globalModel.id);
+            let inferringModel: AIModel | undefined = undefined;
+            if (globalModel && globalModel.id !== AIModelID.NO_MODEL_SELECTED) {
+                inferringModel = models.find((model) => model.id === globalModel.id);
                 if (inferringModel) {
                     downloadedModels = [inferringModel, ...downloadedModels];
                     // remove duplicates
                     downloadedModels = downloadedModels.filter((model, index, self) => self.findIndex((m) => m.id === model.id) === index);
                 }
             }
+            if (!inferringModel) {
+                if (currentWingmanInferenceItem && currentWingmanInferenceItem.status === "inferring") {
+                    inferringModel = models.find((model) =>
+                    {
+                        return model.isInferable && model.id === currentWingmanInferenceItem.modelRepo;
+                    });
+                    if (inferringModel) {
+                        downloadedModels = [inferringModel, ...downloadedModels];
+                        // remove duplicates
+                        downloadedModels = downloadedModels.filter((model, index, self) => self.findIndex((m) => m.id === model.id) === index);
+                    }
+                }
+            }
+            // filter the models to get the downloadable models
             const downloadableModels = models.filter((model) =>
             {
                 return Vendors[model.vendor].isDownloadable;
@@ -137,6 +154,12 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
         };
         setCategories(createCategories(models));
     }, [models, isOnline, downloadItems, globalModel]);
+
+    useEffect(() =>
+    {
+        if (startingInference) {
+        }
+    }, [startingInference]);
 
     const displayClearedForTakeoff = (model: AIModel) => {
         if (Vendors[model.vendor].isDownloadable) {

@@ -181,12 +181,6 @@ const Home = ({
         saveConversation(conversation);
     };
 
-    const handleSwitchingModel = (isSwitching: boolean) =>
-    {
-        homeDispatch({ field: "isSwitchingModel", value: isSwitching });
-        console.log(`Switching Model: ${isSwitching}`);
-    };
-
     // FOLDER OPERATIONS  --------------------------------------------
 
     const handleCreateFolder = (name: string, type: FolderType) =>
@@ -276,7 +270,6 @@ const Home = ({
 
     const changeGlobalModel = (model: AIModel | undefined) =>
     {
-        handleSwitchingModel(true);
         homeDispatch({ field: "globalModel", value: model });
     };
 
@@ -622,7 +615,6 @@ const Home = ({
                     toast.success(`Target Acquired: ${globalModel.name}`);
                 }
             }
-            handleSwitchingModel(false);
         }
     }, [globalModel]);
 
@@ -642,9 +634,6 @@ const Home = ({
                         setCurrentConversationModel(undefined);
                         changeGlobalModel(undefined);
                     }
-                }
-                if (currentWingmanInferenceItem.status === "inferring") {
-                    handleSwitchingModel(false);
                 }
             }
         }

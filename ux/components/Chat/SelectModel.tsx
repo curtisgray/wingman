@@ -2,8 +2,7 @@
 import React, { memo, useContext, useEffect, useState } from "react";
 import { AIModel, AIModelID, DownloadableItem, Vendors } from "@/types/ai";
 import { IconCircleCheck, IconExclamationCircle, IconExternalLink, IconPlaneTilt, IconRefresh, IconRefreshDot, IconPlaneOff, IconApi, IconCrown } from "@tabler/icons-react";
-import Image from "next/image";
-import Select, { ActionMeta, SingleValue } from "react-select";
+import Select, { ActionMeta, GroupBase, SingleValue } from "react-select";
 import DownloadButton from "./DownloadButton";
 import { DownloadItem, DownloadProps } from "@/types/download";
 import { useTranslation } from "next-i18next";
@@ -355,6 +354,25 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                 } as ModelOption)),
         }));
 
+    const getGroupedModelList = (): readonly (ModelOption | GroupBase<ModelOption>)[] => {
+        const getOptions = (vendor: string) => {
+            const options = selectableModels
+                .filter((m) => m.vendor === vendor)
+                .map((mm) => ({
+                    label: displayModel(mm),
+                    value: mm.id,
+                } as ModelOption));
+            return options;
+        }
+        const groupedModels = Object.values(Vendors)
+            .filter((vendor) => vendor.isEnabled)
+            .map((vendor) => ({
+                label: vendor.displayName,
+                options: getOptions(vendor.name),
+            }));
+        return groupedModels;
+    };
+
     const optionsOptimizations = model?.items?.filter((item: DownloadableItem) => item.isDownloaded || !showDownloadedItemsOnly)
         .map((item: DownloadableItem) => ({
             label: displayQuantization(item),
@@ -491,7 +509,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                             isLoading={isLoadingModelList || isChangingModel}
                             // placeholder={(t("Search for an AI model").length > 0) || ""}
                             placeholder="Search ..."
-                            options={optionsGroupedModels}
+                            options={getGroupedModelList()}
                             value={{
                                 label: displayModel(model),
                                 value: model?.id,

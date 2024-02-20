@@ -1,4 +1,4 @@
-export type VendorName = "openai" | "meta" | "huggingface"; // TODO: remove "huggingface" as it's only used in pre-release backend code
+export type VendorName = "openai" | "meta";
 
 export interface VendorInfo
 {
@@ -92,14 +92,7 @@ export const Vendors: Record<string, VendorInfo> = {
         displayName: "Meta",
         isDownloadable: true,
         isEnabled: true,
-    },
-    huggingface: {
-        isa: "VendorInfo",
-        name: "meta",
-        displayName: "Meta",
-        isDownloadable: true,
-        isEnabled: true,
-    },
+    }
 };
 
 export const AIModels: Record<AIModelID, AIModel> = {

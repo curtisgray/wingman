@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
-const WINGMAN_UI_PORT = 6568;
+const WINGMAN_UI_PORT = 6569;
 let serverProcess = null;
 
 const startNextJsServer = () =>
@@ -17,10 +17,14 @@ const startNextJsServer = () =>
         process.exit(1);
     }
     // execPath the next.js server. set cwd to the root of the project
-    const exe = path.join(__dirname, 'node_modules', 'next', 'dist', 'bin', 'next');
-    serverProcess = child_process.fork(exe, ['start', '-p', `${WINGMAN_UI_PORT}`], { cwd: __dirname, stdio: 'pipe' });
+    // const exe = path.join(__dirname, 'node_modules', 'next', 'dist', 'bin', 'next');
+    // serverProcess = child_process.fork(exe, ['start', '-p', `${WINGMAN_UI_PORT}`], { cwd: __dirname, stdio: 'pipe' });
     // const exe = path.join(nextDir, 'server', 'pages', 'index.js');
     // serverProcess = child_process.spawn(exe, { cwd: __dirname });
+    const exe = 'npx'; // Using npx to execute the local Next.js CLI
+    const args = ['next', 'start', '-p', `${WINGMAN_UI_PORT}`];
+    serverProcess = child_process.spawn(exe, args, { cwd: __dirname, stdio: 'pipe', shell: true });
+
 
     serverProcess.on('error', (error) =>
     {

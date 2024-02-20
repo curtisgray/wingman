@@ -4,26 +4,31 @@
         "name": "Electric Curtis",
         "url": "https://twitter.com/electric_curtis"
     },
-    "version": "0.2.0",
+    "description": "Wingman is the best way to launch llama locally.",
+    "version": "0.3.0",
     "private": true,
     "main": "main.js",
     "scripts": {
         "dev": "next dev -p 2000",
+        "pstart": "next start -p 2000",
         "debug": "cross-env NODE_OPTIONS='--inspect' next dev",
         "build": "next build",
         "build:wingman": "tsc --project tsconfig.wingman.json",
-        "start": "next start",
         "lint": "next lint",
         "format": "prettier --write .",
         "test": "vitest",
         "coverage": "vitest run --coverage",
         "pretty": "prettier --write \"./{components,hooks,pages,services,types,utils}/**/*.{js,jsx,ts,tsx,json}\"",
-        "estart": "electron ."
+        "estart": "electron .",
+        "start": "electron-forge start",
+        "package": "electron-forge package",
+        "make": "electron-forge make"
     },
     "dependencies": {
         "@dqbd/tiktoken": "^1.0.13",
         "@headlessui/react": "^1.7.18",
         "@tabler/icons-react": "^2.47.0",
+        "electron-squirrel-startup": "^1.0.0",
         "eventsource-parser": "^0.1.0",
         "i18next": "^22.5.1",
         "lodash": "^4.17.21",
@@ -51,6 +56,12 @@
         "winston-daily-rotate-file": "^4.7.1"
     },
     "devDependencies": {
+        "@electron-forge/cli": "^7.2.0",
+        "@electron-forge/maker-deb": "^7.2.0",
+        "@electron-forge/maker-rpm": "^7.2.0",
+        "@electron-forge/maker-squirrel": "^7.2.0",
+        "@electron-forge/maker-zip": "^7.2.0",
+        "@electron-forge/plugin-auto-unpack-natives": "^7.2.0",
         "@mozilla/readability": "^0.4.4",
         "@tailwindcss/typography": "^0.5.9",
         "@types/jsdom": "^21.1.1",
