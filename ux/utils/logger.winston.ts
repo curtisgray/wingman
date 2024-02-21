@@ -20,8 +20,7 @@ const logger = winston.createLogger({
                 winston.format.printf(({ timestamp, level, message }) =>
                 {
                     return `[${timestamp}] [${level}] ${message}`;
-                })
-
+                }),
             ),
         }),
         new DailyRotateFile(Object.assign(dailyRotateFileOptions, {

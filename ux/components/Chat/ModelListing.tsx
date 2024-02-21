@@ -153,7 +153,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
             };
         };
         setCategories(createCategories(models));
-    }, [models, isOnline, downloadItems, globalModel]);
+    }, [models, isOnline, downloadItems, globalModel, currentWingmanInferenceItem]);
 
     useEffect(() =>
     {

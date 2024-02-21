@@ -6,62 +6,83 @@ if (require('electron-squirrel-startup')) app.quit();
 const child_process = require('node:child_process');
 const path = require('path');
 const fs = require('fs');
-// const os = require('os');
+const os = require('os');
+const APP_DIR = path.join(os.homedir(), ".wingman");
+const winston = require('winston');
+const logger = winston.createLogger({
+    level: 'silly',
+    format: winston.format.printf(({ level, message, label, timestamp }) =>
+    {
+        const ts = timestamp ? timestamp : new Date().toISOString();
+        return `[${ts}] [${level}] ${message}`;
+    }),
+    defaultMeta: { service: 'wingman-electron' },
+    transports: [
+        new winston.transports.File({ filename: path.join(APP_DIR, 'wingman.log'), level: 'silly' }),
+    ],
+});
 
-const WINGMAN_UI_PORT = 6569;
+const WINGMAN_UI_PORT = 6570;
 let serverProcess = null;
 let mainWindow;
 
-const tell = (channel, data) =>
+logger.log('trace', 'Starting Wingman Electron');
+const tell = (data) =>
 {
-    mainWindow?.webContents.send(channel, data);
+    logger.log('info', data);
+    mainWindow?.webContents.send('tell', data);
+};
+
+const etell = (data) =>
+{
+    logger.log('error', data);
 };
 
 const startNextJsServer = () =>
 {
+    logger.log('trace', 'Starting Next.js server');
     // ensure the .next exists before starting the server
     const nextDir = path.join(__dirname, '.next');
+    logger.log('trace', `Checking for .next directory at ${nextDir}`);
     if (!fs.existsSync(nextDir))
     {
         tell('The .next directory does not exist. Something went wrong. Exiting...');
         process.exit(1);
     }
     // execPath the next.js server. set cwd to the root of the project
-    // const exe = path.join(__dirname, 'node_modules', 'next', 'dist', 'bin', 'next');
-    // serverProcess = child_process.fork(exe, ['start', '-p', `${WINGMAN_UI_PORT}`], { cwd: __dirname, stdio: 'pipe' });
-    // const exe = path.join(nextDir, 'server', 'pages', 'index.js');
-    // serverProcess = child_process.spawn(exe, { cwd: __dirname });
     const exe = 'npx'; // Using npx to execute the local Next.js CLI
     const args = ['next', 'start', '-p', `${WINGMAN_UI_PORT}`];
+    logger.log('trace', `Starting Next.js server with ${exe} ${args.join(' ')}`);
     serverProcess = child_process.spawn(exe, args, { cwd: __dirname, stdio: 'pipe', shell: true });
+    logger.log('trace', `Next.js server process PID: ${serverProcess?.pid}`);
 
     serverProcess.on('error', (error) =>
     {
         if (error)
         {
-            tell('Error starting server:', error);
+            etell(`Error starting server: ${error}`);
             return;
         }
     });
     serverProcess.on('message', (message) =>
     {
-        tell('Message from server:', message);
+        tell(`Message from server: ${message}`);
     });
     serverProcess.on('exit', (code, signal) =>
     {
-        tell('Server process exited with code:', code, 'and signal:', signal);
+        tell(`Server process exited with code: ${code} and signal: ${signal}`);
     });
     serverProcess.stdout.on('data', (data) =>
     {
-        tell('Server stdout:', data.toString());
+        tell(`Server stdout: ${data.toString()}`);
     });
     serverProcess.stderr.on('data', (data) =>
     {
-        tell('Server stderr:', data.toString());
+        tell(`Server stderr: ${data.toString()}`);
     });
     serverProcess.on('close', (code) =>
     {
-        tell('Server process closed with code:', code);
+        tell(`Server process closed with code: ${code}`);
     });
 };
 
@@ -89,9 +110,6 @@ const createWindow = () =>
     view.setAutoResize({ width: true, height: true });
 
     view.webContents.loadURL('index.html');
-    // win.webContents.on('did-finish-load', () =>
-    // {
-    //     win.webContents.send('ping', 'whoooooooh!');
 
     // win.webContents.openDevTools();
 };
