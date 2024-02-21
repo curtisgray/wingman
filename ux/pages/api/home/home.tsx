@@ -388,7 +388,11 @@ const Home = ({
 
     useEffect(() =>
     {
-        if (models && models.length > 0 && selectedConversation && selectedConversation.model && selectedConversation.model !== currentConversationModel) {
+        if (models && models.length > 0
+            && selectedConversation
+            && selectedConversation.model
+            && selectedConversation.model !== currentConversationModel
+            && selectedConversation.model !== AIModels[AIModelID.NO_MODEL_SELECTED]) {
             const vendor = Vendors[selectedConversation.model.vendor];
             if (vendor.isDownloadable) {
                 if (selectedConversation.model.item === undefined) {
