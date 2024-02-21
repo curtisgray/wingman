@@ -1,6 +1,5 @@
 import { ConnectionStatus, DownloadItem, DownloadServerAppItem as DownloadServiceAppItem } from "./download";
 import { LlamaStats, LlamaStatsMeta, LlamaStatsSystem, LlamaStatsTensors, LlamaStatsTimings } from "./llama_stats";
-import * as si from 'systeminformation'
 
 export type WingmanServiceAppItemStatus = "ready" | "starting" | "preparing" | "inferring" | "stopping" | "stopped" | "error" | "unknown";
 export type WingmanServiceAppItem = {
