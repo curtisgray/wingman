@@ -1,48 +1,43 @@
-<!DOCTYPE html>
 <html>
+    <head>
+        <title>Wingman</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                text-align: center;
+                height: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                /* background-color: #f58a07; */
+                background-color: #080500;
+                color: #fff;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            .content {
+            }
+        </style>
+    </head>
 
-<head>
-	<meta charset="UTF-8" />
-	<!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-	<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
-	<title>Wingman</title>
-	<style>
-		body {
-			font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-			text-align: center;
-			margin: 20px;
-		}
-
-		h1 {
-			font-size: 1.5em;
-		}
-
-		.content {
-			max-width: 800px;
-			margin: 0 auto;
-		}
-	</style>
-</head>
-
-<body>
-	<div class="content">
-		<h1>Wingman</h1>
-		<p id="error-message">Something went wrong. Please try again.</p>
-	</div>
-	<script>
-		document.addEventListener('DOMContentLoaded', () =>
-		{
-			const urlParams = new URLSearchParams(window.location.search);
-			const error = urlParams.get('error');
-			if (error)
-			{
-				document.getElementById('error-message').textContent = decodeURIComponent(error);
-			}
-		});
-        //require('electron').ipcRenderer.on('report-error', function (event, message) {
-		//	document.getElementById('error-message').textContent = decodeURIComponent(message);
-		//})
-	</script>
-</body>
-
+    <body>
+        <div class="content">
+            <h1 id="wingman-name">Wingman</h1>
+            <p id="error-message">Something went wrong. Please try again.</p>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const urlParams = new URLSearchParams(window.location.search)
+                const error = urlParams.get('error')
+                if (error) {
+                    document.getElementById('error-message').textContent =
+                        decodeURIComponent(error)
+                }
+            })
+            //require('electron').ipcRenderer.on('report-error', function (event, message) {
+            //	document.getElementById('error-message').textContent = decodeURIComponent(message);
+            //})
+        </script>
+    </body>
 </html>

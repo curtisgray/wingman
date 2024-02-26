@@ -299,7 +299,7 @@ export const ChatInput = ({
                         )}
                     </button>
 
-                    {showPluginSelect && (
+                    {/* {showPluginSelect && (
                         <div className="absolute left-0 bottom-14 rounded bg-white dark:bg-gray-900">
                             <PluginSelect
                                 plugin={plugin}
@@ -320,7 +320,7 @@ export const ChatInput = ({
                                 }}
                             />
                         </div>
-                    )}
+                    )} */}
 
                     <textarea
                         ref={textareaRef}

@@ -77,24 +77,12 @@ function findOpenPortWithProgressAndCancel() {
 
     return { findPort, cancel };
 }
-
-// // Example usage
-// const { findPort, cancel } = findOpenPortWithProgressAndCancel();
-// findPort((current, total) => tell(`Checked ${current} of ${total} ports.`))
-//   .then(port => tell(`Found an open port: ${port}`))
-//   .catch(error => tell(`Search was cancelled or an error occurred: ${error.message}`));
-
-// // Example of cancelling the search
-// // cancel();
-
-// const WINGMAN_UI_PORT = 6570;
 let serverProcess = null;
 // let mainWindow;
 
 logger.log("info", "Starting Wingman Electron");
 const tell = (data) => {
     logger.log("info", data);
-    // mainWindow?.webContents.send('tell', data);
 };
 
 const etell = (data) => {
@@ -104,7 +92,9 @@ const etell = (data) => {
 const startNextJsServer = async (port) => {
     return new Promise((resolve, reject) => {
         logger.log("silly", "Starting Next.js server");
-        const nextDir = path.join(__dirname, ".next");
+        const baseDir = app.isPackaged ? process.resourcesPath : __dirname;
+        tell(`Base directory: ${baseDir}`);
+        const nextDir = path.join(baseDir, ".next");
         if (!fs.existsSync(nextDir)) {
             const errMsg = "The .next directory does not exist. Something went wrong. Exiting...";
             etell(errMsg);
@@ -114,10 +104,12 @@ const startNextJsServer = async (port) => {
 
         const exe = "npx";
         const args = ["next", "start", "-p", `${port}`];
+        tell(`Starting Next.js server: ${exe} ${args.join(" ")}`);
         serverProcess = child_process.spawn(exe, args, {
-            cwd: __dirname,
+            cwd: baseDir,
             stdio: ["inherit", "pipe", "pipe"], // Change stdio to pipe for stdout and stderr
             shell: true,
+            windowsHide: true,
         });
 
         serverProcess.stdout.on("data", (data) => {
@@ -164,15 +156,18 @@ const launchWingmanExecutable = async () => {
             const baseDir = app.isPackaged ? process.resourcesPath : path.join(__dirname, 'server');
             tell(`Base directory: ${baseDir}`);
             let executablePath = "";
+            let cwd = "";
             switch (platform) {
                 case 'win32':
                     platform = useCublas ? 'windows-cublas' : 'windows';
                     executableName += '.exe';
-                    executablePath = path.join(baseDir, 'wingman', platform, 'bin', executableName);
+                    cwd = path.join(baseDir, 'wingman', platform, 'bin');
+                    executablePath = path.join(cwd, executableName);
                     break;
                 case 'linux':
                     platform = useCublas ? 'linux-cublas' : 'linux';
-                    executablePath = path.join(baseDir, 'wingman', platform, 'bin', executableName);
+                    cwd = path.join(baseDir, 'wingman', platform, 'bin');
+                    executablePath = path.join(cwd, executableName);
                     break;
                 case 'darwin':
                     if (architecture === 'arm64') {
@@ -181,9 +176,8 @@ const launchWingmanExecutable = async () => {
                         platform = 'macos';
                     }
                     // run the macOS version of the wingman executable
-                    // executableName = path.join('wingman.app', 'Contents', 'MacOS', 'wingman');
-                    executableName = ['wingman.app', 'Contents', 'MacOS', 'wingman'];
-                    executablePath = path.join(baseDir, 'wingman', platform, 'bin', 'wingman.app', 'Contents', 'MacOS', 'wingman');
+                    cwd = path.join(baseDir, 'wingman', platform, 'bin', 'wingman.app', 'Contents', 'MacOS');
+                    executablePath = path.join(cwd, executableName);
                     break;
                 default:
                     reject(new Error(`Unsupported platform: ${platform}`));
@@ -191,17 +185,12 @@ const launchWingmanExecutable = async () => {
             }
             tell(`Platform: ${platform}`);
 
-            // server/wingman/macos/bin/wingman
-            // const executablePath = path.join(__dirname, 'server', 'wingman', platform, 'bin', executableName);
             tell(`Launching Wingman executable: ${executablePath}`);
-            // const subprocess = child_process.spawn(executablePath, [], {
-            //     stdio: ['inherit', 'pipe', 'pipe'],
-            //     shell: true,
-            // });
-
-            // use execFile instead of spawn to avoid shell injection
-            const subprocess = child_process.execFile(executablePath, [], {
+            const subprocess = child_process.spawn(executablePath, [], {
                 stdio: ['inherit', 'pipe', 'pipe'],
+                shell: true,
+                cwd: path.join(baseDir, 'wingman', platform, 'bin'),
+                windowsHide: true,
             });
 
             subprocess.stdout.on('data', (data) => {
@@ -228,6 +217,8 @@ const launchWingmanExecutable = async () => {
     });
 };
 
+const processes = [];
+
 const createWindow = () => {
     win = new BrowserWindow({
         width: 1366,
@@ -240,7 +231,6 @@ const createWindow = () => {
         },
     });
 
-    // win.loadURL("index.html");
     win.loadURL(url.format({
         pathname: path.join(__dirname, 'index.html'),
         protocol: 'file:',
@@ -250,9 +240,8 @@ const createWindow = () => {
     findPort((current, total) => tell(`Checked ${current} of ${total} ports.`))
         .then(async (port) => {
             tell(`Found an open port: ${port}`);
-            await launchWingmanExecutable();
-            await startNextJsServer(port);
-            // win.loadURL(`http://localhost:${port}`);
+            processes.push(await launchWingmanExecutable());
+            processes.push(await startNextJsServer(port));
             win.loadURL(url.format({
                 pathname: `localhost:${port}`,
                 protocol: 'http:',
@@ -260,22 +249,18 @@ const createWindow = () => {
             }));
         })
         .catch((error) => {
-            // tell(
-            //     `Search was cancelled or an error occurred: ${error.message}`
-            // );
+            etell(`Error finding open port: ${error}`);
             // display error message
             win.webContents.executeJavaScript(
                 `electronAPI.sendError("${error.message}")`
               );
         });
-
-    // win.loadURL(`http://localhost:${WINGMAN_UI_PORT}`);
 };
 
 // updateElectronApp(); // additional configuration options available
 
 ipcMain.on("report-error", (event, error) => {
-    // tell(`Error from renderer: ${error}`);
+    etell(`Error from renderer: ${error}`);
     win.loadURL(`error.html?error=${encodeURIComponent(error)}`);
 });
 
@@ -289,4 +274,7 @@ app.whenReady().then(() => {
 
 app.on("window-all-closed", () => {
     if (process.platform !== "darwin") app.quit();
+    for (let i = 0; i < processes.length; i++) {
+        processes[i].kill();
+    }
 });

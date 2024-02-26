@@ -1,4 +1,3 @@
-import Spinner from "../Spinner";
 import { ChatInput } from "./ChatInput";
 import { ChatLoader } from "./ChatLoader";
 import { ErrorMessageDiv } from "./ErrorMessageDiv";
@@ -26,11 +25,9 @@ import {
 } from "react";
 import toast from "react-hot-toast";
 import { DownloadProps } from "@/types/download";
-import ChatSettings from "./ChatSettings";
 import ChatStatus from "./ChatStatus";
 import { SelectModel } from "./SelectModel";
-import { AIModel, AIModelID, Vendors } from "@/types/ai";
-import ModelListing from "./ModelListing";
+import { AIModel, AIModelID } from "@/types/ai";
 import InitialModelListing from "./InitialModelListing";
 
 interface Props {
