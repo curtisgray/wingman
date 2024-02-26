@@ -8,17 +8,35 @@
             content="default-src 'self'; script-src 'self'"
         />
         <title>Wingman</title>
+        <style>
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                text-align: center;
+                margin: 20px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            .content {
+                max-width: 800px;
+                margin: 0 auto;
+            }
+        </style>
     </head>
     <body>
-        We are using Node.js <span id="node-version"></span>, Chromium
+        <div class="content">
+            <h1>Wingman</h1>
+            <p>Please wait ...</p>
+        <!-- We are using Node.js <span id="node-version"></span>, Chromium
         <span id="chrome-version"></span>, and Electron
-        <span id="electron-version"></span>.
+        <span id="electron-version"></span>. -->
+        </div>
     </body>
     <!-- <script src="utils.js"></script> -->
     <script>
-        require('electron').ipcRenderer.on('tell', function (event, message) {
-            console.log(message);
-        })
+        //require('electron').ipcRenderer.on('tell', function (event, message) {
+        //    console.log(message);
+        //})
     </script>
 
 </html>

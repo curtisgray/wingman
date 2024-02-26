@@ -1,93 +1,234 @@
-const { app, BrowserWindow, BrowserView } = require('electron');
+const { app, BrowserWindow, BrowserView } = require("electron");
 
 // run this as early in the main process as possible
-if (require('electron-squirrel-startup')) app.quit();
+if (require("electron-squirrel-startup")) app.quit();
 // const { updateElectronApp } = require('update-electron-app');
-const child_process = require('node:child_process');
-const path = require('path');
-const fs = require('fs');
-const os = require('os');
+const child_process = require("node:child_process");
+const path = require("path");
+const fs = require("fs");
+const os = require("os");
+const { ipcMain } = require("electron");
+const winston = require("winston");
+const net = require("net");
+const si = require('systeminformation');
+const url = require('url');
+const { t } = require("i18next");
+
 const APP_DIR = path.join(os.homedir(), ".wingman");
-const winston = require('winston');
 const logger = winston.createLogger({
-    level: 'silly',
-    format: winston.format.printf(({ level, message, label, timestamp }) =>
-    {
+    level: "silly",
+    format: winston.format.printf(({ level, message, label, timestamp }) => {
         const ts = timestamp ? timestamp : new Date().toISOString();
         return `[${ts}] [${level}] ${message}`;
     }),
-    defaultMeta: { service: 'wingman-electron' },
+    defaultMeta: { service: "wingman-electron" },
     transports: [
-        new winston.transports.File({ filename: path.join(APP_DIR, 'wingman.log'), level: 'silly' }),
+        new winston.transports.File({
+            filename: path.join(APP_DIR, "wingman.log"),
+            level: "silly",
+        }),
     ],
 });
 
-const WINGMAN_UI_PORT = 6570;
+function findOpenPortWithProgressAndCancel() {
+    let cancelRequested = false;
+    const ports = Array.from(
+        { length: 65535 - 49152 + 1 },
+        (_, i) => 49152 + i
+    ); // Dynamic/private range
+
+    const cancel = () => {
+        cancelRequested = true;
+    };
+
+    const checkPort = (port, progressCallback) => {
+        return new Promise((resolve, reject) => {
+            if (cancelRequested) {
+                reject(new Error("Cancelled"));
+                return;
+            }
+
+            const server = net.createServer();
+            server.listen(port, () => {
+                server.once("close", () => resolve(port));
+                server.close();
+            });
+            server.on("error", () => resolve(null));
+        });
+    };
+
+    const findPort = (progressCallback) => {
+        return new Promise(async (resolve) => {
+            for (let i = 0; i < ports.length; i++) {
+                if (cancelRequested) {
+                    resolve(-1); // Cancelled
+                    return;
+                }
+                const port = await checkPort(ports[i], progressCallback);
+                if (port !== null) {
+                    resolve(port);
+                    return;
+                }
+                progressCallback(i + 1, ports.length);
+            }
+            resolve(-1); // No open port found
+        });
+    };
+
+    return { findPort, cancel };
+}
+
+// // Example usage
+// const { findPort, cancel } = findOpenPortWithProgressAndCancel();
+// findPort((current, total) => tell(`Checked ${current} of ${total} ports.`))
+//   .then(port => tell(`Found an open port: ${port}`))
+//   .catch(error => tell(`Search was cancelled or an error occurred: ${error.message}`));
+
+// // Example of cancelling the search
+// // cancel();
+
+// const WINGMAN_UI_PORT = 6570;
 let serverProcess = null;
-let mainWindow;
+// let mainWindow;
 
-logger.log('trace', 'Starting Wingman Electron');
-const tell = (data) =>
-{
-    logger.log('info', data);
-    mainWindow?.webContents.send('tell', data);
+logger.log("info", "Starting Wingman Electron");
+const tell = (data) => {
+    logger.log("info", data);
+    // mainWindow?.webContents.send('tell', data);
 };
 
-const etell = (data) =>
-{
-    logger.log('error', data);
+const etell = (data) => {
+    logger.log("error", data);
 };
 
-const startNextJsServer = () =>
-{
-    logger.log('trace', 'Starting Next.js server');
-    // ensure the .next exists before starting the server
-    const nextDir = path.join(__dirname, '.next');
-    logger.log('trace', `Checking for .next directory at ${nextDir}`);
-    if (!fs.existsSync(nextDir))
-    {
-        tell('The .next directory does not exist. Something went wrong. Exiting...');
-        process.exit(1);
-    }
-    // execPath the next.js server. set cwd to the root of the project
-    const exe = 'npx'; // Using npx to execute the local Next.js CLI
-    const args = ['next', 'start', '-p', `${WINGMAN_UI_PORT}`];
-    logger.log('trace', `Starting Next.js server with ${exe} ${args.join(' ')}`);
-    serverProcess = child_process.spawn(exe, args, { cwd: __dirname, stdio: 'pipe', shell: true });
-    logger.log('trace', `Next.js server process PID: ${serverProcess?.pid}`);
-
-    serverProcess.on('error', (error) =>
-    {
-        if (error)
-        {
-            etell(`Error starting server: ${error}`);
+const startNextJsServer = async (port) => {
+    return new Promise((resolve, reject) => {
+        logger.log("silly", "Starting Next.js server");
+        const nextDir = path.join(__dirname, ".next");
+        if (!fs.existsSync(nextDir)) {
+            const errMsg = "The .next directory does not exist. Something went wrong. Exiting...";
+            etell(errMsg);
+            reject(new Error(errMsg));
             return;
         }
-    });
-    serverProcess.on('message', (message) =>
-    {
-        tell(`Message from server: ${message}`);
-    });
-    serverProcess.on('exit', (code, signal) =>
-    {
-        tell(`Server process exited with code: ${code} and signal: ${signal}`);
-    });
-    serverProcess.stdout.on('data', (data) =>
-    {
-        tell(`Server stdout: ${data.toString()}`);
-    });
-    serverProcess.stderr.on('data', (data) =>
-    {
-        tell(`Server stderr: ${data.toString()}`);
-    });
-    serverProcess.on('close', (code) =>
-    {
-        tell(`Server process closed with code: ${code}`);
+
+        const exe = "npx";
+        const args = ["next", "start", "-p", `${port}`];
+        serverProcess = child_process.spawn(exe, args, {
+            cwd: __dirname,
+            stdio: ["inherit", "pipe", "pipe"], // Change stdio to pipe for stdout and stderr
+            shell: true,
+        });
+
+        serverProcess.stdout.on("data", (data) => {
+            const output = data.toString();
+            tell(`Server stdout: ${output}`);
+            if (output.includes("✓ Ready in")) {
+                resolve(serverProcess);
+            }
+        });
+
+        serverProcess.stderr.on("data", (data) => {
+            etell(`Server stderr: ${data.toString()}`);
+        });
+
+        serverProcess.on("error", (error) => {
+            etell(`Error starting server: ${error}`);
+            reject(error);
+        });
+
+        serverProcess.on("close", (code) => {
+            if (code !== 0) {
+                reject(new Error(`Server process closed with code: ${code}`));
+            }
+        });
     });
 };
 
-const createWindow = () =>
-{
+const launchWingmanExecutable = async () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let platform = os.platform();
+            let architecture = os.arch();
+            let executableName = 'wingman';
+            let useCublas = false;
+
+            const graphics = await si.graphics();
+            const gpus = graphics.controllers;
+            const hasNvidiaGpu = gpus.some(gpu => gpu.vendor.toLowerCase().includes('nvidia'));
+
+            if (hasNvidiaGpu) {
+                useCublas = true;
+            }
+
+            const baseDir = app.isPackaged ? process.resourcesPath : path.join(__dirname, 'server');
+            tell(`Base directory: ${baseDir}`);
+            let executablePath = "";
+            switch (platform) {
+                case 'win32':
+                    platform = useCublas ? 'windows-cublas' : 'windows';
+                    executableName += '.exe';
+                    executablePath = path.join(baseDir, 'wingman', platform, 'bin', executableName);
+                    break;
+                case 'linux':
+                    platform = useCublas ? 'linux-cublas' : 'linux';
+                    executablePath = path.join(baseDir, 'wingman', platform, 'bin', executableName);
+                    break;
+                case 'darwin':
+                    if (architecture === 'arm64') {
+                        platform = 'macos-metal';
+                    } else {
+                        platform = 'macos';
+                    }
+                    // run the macOS version of the wingman executable
+                    // executableName = path.join('wingman.app', 'Contents', 'MacOS', 'wingman');
+                    executableName = ['wingman.app', 'Contents', 'MacOS', 'wingman'];
+                    executablePath = path.join(baseDir, 'wingman', platform, 'bin', 'wingman.app', 'Contents', 'MacOS', 'wingman');
+                    break;
+                default:
+                    reject(new Error(`Unsupported platform: ${platform}`));
+                    return;
+            }
+            tell(`Platform: ${platform}`);
+
+            // server/wingman/macos/bin/wingman
+            // const executablePath = path.join(__dirname, 'server', 'wingman', platform, 'bin', executableName);
+            tell(`Launching Wingman executable: ${executablePath}`);
+            // const subprocess = child_process.spawn(executablePath, [], {
+            //     stdio: ['inherit', 'pipe', 'pipe'],
+            //     shell: true,
+            // });
+
+            // use execFile instead of spawn to avoid shell injection
+            const subprocess = child_process.execFile(executablePath, [], {
+                stdio: ['inherit', 'pipe', 'pipe'],
+            });
+
+            subprocess.stdout.on('data', (data) => {
+                const output = data.toString();
+                tell(`Wingman stdout: ${output}`);
+                if (output.includes("Wingman websocket accepting connections")) {
+                    resolve(subprocess);
+                }
+            });
+
+            subprocess.stderr.on('data', (data) => {
+                etell(`Wingman stderr: ${data.toString()}`);
+            });
+
+            subprocess.on('error', (err) => {
+                etell(`Failed to start subprocess: ${err}`);
+                reject(err);
+            });
+
+        } catch (error) {
+            etell(`Error launching Wingman executable: ${error}`);
+            reject(error);
+        }
+    });
+};
+
+const createWindow = () => {
     win = new BrowserWindow({
         width: 1366,
         height: 1080,
@@ -95,40 +236,57 @@ const createWindow = () =>
             nodeIntegration: true,
             // contextIsolation: false,
             // enableRemoteModule: true,
-            preload: path.join(__dirname, 'preload.js'),
+            preload: path.join(__dirname, "preload.js"),
         },
     });
 
-    win.loadURL(`http://localhost:${WINGMAN_UI_PORT}`);
-    // win.loadFile('index.html');
-    const view = new BrowserView();
-    win.setBrowserView(view);
-    // set the bounds of the view to the size of bottom third of the main window,
-    //   and update it's dimensions on resize
-    const [width, height] = win.getSize();
-    view.setBounds({ x: 0, y: height - height / 3, width: width, height: height / 3 });
-    view.setAutoResize({ width: true, height: true });
+    // win.loadURL("index.html");
+    win.loadURL(url.format({
+        pathname: path.join(__dirname, 'index.html'),
+        protocol: 'file:',
+        slashes: true
+    }));
+    const { findPort, cancel } = findOpenPortWithProgressAndCancel();
+    findPort((current, total) => tell(`Checked ${current} of ${total} ports.`))
+        .then(async (port) => {
+            tell(`Found an open port: ${port}`);
+            await launchWingmanExecutable();
+            await startNextJsServer(port);
+            // win.loadURL(`http://localhost:${port}`);
+            win.loadURL(url.format({
+                pathname: `localhost:${port}`,
+                protocol: 'http:',
+                slashes: true
+            }));
+        })
+        .catch((error) => {
+            // tell(
+            //     `Search was cancelled or an error occurred: ${error.message}`
+            // );
+            // display error message
+            win.webContents.executeJavaScript(
+                `electronAPI.sendError("${error.message}")`
+              );
+        });
 
-    view.webContents.loadURL('index.html');
-
-    // win.webContents.openDevTools();
+    // win.loadURL(`http://localhost:${WINGMAN_UI_PORT}`);
 };
 
 // updateElectronApp(); // additional configuration options available
 
-startNextJsServer();
+ipcMain.on("report-error", (event, error) => {
+    // tell(`Error from renderer: ${error}`);
+    win.loadURL(`error.html?error=${encodeURIComponent(error)}`);
+});
 
-app.whenReady().then(() =>
-{
+app.whenReady().then(() => {
     createWindow();
 
-    app.on('activate', () =>
-    {
+    app.on("activate", () => {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
 });
 
-app.on('window-all-closed', () =>
-{
-    if (process.platform !== 'darwin') app.quit();
+app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") app.quit();
 });
