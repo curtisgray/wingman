@@ -12,6 +12,7 @@ server/wingman/windows*
 server/wingman/macos*
 server/wingman/linux*
 llama*.log
+wingman*.log
 
 # dependencies
 /node_modules
