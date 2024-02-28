@@ -15,6 +15,7 @@ const nextConfig = {
         return config;
     },
     // distDir: 'build',
+    output: 'standalone',   // build the standalone version of the app: https://nextjs.org/docs/app/api-reference/next-config-js/output#automatically-copying-traced-files
 };
 
 module.exports = nextConfig;

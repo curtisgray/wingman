@@ -14,13 +14,14 @@ const si = require('systeminformation');
 const url = require('url');
 const next = require('next');
 const http = require('http');
-const { t } = require("i18next");
+const kill = require('tree-kill');
 
 const APP_DIR = path.join(os.homedir(), ".wingman");
 
 const logger = winston.createLogger({
     level: "silly",
-    format: winston.format.printf(({ level, message, label, timestamp }) => {
+    format: winston.format.printf(({ level, message, label, timestamp }) =>
+    {
         const ts = timestamp ? timestamp : new Date().toISOString();
         return `[${ts}] [${level}] ${message}`;
     }),
@@ -33,26 +34,32 @@ const logger = winston.createLogger({
     ],
 });
 
-function findOpenPortWithProgressAndCancel() {
+const findOpenPortWithProgressAndCancel = () =>
+{
     let cancelRequested = false;
     const ports = Array.from(
         { length: 65535 - 49152 + 1 },
         (_, i) => 49152 + i
     ); // Dynamic/private range
 
-    const cancel = () => {
+    const cancel = () =>
+    {
         cancelRequested = true;
     };
 
-    const checkPort = (port, progressCallback) => {
-        return new Promise((resolve, reject) => {
-            if (cancelRequested) {
+    const checkPort = (port, progressCallback) =>
+    {
+        return new Promise((resolve, reject) =>
+        {
+            if (cancelRequested)
+            {
                 reject(new Error("Cancelled"));
                 return;
             }
 
             const server = net.createServer();
-            server.listen(port, () => {
+            server.listen(port, () =>
+            {
                 server.once("close", () => resolve(port));
                 server.close();
             });
@@ -60,15 +67,20 @@ function findOpenPortWithProgressAndCancel() {
         });
     };
 
-    const findPort = (progressCallback) => {
-        return new Promise(async (resolve) => {
-            for (let i = 0; i < ports.length; i++) {
-                if (cancelRequested) {
+    const findPort = (progressCallback) =>
+    {
+        return new Promise(async (resolve) =>
+        {
+            for (let i = 0; i < ports.length; i++)
+            {
+                if (cancelRequested)
+                {
                     resolve(-1); // Cancelled
                     return;
                 }
                 const port = await checkPort(ports[i], progressCallback);
-                if (port !== null) {
+                if (port !== null)
+                {
                     resolve(port);
                     return;
                 }
@@ -79,108 +91,159 @@ function findOpenPortWithProgressAndCancel() {
     };
 
     return { findPort, cancel };
-}
-let serverProcess = null;
+};
+
+let wingmanProcessController = null;
+let nextJsServerProcessController = null;
 // let mainWindow;
 
 logger.log("info", "Starting Wingman Electron");
-const tell = (data) => {
+const tell = (data) =>
+{
     logger.log("info", data);
 };
 
-const etell = (data) => {
+const etell = (data) =>
+{
     logger.log("error", data);
 };
 
-const getBaseDir = () => {
-    let baseDir = path.join(__dirname, 'server');
-    // check if the base directory exists, or this is running on macos, if not, use the resources path
-    if (!fs.existsSync(baseDir)) {
-        etell(`Base directory does not exist: ${baseDir}. Using Resources path.`);
-        baseDir = path.dirname(process.resourcesPath);
-    } else if (process.platform === 'darwin') {
-        tell(`Running on MacOS. Using Resources path`);
+// check if `app.asar` is in the __dirname
+const isPackaged = __dirname.includes('app.asar');
+
+const getBaseDir = () =>
+{
+    let baseDir = __dirname;
+    if (isPackaged)
+    {
+        tell(`App is packaged. Using Resources path.`);
+        baseDir = path.resolve(process.resourcesPath);
+    } else if (process.platform === 'darwin')
+    {
+        tell(`App is packaged on ${process.platform}. Using Contents/Resources path`);
         baseDir = path.resolve(path.dirname(path.join(__dirname, '..', 'Resources')));
     }
     return baseDir;
 };
 
-const startNextJs = (port, nextDir) => {
-  return new Promise((resolve, reject) => {
-    tell("Starting Next.js server");
-
-    const dev = process.env.NODE_ENV !== 'production';
-    const nextApp = next({ dev, conf: { distDir: nextDir } });
-    const handleNextRequests = nextApp.getRequestHandler();
-
-    nextApp.prepare()
-      .then(() => {
-        const server = http.createServer((req, res) => handleNextRequests(req, res));
-
-        server.listen(port, (err) => {
-          if (err) {
-            console.error(err);
-            reject(err);
-            return;
-          }
-          console.log(`> Ready on http://localhost:${port}`);
-          resolve(server);
-        });
-      })
-      .catch(reject);
-  });
-};
-
-const startNextJsServer = async (port, nextDir) => {
-    return new Promise(async (resolve, reject) => {
+const startNextJs = (port, nextDir) =>
+{
+    return new Promise((resolve, reject) =>
+    {
         tell("Starting Next.js server");
 
-        if (!fs.existsSync(nextDir)) {
+        const baseDir = getBaseDir();
+        const nextConfig = require(path.join(nextDir, 'next.config.js'));
+
+        // const dev = process.env.NODE_ENV !== 'production';
+        const dev = true;
+        //   const nextApp = next({ dev, conf: { distDir: nextDir } });
+        const nextApp = next({ dev, conf: nextConfig, dir: nextDir, customServer: true });
+        const handleNextRequests = nextApp.getRequestHandler();
+
+        nextApp.prepare()
+            .then(() =>
+            {
+                const server = http.createServer((req, res) => handleNextRequests(req, res));
+
+                server.listen(port, (err) =>
+                {
+                    if (err)
+                    {
+                        etell(err);
+                        reject(err);
+                        return;
+                    }
+                    tell(`> Ready on http://localhost:${port}`);
+                    resolve(server);
+                });
+            })
+            .catch(reject);
+    });
+};
+
+const startNextJsServer = async (port, nextDir) =>
+{
+    return new Promise(async (resolve, reject) =>
+    {
+        tell("Starting Next.js server");
+
+        if (!fs.existsSync(nextDir))
+        {
             const errMsg = "The .next directory does not exist. Something went wrong. Exiting...";
             etell(errMsg);
             reject(new Error(errMsg));
             return;
         }
 
-        const exe = "npx";
-        const args = ["next", "start", "-p", `${port}`];
-        tell(`Starting Next.js server: ${exe} ${args.join(" ")}`);
-        serverProcess = child_process.spawn(exe, args, {
-            cwd: baseDir,
-            // cwd: __dirname,
+        // const exe = "npx";
+        // const args = ["next", "start", "-p", `${port}`];
+        // tell(`Starting Next.js server: ${exe} ${args.join(" ")}`);
+        // nextJsProcess = child_process.spawn(exe, args, {
+        //     cwd: baseDir,
+        //     // cwd: __dirname,
+        //     stdio: ["inherit", "pipe", "pipe"], // Change stdio to pipe for stdout and stderr
+        //     shell: true,
+        //     windowsHide: true,
+        // });
+
+        const controller = new AbortController();
+        const { signal } = controller;
+        // set process.env.PORT to the port number
+        process.env.PORT = port;
+        process.env.HOSTNAME = "localhost";
+        const subprocess = child_process.spawn("node", [path.join(nextDir, "server.js")], {
+            cwd: nextDir,
             stdio: ["inherit", "pipe", "pipe"], // Change stdio to pipe for stdout and stderr
             shell: true,
             windowsHide: true,
-        });
+        }, { signal });
 
-        serverProcess.stdout.on("data", (data) => {
+        signal.onabort = () =>
+        {
+            tell("NextJs process aborted");
+            subprocess.kill();
+        };
+
+        subprocess.stdout.on("data", (data) =>
+        {
             const output = data.toString();
             tell(`Server stdout: ${output}`);
-            if (output.includes("✓ Ready in")) {
-                resolve(serverProcess);
+            if (output.includes("✓ Ready in"))
+            {
+                resolve(controller);
             }
         });
 
-        serverProcess.stderr.on("data", (data) => {
+        subprocess.stderr.on("data", (data) =>
+        {
             etell(`Server stderr: ${data.toString()}`);
         });
 
-        serverProcess.on("error", (error) => {
+        subprocess.on("error", (error) =>
+        {
             etell(`Error starting server: ${error}`);
             reject(error);
         });
 
-        serverProcess.on("close", (code) => {
-            if (code !== 0) {
+        subprocess.on("close", (code) =>
+        {
+            if (code !== 0)
+            {
                 reject(new Error(`Server process closed with code: ${code}`));
             }
         });
     });
 };
 
-const launchWingmanExecutable = async (baseDir) => {
-    return new Promise(async (resolve, reject) => {
-        try {
+const launchWingmanExecutable = async (baseDir) =>
+{
+    return new Promise(async (resolve, reject) =>
+    {
+        try
+        {
+            const controller = new AbortController();
+            const { signal } = controller;
             let executableName = 'wingman';
             let useCublas = false;
 
@@ -188,7 +251,8 @@ const launchWingmanExecutable = async (baseDir) => {
             const gpus = graphics.controllers;
             const hasNvidiaGpu = gpus.some(gpu => gpu.vendor.toLowerCase().includes('nvidia'));
 
-            if (hasNvidiaGpu) {
+            if (hasNvidiaGpu)
+            {
                 useCublas = true;
             }
 
@@ -196,7 +260,8 @@ const launchWingmanExecutable = async (baseDir) => {
             let executablePath = "";
             let cwd = "";
             let wingman_runtime = "";
-            switch (process.platform) {
+            switch (process.platform)
+            {
                 case 'win32':
                     wingman_runtime = useCublas ? 'windows-cublas' : 'windows';
                     executableName += '.exe';
@@ -205,9 +270,11 @@ const launchWingmanExecutable = async (baseDir) => {
                     wingman_runtime = useCublas ? 'linux-cublas' : 'linux';
                     break;
                 case 'darwin':
-                    if (process.arch === 'arm64') {
+                    if (process.arch === 'arm64')
+                    {
                         wingman_runtime = 'macos-metal';
-                    } else {
+                    } else
+                    {
                         wingman_runtime = 'macos';
                     }
                     break;
@@ -216,7 +283,7 @@ const launchWingmanExecutable = async (baseDir) => {
                     return;
             }
             cwd = path.join(baseDir, 'wingman', wingman_runtime, 'bin');
-            executablePath = path.join(cwd, executableName);
+            executablePath = path.resolve(path.join(cwd, executableName));
             tell(`Wingman Runtime: ${wingman_runtime}`);
 
             tell(`Launching Wingman executable: ${executablePath}`);
@@ -225,35 +292,45 @@ const launchWingmanExecutable = async (baseDir) => {
                 shell: true,
                 cwd: path.join(baseDir, 'wingman', wingman_runtime, 'bin'),
                 windowsHide: true,
-            });
+            }, { signal });
 
-            subprocess.stdout.on('data', (data) => {
+            signal.onabort = () =>
+            {
+                tell("Wingman process aborted");
+                subprocess.kill();
+            };
+
+            subprocess.stdout.on('data', (data) =>
+            {
                 const output = data.toString();
                 tell(`Wingman stdout: ${output}`);
-                if (output.includes("Wingman websocket accepting connections")) {
-                    resolve(subprocess);
+                if (output.includes("Wingman websocket accepting connections"))
+                {
+                    resolve(controller);
                 }
             });
 
-            subprocess.stderr.on('data', (data) => {
+            subprocess.stderr.on('data', (data) =>
+            {
                 etell(`Wingman stderr: ${data.toString()}`);
             });
 
-            subprocess.on('error', (err) => {
+            subprocess.on('error', (err) =>
+            {
                 etell(`Failed to start subprocess: ${err}`);
                 reject(err);
             });
 
-        } catch (error) {
+        } catch (error)
+        {
             etell(`Error launching Wingman executable: ${error}`);
             reject(error);
         }
     });
 };
 
-const processes = [];
-
-const createWindow = () => {
+const createWindow = () =>
+{
     win = new BrowserWindow({
         width: 1366,
         height: 1080,
@@ -270,50 +347,77 @@ const createWindow = () => {
         protocol: 'file:',
         slashes: true
     }));
+
     const { findPort, cancel } = findOpenPortWithProgressAndCancel();
+
     findPort((current, total) => tell(`Checked ${current} of ${total} ports.`))
-        .then(async (port) => {
+        .then(async (port) =>
+        {
             tell(`Found an open port: ${port}`);
             const baseDir = getBaseDir();
             tell(`Base directory: ${baseDir}`);
-            const nextDir = path.join(baseDir, ".next");
+            let wingmanDir = path.join(baseDir, "server");
+            if (isPackaged)
+            {
+                wingmanDir = baseDir;
+            }
+            tell(`Wingman directory: ${wingmanDir}`);
+            let nextDir = path.resolve(path.join(baseDir, ".next", "standalone"));
+            if (isPackaged)
+            {
+                nextDir = path.join(baseDir, "standalone");
+            }
             tell(`Next.js directory: ${nextDir}`);
-            processes.push(await launchWingmanExecutable(baseDir));
-            processes.push(await startNextJs(port, nextDir));
+
+            wingmanProcessController = await launchWingmanExecutable(wingmanDir);
+            nextJsServerProcessController = await startNextJsServer(port, nextDir);
             win.loadURL(url.format({
                 pathname: `localhost:${port}`,
                 protocol: 'http:',
                 slashes: true
             }));
         })
-        .catch((error) => {
+        .catch((error) =>
+        {
             etell(`Error finding open port: ${error}`);
             // display error message
             win.webContents.executeJavaScript(
                 `electronAPI.sendError("${error.message}")`
-              );
+            );
         });
 };
 
 // updateElectronApp(); // additional configuration options available
 
-ipcMain.on("report-error", (event, error) => {
+ipcMain.on("report-error", (event, error) =>
+{
     etell(`Error from renderer: ${error}`);
     win.loadURL(`error.html?error=${encodeURIComponent(error)}`);
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(() =>
+{
     createWindow();
 
-    app.on("activate", () => {
+    app.on("activate", () =>
+    {
         if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
 });
 
-app.on("window-all-closed", () => {
+app.on("window-all-closed", () =>
+{
     if (process.platform !== "darwin") app.quit();
-    for (let i = 0; i < processes.length; i++) {
-        // processes[i].kill();
-        processes[i].close();
+
+    // TODO: the processes are not being killed when the app is closed. perhaps
+    //    the abort controller is not being triggered. need to investigate.
+    if (nextJsServerProcessController)
+    {
+        nextJsServerProcessController.abort();
+    }
+
+    if (wingmanProcessController)
+    {
+        wingmanProcessController.abort();
     }
 });

@@ -1,5 +1,5 @@
-// const path = require("path");
-// const fs = require("fs").promises;
+const path = require("path");
+const fs = require("fs").promises;
 // const winston = require("winston");
 
 module.exports = {
@@ -7,8 +7,7 @@ module.exports = {
         asar: true,
         extraResource: [
             "server/wingman",
-            ".next",
-            "next-i18next.config.js"
+            ".next/standalone",
         ],
     },
     rebuildConfig: {},
@@ -59,6 +58,11 @@ module.exports = {
             // run the next build command
             const { execSync } = require("child_process");
             execSync("npm run build", { cwd: __dirname });
+            // copy the static folder into standalone/.next. standalone/public is already copied by electron-forge
+            //  though NextJs docs say to copy the public folder, it seems to work without it
+            var src = path.join(__dirname, ".next", "static");
+            var dst = path.join(__dirname, ".next", "standalone", ".next", "static");
+            await fs.cp(src, dst, { recursive: true });
         },
         // packageAfterCopy: () => {
         //     const logger = winston.createLogger({
@@ -189,8 +193,10 @@ module.exports = {
         //         platform,
         //         arch
         //     ) => {
-        //         var src = path.join(__dirname, ".next");
-        //         var dst = path.join(buildPath, ".next");
+        //         // var src = path.join(__dirname, ".next");
+        //         // var dst = path.join(buildPath, ".next");
+        //         var src = path.join(__dirname, ".next", "static");
+        //         var dst = path.join(buildPath, ".next", "standalone", ".next" , "static");
         //         await fs.promises.cp(src, dst, { recursive: true });
         //         // var dirSrc = path.join(__dirname, "server/wingman");
         //         // var dirDst = path.join(buildPath, "server/wingman");
