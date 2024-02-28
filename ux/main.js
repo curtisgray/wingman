@@ -14,7 +14,6 @@ const si = require('systeminformation');
 const url = require('url');
 const next = require('next');
 const http = require('http');
-const kill = require('tree-kill');
 
 const APP_DIR = path.join(os.homedir(), ".wingman");
 
@@ -118,10 +117,12 @@ const getBaseDir = () =>
     {
         tell(`App is packaged. Using Resources path.`);
         baseDir = path.resolve(process.resourcesPath);
-    } else if (process.platform === 'darwin')
-    {
-        tell(`App is packaged on ${process.platform}. Using Contents/Resources path`);
-        baseDir = path.resolve(path.dirname(path.join(__dirname, '..', 'Resources')));
+    // } else if (process.platform === 'darwin')
+    // {
+        if (process.platform === 'darwin') {
+            tell(`App is packaged on ${process.platform}. Using Contents/Resources path`);
+            baseDir = path.resolve(path.dirname(path.join(__dirname, '..', 'Resources')));
+        }
     }
     return baseDir;
 };
@@ -235,6 +236,31 @@ const startNextJsServer = async (port, nextDir) =>
         });
     });
 };
+
+const startNextJsStandaloneServer = (port, nextDir) => {
+    return new Promise((resolve, reject) => {
+      // Ensure the Next.js server file exists
+      const serverFilePath = path.join(nextDir, 'server.js');
+      if (!fs.existsSync(serverFilePath)) {
+        return reject(new Error('Next.js server.js file not found.'));
+      }
+  
+      // Set necessary environment variables
+      process.env.PORT = port.toString();
+      process.env.NODE_ENV = 'production';
+      process.chdir(nextDir); // Change working directory to the Next.js app directory
+  
+      // Dynamically import and start the Next.js server
+      try {
+        require(serverFilePath); // This executes the server.js file
+        tell(`Next.js server started on http://localhost:${port}`);
+        resolve();
+      } catch (error) {
+        etell('Failed to start Next.js server:', error);
+        reject(error);
+      }
+    });
+  };
 
 const launchWingmanExecutable = async (baseDir) =>
 {
@@ -370,7 +396,7 @@ const createWindow = () =>
             tell(`Next.js directory: ${nextDir}`);
 
             wingmanProcessController = await launchWingmanExecutable(wingmanDir);
-            nextJsServerProcessController = await startNextJsServer(port, nextDir);
+            nextJsServerProcessController = await startNextJsStandaloneServer(port, nextDir);
             win.loadURL(url.format({
                 pathname: `localhost:${port}`,
                 protocol: 'http:',
