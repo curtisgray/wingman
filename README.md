@@ -1,8 +1,9 @@
-![logo](./assets/images/wingman-logo.png)
-
+<p align="center">
+  <img width="512" height="512" src="ux/assets/logo-rooster-black-white-512.png">
+</p>
 Wingman is a private ChatGPT interface for your PC. It combines Meta's Llama and OpenAI's GPT AI's into one interface, allowing you to change to change models mid conversation, and give real-time feedback to the AI.
 
-## Wingman: Advanced AI Integration for Your Desktop
+## Wingman: The Easiest Way to Get AI on Your Desktop
 
 Effortless AI Model Integration: Wingman provides a streamlined solution to bring advanced AI capabilities, specifically Meta’s Llama and OpenAI's GPT models, to your Windows or Mac environment. This integration bypasses the usual complexities of setup and configuration, making cutting-edge AI accessible without the need for extensive development tools or setup procedures.
 
