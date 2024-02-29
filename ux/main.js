@@ -459,7 +459,7 @@ const createWindow = () =>
         slashes: true
     }));
 
-    win.webContents.openDevTools();
+    // win.webContents.openDevTools();
 
     const { findPort, cancel } = findOpenPortWithProgressAndCancel();
 

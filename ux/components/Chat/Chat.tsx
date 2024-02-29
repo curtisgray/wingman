@@ -462,7 +462,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         <div className="relative flex-1 overflow-hidden bg-gray-100 dark:bg-gray-800">
             {( showOnboarding() ) ? ( // no models available so display startup ui
                 // TODO: Besides api key, we should also check if the user has selected a model
-                <div className="mx-auto flex h-full w-[300px] flex-col justify-center space-y-6 sm:w-[600px]">
+                <div className="mx-auto flex w-[300px] flex-col justify-center space-y-6 sm:w-[600px] max-h-full overflow-x-hidden">
                     <div className="text-center text-4xl font-bold">
                         Welcome to Wingman
                     </div>
