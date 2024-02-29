@@ -224,7 +224,7 @@ export const ChatMessage: FC<Props> = memo(
                                 <MemoizedReactMarkdown
                                     className="prose dark:prose-invert flex-1"
                                     remarkPlugins={[remarkGfm, remarkMath]}
-                                    rehypePlugins={[rehypeMathjax]}
+                                    // rehypePlugins={[rehypeMathjax]}
                                     components={{
                                         code({
                                             node,
@@ -232,24 +232,36 @@ export const ChatMessage: FC<Props> = memo(
                                             className,
                                             children,
                                             ...props
-                                        }) {
-                                            if (children.length) {
-                                                if (children[0] == "▍") {
-                                                    return (
-                                                        <span className="animate-pulse cursor-default mt-1">
-                                                            ▍
-                                                        </span>
-                                                    );
-                                                }
+                                        }: any) {
+                                            // if (children.length) {
+                                            //     if (children[0] == "▍") {
+                                            //         return (
+                                            //             <span className="animate-pulse cursor-default mt-1">
+                                            //                 ▍
+                                            //             </span>
+                                            //         );
+                                            //     }
 
-                                                children[0] = (
-                                                    children[0] as string
-                                                ).replace("`▍`", "▍");
+                                            //     children[0] = (
+                                            //         children[0] as string
+                                            //     ).replace("`▍`", "▍");
+                                            // }
+                                            if (children) {
+                                                let newChildren = children as string;
+                                                if (newChildren.length > 0) {
+                                                    if (newChildren?.startsWith("▍")) {
+                                                        return (
+                                                            <span className="animate-pulse cursor-default mt-1">
+                                                                ▍
+                                                            </span>
+                                                        );
+                                                    }
+                                                    newChildren = newChildren.replace("`▍`", "▍");
+                                                    children = newChildren;
+                                                }
                                             }
 
-                                            const match = /language-(\w+)/.exec(
-                                                className || ""
-                                            );
+                                            const match = /language-(\w+)/.exec(className || "");
 
                                             return !inline ? (
                                                 <CodeBlock

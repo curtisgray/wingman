@@ -30,6 +30,8 @@ import { SelectModel } from "./SelectModel";
 import { AIModel, AIModelID } from "@/types/ai";
 import InitialModelListing from "./InitialModelListing";
 
+export const runtime = 'edge'; // 'nodejs' (default) | 'edge'
+
 interface Props {
     stopConversationRef: MutableRefObject<boolean>;
 }
