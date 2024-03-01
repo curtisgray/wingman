@@ -71,6 +71,9 @@
         "@electron-forge/maker-zip": "^7.3.0",
         "@electron-forge/plugin-auto-unpack-natives": "^7.3.0",
         "@mozilla/readability": "^0.5.0",
+        "@semantic-release/changelog": "^6.0.3",
+        "@semantic-release/git": "^10.0.1",
+        "@semantic-release/github": "^9.2.6",
         "@tailwindcss/typography": "^0.5.10",
         "@trivago/prettier-plugin-sort-imports": "^4.1.1",
         "@types/jsdom": "^21.1.6",
@@ -91,6 +94,7 @@
         "jsdom": "^24.0.0",
         "prettier": "^3.2.5",
         "prettier-plugin-tailwindcss": "^0.2.5",
+        "semantic-release": "^23.0.2",
         "tailwindcss": "^3.4.1",
         "typescript": "5.3.3",
         "vitest": "^0.29.7"
