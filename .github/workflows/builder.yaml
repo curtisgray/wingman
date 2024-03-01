@@ -33,7 +33,7 @@ jobs:
 
       - name: Install PowerShell (Linux and macOS)
         if: matrix.os != 'windows-latest'
-        uses: actions/setup-powershell-toolkit-ghaction@latest
+        uses: hugoalh-studio/setup-powershell-toolkit-ghaction@latest
 
       - name: Execute Build Script
         shell: pwsh
