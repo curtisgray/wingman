@@ -4,27 +4,57 @@ param(
     [string]$BuildPlatform
 )
 
-Remove-Item -Recurse -Force -ErrorAction SilentlyContinue node_modules
-Remove-Item -Recurse -Force -ErrorAction SilentlyContinue out
-Remove-Item -Recurse -Force -ErrorAction SilentlyContinue .next
-npm install
-npm run build
-Copy-Item ".next/static" ".next/standalone/.next" -Recurse -Force
+try {
+    # Clean up the previous build artifacts
+    Write-Host "Cleaning previous build artifacts..."
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue node_modules
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue out
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue .next
 
-# Determine architecture based on platform
-$arch = switch ($BuildPlatform) {
-    "windows" {
-        "x64" 
+    # Install dependencies
+    Write-Host "Installing dependencies..."
+    npm ci --cache .npm --prefer-offline
+    if ($LASTEXITCODE -ne 0) {
+        throw "npm install failed" 
     }
-    "linux" {
-        "x64" 
+
+    # Build the project
+    Write-Host "Building the project..."
+    npm run build
+    if ($LASTEXITCODE -ne 0) {
+        throw "npm run build failed" 
     }
-    "macos" {
-        "universal" 
-    } # For universal macOS build
-    default {
-        throw "Unsupported platform: $BuildPlatform" 
+
+    # Copy static files needed by Electron
+    Write-Host "Copying static files for Electron..."
+    Copy-Item ".next/static" ".next/standalone/.next" -Recurse -Force
+
+    # Determine architecture based on platform
+    $arch = switch ($BuildPlatform) {
+        "windows" {
+            "x64" 
+        }
+        "linux" {
+            "x64" 
+        }
+        "macos" {
+            "universal" 
+        } # For universal macOS build
+        default {
+            throw "Unsupported platform: $BuildPlatform" 
+        }
     }
+
+    # Build the Electron app
+    Write-Host "Building Electron app..."
+    electron-forge make --platform=$BuildPlatform --arch=$arch
+    if ($LASTEXITCODE -ne 0) {
+        throw "electron-forge make failed" 
+    }
+
+    Write-Host "UX build completed successfully."
 }
-
-electron-forge make --platform=$BuildPlatform --arch=$arch
+catch {
+    Write-Error "An error occurred during the UX build process: $_"
+    exit 1
+}

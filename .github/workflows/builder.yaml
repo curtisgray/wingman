@@ -3,12 +3,11 @@ name: Electron App Build and Release
 on:
   push:
     branches:
+      - main
       - develop
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+*' # Match any tag that looks like a version number
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -30,7 +29,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 'node' # Automatically use the latest stable version of Node.js
+          node-version: '14' # Specify the Node.js version to use, ensure it matches your project requirements
 
       - name: Install PowerShell (Linux and macOS)
         if: matrix.os != 'windows-latest'
@@ -40,24 +39,38 @@ jobs:
         shell: pwsh
         run: .\build.ps1 -BuildPlatform ${{ matrix.platform }}
 
-      - name: Extract Version from Git Tag
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+      - name: Extract package.json Version
+        shell: pwsh
+        run: |
+          $packageJson = Get-Content -Path "./package.json" -Raw | ConvertFrom-Json
+          echo "PACKAGE_VERSION=$($packageJson.version)" >> $GITHUB_ENV
 
-      # Adjusted artifact paths based on platform and tag version, using PowerShell
       - name: Define Artifact Path
         shell: pwsh
         run: |
-          if ($env:matrix_platform -eq "windows") {
-            echo "ARTIFACT_PATH=out/make/squirrel.windows/x64/wingman-$env:VERSION Setup.exe" >> $env:GITHUB_ENV
-          } elseif ($env:matrix_platform -eq "linux") {
-            echo "ARTIFACT_PATH=out/make/wingman-$env:VERSION.deb" >> $env:GITHUB_ENV
-          } elseif ($env:matrix_platform -eq "macos") {
-            echo "ARTIFACT_PATH=out/make/wingman-$env:VERSION-universal.dmg" >> $env:GITHUB_ENV
+          $platform = "${{ matrix.platform }}"
+          $version = "${{ env.PACKAGE_VERSION }}"
+          $artifactPath = ""
+          if ($platform -eq "windows") {
+            $artifactPath = "out/make/squirrel.windows/x64/wingman-$version Setup.exe"
+          } elseif ($platform -eq "linux") {
+            $artifactPath = "out/make/wingman-$version.deb"
+          } elseif ($platform -eq "macos") {
+            $artifactPath = "out/make/wingman-$version-universal.dmg"
           }
+          echo "ARTIFACT_PATH=$artifactPath" >> $GITHUB_ENV
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: app-${{ matrix.platform }}-${{ env.VERSION }}
+          name: app-${{ matrix.platform }}-${{ env.PACKAGE_VERSION }}
           path: ${{ env.ARTIFACT_PATH }}
+
+      - name: Create and Push Git Tag
+        if: github.ref == 'refs/heads/main'
+        shell: pwsh
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag -a "v${{ env.PACKAGE_VERSION }}" -m "Release version ${{ env.PACKAGE_VERSION }}"
+          git push origin "v${{ env.PACKAGE_VERSION }}"
