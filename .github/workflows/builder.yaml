@@ -1,24 +1,35 @@
-name: Electron App Build and Release
+name: Wingman App Build and Release
+
+defaults:
+  run:
+    shell: bash
 
 on:
   push:
     branches:
-      - main
       - develop
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
 
 jobs:
   build-and-release:
     runs-on: ${{ matrix.os }}
     strategy:
+      # fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        # os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [windows-latest, macos-latest]
         include:
           - os: windows-latest
             platform: windows
-          - os: ubuntu-latest
-            platform: linux
+            timeout-minutes: 60
+          # - os: ubuntu-latest
+          #   platform: linux
+          #   timeout-minutes: 60
           - os: macos-latest
             platform: macos
+            runs-on: macos-14
+            timeout-minutes: 60
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -26,49 +37,139 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+        # https://github.com/electron/forge/issues/2807
+      - name: Install Python 3 Setuptools on macOS
+        if: matrix.os == 'macos-latest'
+        run: python3 -m pip install setuptools
+
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '14' # Specify the Node.js version to use, ensure it matches your project requirements
+          node-version: '20' # Specify the Node.js version to use, ensure it matches your project requirements
 
-      - name: Install PowerShell (Linux and macOS)
-        if: matrix.os != 'windows-latest'
-        uses: actions/setup-powershell@v2
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Set VCPKG Environment Variables
+        run: |
+          echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> $GITHUB_ENV
+
+      - name: Install PowerShell macOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          architecture=$(uname -m)
+          # Download the powershell '.tar.gz' archive
+          if [ "$architecture" = "x86_64" ]; then
+            curl -L -o /tmp/powershell.tar.gz https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/powershell-7.4.1-osx-x64.tar.gz
+          elif [ "$architecture" = "arm64" ]; then
+            curl -L -o /tmp/powershell.tar.gz https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/powershell-7.4.1-osx-arm64.tar.gz
+          fi
+          # Create the target folder where powershell is placed
+          sudo mkdir -p /usr/local/microsoft/powershell/7
+          # Expand powershell to the target folder
+          sudo tar zxf /tmp/powershell.tar.gz -C /usr/local/microsoft/powershell/7
+          # Set execute permissions
+          sudo chmod +x /usr/local/microsoft/powershell/7/pwsh
+          # Create the symbolic link that points to pwsh
+          sudo ln -sf /usr/local/microsoft/powershell/7/pwsh /usr/local/bin/pwsh
+
+      - name: Install Build Dependencies
+        shell: pwsh
+        run: .\build-setup.ps1 -BuildPlatform ${{ matrix.platform }}
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v2
+        with:
+          path: '~/.npm'
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Execute Build Script
         shell: pwsh
         run: .\build.ps1 -BuildPlatform ${{ matrix.platform }}
 
       - name: Extract package.json Version
-        shell: pwsh
         run: |
-          $packageJson = Get-Content -Path "./package.json" -Raw | ConvertFrom-Json
-          echo "PACKAGE_VERSION=$($packageJson.version)" >> $GITHUB_ENV
+          package_version=$(jq -r '.version' ./ux/package.json)
+          echo "PACKAGE_VERSION=$package_version" >> $GITHUB_ENV
 
-      - name: Define Artifact Path
-        shell: pwsh
+      - name: Define Artifact Path for Windows and Linux
+        if: matrix.os != 'macos-latest'
         run: |
-          $platform = "${{ matrix.platform }}"
-          $version = "${{ env.PACKAGE_VERSION }}"
-          $artifactPath = ""
-          if ($platform -eq "windows") {
-            $artifactPath = "out/make/squirrel.windows/x64/wingman-$version Setup.exe"
-          } elseif ($platform -eq "linux") {
-            $artifactPath = "out/make/wingman-$version.deb"
-          } elseif ($platform -eq "macos") {
-            $artifactPath = "out/make/wingman-$version-universal.dmg"
-          }
+          platform="${{ matrix.platform }}"
+          version="${{ env.PACKAGE_VERSION }}"
+          artifactPath=""
+          artifactZipPath=""
+          if [ "$platform" = "windows" ]; then
+            artifactPath="out/make/squirrel.windows/x64/wingman-$version Setup.exe"
+            artifactZipPath="out/make/zip/win32/x64/wingman-win32-x64-$version.zip"
+          elif [ "$platform" = "linux" ]; then
+            artifactPath="out/make/wingman-linux-x64-$version.deb"
+            artifactZipPath="out/make/zip/linux/x64/wingman-linux-x64-$version.zip"
+          fi
           echo "ARTIFACT_PATH=$artifactPath" >> $GITHUB_ENV
+          echo "ARTIFACT_ZIP_PATH=$artifactZipPath" >> $GITHUB_ENV
 
-      - name: Upload Artifact
+      - name: Define Artifact Paths for macOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          version="${{ env.PACKAGE_VERSION }}"
+          arch="x64"
+          echo "ARTIFACT_PATH_INTEL=out/make/wingman-$arch-$version.dmg" >> $GITHUB_ENV
+          echo "ARTIFACT_PATH_INTEL_ZIP=out/make/zip/darwin/$arch/wingman-$arch-$version.dmg" >> $GITHUB_ENV
+          arch="arm64"
+          echo "ARTIFACT_PATH_APPLE_SILICON=out/make/wingman-$arch-$version.dmg" >> $GITHUB_ENV
+          echo "ARTIFACT_PATH_APPLE_SILICON_ZIP=out/make/zip/darwin/$arch/wingman-darwin-$arch-$version.dmg" >> $GITHUB_ENV
+
+      - name: Upload Installer Artifact for Intel macOS
+        if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v2
         with:
-          name: app-${{ matrix.platform }}-${{ env.PACKAGE_VERSION }}
+          name: wingman-macos-intel-${{ env.PACKAGE_VERSION }}
+          path: ${{ env.ARTIFACT_PATH_INTEL }}
+
+      - name: Upload Zip Artifact for Intel macOS
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: wingman-macos-intel-zip-${{ env.PACKAGE_VERSION }}
+          path: ${{ env.ARTIFACT_PATH_INTEL_ZIP }}
+
+      - name: Upload Installer Artifact for Apple Silicon macOS
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: wingman-macos-apple-silicon-${{ env.PACKAGE_VERSION }}
+          path: ${{ env.ARTIFACT_PATH_APPLE_SILICON }}
+
+      - name: Upload Zip Artifact for Apple Silicon macOS
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: wingman-macos-apple-silicon-${{ env.PACKAGE_VERSION }}
+          path: ${{ env.ARTIFACT_PATH_APPLE_SILICON_ZIP }}
+
+      - name: Upload Installer Artifact for Windows and Linux
+        if: matrix.os != 'macos-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: wingman-${{ matrix.platform }}-${{ env.PACKAGE_VERSION }}
           path: ${{ env.ARTIFACT_PATH }}
 
+      - name: Upload Zip Artifact for Windows and Linux
+        if: matrix.os != 'macos-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: wingman-zip-${{ matrix.platform }}-${{ env.PACKAGE_VERSION }}
+          path: ${{ env.ARTIFACT_PATH_ZIP }}
+
       - name: Create and Push Git Tag
-        if: github.ref == 'refs/heads/main'
-        shell: pwsh
+        if: github.ref == 'refs/heads/develop'
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"

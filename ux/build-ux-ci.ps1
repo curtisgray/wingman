@@ -1,19 +1,26 @@
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("windows", "linux", "macos")]
-    [string]$BuildPlatform
+    [string]$BuildPlatform,
+
+    [Parameter(Mandatory = $false)]
+    [switch]$Force
 )
 
 try {
     # Clean up the previous build artifacts
-    Write-Host "Cleaning previous build artifacts..."
-    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue node_modules
-    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue out
-    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue .next
+
+    if ($Force) {
+        Write-Host "Cleaning previous build artifacts..."
+        Remove-Item -Recurse -Force -ErrorAction SilentlyContinue node_modules
+        Remove-Item -Recurse -Force -ErrorAction SilentlyContinue out
+        Remove-Item -Recurse -Force -ErrorAction SilentlyContinue .next
+    }
 
     # Install dependencies
-    Write-Host "Installing dependencies..."
-    npm ci --cache .npm --prefer-offline
+    Write-Host "Installing Node dependencies..."
+    # npm ci --cache .npm --prefer-offline
+    npm install
     if ($LASTEXITCODE -ne 0) {
         throw "npm install failed" 
     }
@@ -30,15 +37,18 @@ try {
     Copy-Item ".next/static" ".next/standalone/.next" -Recurse -Force
 
     # Determine architecture based on platform
-    $arch = switch ($BuildPlatform) {
+    $arch = ""
+    $platform = ""
+    switch ($BuildPlatform) {
         "windows" {
-            "x64" 
+            $arch = "x64"
+            $platform = "win32"
         }
         "linux" {
-            "x64" 
+            $arch = "x64"
+            $platform = "linux"
         }
         "macos" {
-            "universal" 
         } # For universal macOS build
         default {
             throw "Unsupported platform: $BuildPlatform" 
@@ -47,7 +57,13 @@ try {
 
     # Build the Electron app
     Write-Host "Building Electron app..."
-    electron-forge make --platform=$BuildPlatform --arch=$arch
+    if ($BuildPlatform -eq "macos") {
+        # build x64 and arm64
+        ./node_modules/.bin/electron-forge make --platform=darwin --arch=x64
+        ./node_modules/.bin/electron-forge make --platform=darwin --arch=arm64
+    } else {
+        ./node_modules/.bin/electron-forge make --platform=$platform --arch=$arch 
+    }
     if ($LASTEXITCODE -ne 0) {
         throw "electron-forge make failed" 
     }

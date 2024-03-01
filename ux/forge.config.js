@@ -2,6 +2,8 @@ const path = require("path");
 const fs = require("fs").promises;
 // const winston = require("winston");
 
+// Documentation for the forge config can be found at:
+// https://electron.github.io/packager/main/interfaces/Options.html
 module.exports = {
     packagerConfig: {
         asar: true,
