@@ -1,19 +1,26 @@
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("windows", "linux", "macos")]
-    [string]$BuildPlatform
+    [string]$BuildPlatform,
+
+    [Parameter(Mandatory = $false)]
+    [switch]$Force
 )
 
 try {
     # Clean up the previous build artifacts
-    Write-Host "Cleaning previous build artifacts..."
-    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue node_modules
-    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue out
-    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue .next
+
+    if ($Force) {
+        Write-Host "Cleaning previous build artifacts..."
+        Remove-Item -Recurse -Force -ErrorAction SilentlyContinue node_modules
+        Remove-Item -Recurse -Force -ErrorAction SilentlyContinue out
+        Remove-Item -Recurse -Force -ErrorAction SilentlyContinue .next
+    }
 
     # Install dependencies
-    Write-Host "Installing dependencies..."
-    npm ci --cache .npm --prefer-offline
+    Write-Host "Installing Node dependencies..."
+    # npm ci --cache .npm --prefer-offline
+    npm install
     if ($LASTEXITCODE -ne 0) {
         throw "npm install failed" 
     }
@@ -47,7 +54,7 @@ try {
 
     # Build the Electron app
     Write-Host "Building Electron app..."
-    electron-forge make --platform=$BuildPlatform --arch=$arch
+    ./node_modules/.bin/electron-forge make --platform=$BuildPlatform --arch=$arch
     if ($LASTEXITCODE -ne 0) {
         throw "electron-forge make failed" 
     }

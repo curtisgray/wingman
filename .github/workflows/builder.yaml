@@ -101,7 +101,15 @@ jobs:
       - name: Install Build Dependencies
         shell: pwsh
         run: .\build-setup.ps1 -BuildPlatform ${{ matrix.platform }}
-          
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v2
+        with:
+          path: '~/.npm'
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Execute Build Script
         shell: pwsh
         run: .\build.ps1 -BuildPlatform ${{ matrix.platform }}
