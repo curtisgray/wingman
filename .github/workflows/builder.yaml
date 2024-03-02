@@ -19,9 +19,9 @@ jobs:
           - os: windows-latest
             platform: windows
             timeout-minutes: 60
-          - os: ubuntu-latest
-            platform: linux
-            timeout-minutes: 60
+          # - os: ubuntu-latest
+          #   platform: linux
+          #   timeout-minutes: 60
           - os: macos-latest
             platform: macos
             runs-on: macos-14
