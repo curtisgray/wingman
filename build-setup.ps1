@@ -16,7 +16,9 @@ function Install-VcpkgPackage {
     )
     if (-not $installedPackages.ContainsKey($packageName)) {
         Write-Host "Installing $packageName using the default triplet..."
-        & ./vcpkg install $packageName
+        # Use VCPKG_INSTALLATION_ROOT environment variable to specify the vcpkg root directory
+        # & ./vcpkg install $packageName
+        & $env:VCPKG_INSTALLATION_ROOT\vcpkg install $packageName
         if ($LASTEXITCODE -ne 0) {
             throw "Failed to install $packageName"
         }
