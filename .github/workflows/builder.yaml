@@ -88,7 +88,11 @@ jobs:
         run: |
           xcode-select --install || echo "Xcode Command Line Tools are already installed."
         shell: bash
-      
+
+      - name: Install Dependencies
+        shell: pwsh
+        run: .\build-setup.ps1 -BuildPlatform ${{ matrix.platform }}
+          
       - name: Execute Build Script
         shell: pwsh
         run: .\build.ps1 -BuildPlatform ${{ matrix.platform }}
