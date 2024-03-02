@@ -3,8 +3,22 @@
 # Ensure script execution stops on error
 $ErrorActionPreference = "Continue"
 
-# Read the vcpkg package list from the JSON file
-$vcpkgList = Get-Content -Path "vcpkg-list.json" -Raw | ConvertFrom-Json
+# Determine the OS-specific vcpkg list file
+if ($IsWindows) {
+    $vcpkgListPath = "vcpkg-list-windows.json"
+}
+elseif ($IsLinux) {
+    $vcpkgListPath = "vcpkg-list-linux.json"
+}
+elseif ($IsMacOS) {
+    $vcpkgListPath = "vcpkg-list-macos.json"
+}
+else {
+    throw "Unsupported OS"
+}
+
+# Read the vcpkg package list from the determined JSON file
+$vcpkgList = Get-Content -Path $vcpkgListPath -Raw | ConvertFrom-Json
 
 # Hashtable to keep track of installed packages
 $installedPackages = @{}
@@ -17,7 +31,6 @@ function Install-VcpkgPackage {
     if (-not $installedPackages.ContainsKey($packageName)) {
         Write-Host "Installing $packageName using the default triplet..."
         # Use VCPKG_INSTALLATION_ROOT environment variable to specify the vcpkg root directory
-        # & ./vcpkg install $packageName
         & $env:VCPKG_INSTALLATION_ROOT\vcpkg install $packageName
         if ($LASTEXITCODE -ne 0) {
             throw "Failed to install $packageName"

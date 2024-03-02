@@ -38,27 +38,17 @@ jobs:
         with:
           node-version: '20' # Specify the Node.js version to use, ensure it matches your project requirements
 
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
       - name: Detect macOS Processor Type
         if: matrix.os == 'macos-latest'
         run: |
           architecture=$(uname -m)
           echo "ARCHITECTURE=$architecture" >> $GITHUB_ENV
-
-      # - name: Set VCPKG Environment Variables
-      #   run: |
-      #     echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> $GITHUB_ENV
-      #     if [[ ${{ runner.os }} == 'Windows' ]]; then
-      #       echo "VCPKG_DEFAULT_TRIPLET=x64-windows" >> $GITHUB_ENV
-      #     elif [[ ${{ runner.os }} == 'Linux' ]]; then
-      #       echo "VCPKG_DEFAULT_TRIPLET=x64-linux" >> $GITHUB_ENV
-      #     elif [[ ${{ runner.os }} == 'macOS' ]]; then
-      #       architecture=$(uname -m)
-      #       if [[ "$architecture" == "x86_64" ]]; then
-      #         echo "VCPKG_DEFAULT_TRIPLET=x64-osx" >> $GITHUB_ENV
-      #       elif [[ "$architecture" == "arm64" ]]; then
-      #         echo "VCPKG_DEFAULT_TRIPLET=arm64-osx" >> $GITHUB_ENV
-      #       fi
-      #     fi
 
       - name: Set VCPKG Environment Variables (Windows)
         if: matrix.os == 'windows-latest'
@@ -83,29 +73,11 @@ jobs:
             echo "VCPKG_DEFAULT_TRIPLET=arm64-osx" >> $GITHUB_ENV
           fi
 
-      # - name: Install PowerShell on Ubuntu
-      #   if: matrix.os == 'ubuntu-latest'
-      #   run: |
-      #       wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
-      #       sudo dpkg -i packages-microsoft-prod.deb
-      #       sudo apt-get update
-      #       sudo apt-get install -y powershell
-
       - name: Install PowerShell macOS
         if: matrix.os == 'macos-latest'
         run: |
 
           architecture=$(uname -m)
-
-          if [ "$architecture" = "x86_64" ]; then
-            echo "Running on Intel processor"
-            # Place your Intel-specific commands here
-          elif [ "$architecture" = "arm64" ]; then
-            echo "Running on Apple processor"
-            # Place your Apple Silicon-specific commands here
-          else
-            echo "Unknown architecture: $architecture"
-          fi
 
           # Download the powershell '.tar.gz' archive
           if [ "$architecture" = "x86_64" ]; then
@@ -126,12 +98,7 @@ jobs:
           # Create the symbolic link that points to pwsh
           sudo ln -sf /usr/local/microsoft/powershell/7/pwsh /usr/local/bin/pwsh
 
-      # - name: Install Development Tools for macOS
-      #   if: matrix.os == 'macos-latest'
-      #   run: |
-      #     xcode-select --install || echo "Xcode Command Line Tools are already installed."
-
-      - name: Install Dependencies
+      - name: Install Build Dependencies
         shell: pwsh
         run: .\build-setup.ps1 -BuildPlatform ${{ matrix.platform }}
           
