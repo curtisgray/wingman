@@ -20,6 +20,7 @@ jobs:
             platform: linux
           - os: macos-latest
             platform: macos
+            runs-on: macos-14
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
