@@ -83,6 +83,12 @@ jobs:
           sudo ln -sf /usr/local/microsoft/powershell/7/pwsh /usr/local/bin/pwsh
         shell: bash
 
+      - name: Install Development Tools for macOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          xcode-select --install || echo "Xcode Command Line Tools are already installed."
+        shell: bash
+      
       - name: Execute Build Script
         shell: pwsh
         run: .\build.ps1 -BuildPlatform ${{ matrix.platform }}
