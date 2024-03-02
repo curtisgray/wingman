@@ -31,9 +31,22 @@ jobs:
         with:
           node-version: '14' # Specify the Node.js version to use, ensure it matches your project requirements
 
-      # - name: Install PowerShell (Linux and macOS)
-      #   if: matrix.os != 'windows-latest'
-      #   uses: hugoalh-studio/setup-powershell-toolkit-ghaction@v2
+      - name: Install PowerShell (Ubuntu and macOS)
+        if: matrix.os != 'windows-latest'
+        run: |
+          # For Ubuntu
+          if [ "${{ runner.os }}" == "Linux" ]; then
+            wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+            sudo dpkg -i packages-microsoft-prod.deb
+            sudo apt-get update
+            sudo apt-get install -y powershell
+          fi
+
+          # For macOS
+          if [ "${{ runner.os }}" == "macOS" ]; then
+            brew install powershell/tap/powershell
+          fi
+        shell: bash
 
       - name: Execute Build Script
         shell: pwsh
