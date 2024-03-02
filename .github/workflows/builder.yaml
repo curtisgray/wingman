@@ -31,21 +31,56 @@ jobs:
         with:
           node-version: '20' # Specify the Node.js version to use, ensure it matches your project requirements
 
-      - name: Install PowerShell (Ubuntu and macOS)
-        if: matrix.os != 'windows-latest'
+      - name: Detect macOS Processor Type
+        if: runner.os == 'macOS'
         run: |
-          # For Ubuntu
-          if [ "${{ runner.os }}" == "Linux" ]; then
+          architecture=$(uname -m)
+          echo "ARCHITECTURE=$architecture" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Install PowerShell on Ubuntu
+        if: matrix.os == 'ubuntu-latest'
+        run: |
             wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
             sudo dpkg -i packages-microsoft-prod.deb
             sudo apt-get update
             sudo apt-get install -y powershell
+        shell: bash
+
+      - name: Install PowerShell macOS
+        if: matrix.os == 'macos-latest'
+        run: |
+
+          architecture=$(uname -m)
+
+          if [ "$architecture" = "x86_64" ]; then
+            echo "Running on Intel processor"
+            # Place your Intel-specific commands here
+          elif [ "$architecture" = "arm64" ]; then
+            echo "Running on Apple processor"
+            # Place your Apple Silicon-specific commands here
+          else
+            echo "Unknown architecture: $architecture"
           fi
 
-          # For macOS
-          if [ "${{ runner.os }}" == "macOS" ]; then
-            brew install powershell/tap/powershell
+          # Download the powershell '.tar.gz' archive
+          if [ "$architecture" = "x86_64" ]; then
+            curl -L -o /tmp/powershell.tar.gz https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/powershell-7.4.1-osx-x64.tar.gz
+          elif [ "$architecture" = "arm64" ]; then
+            curl -L -o /tmp/powershell.tar.gz https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/powershell-7.4.1-osx-arm64.tar.gz
           fi
+
+          # Create the target folder where powershell is placed
+          sudo mkdir -p /usr/local/microsoft/powershell/7
+
+          # Expand powershell to the target folder
+          sudo tar zxf /tmp/powershell.tar.gz -C /usr/local/microsoft/powershell/7
+
+          # Set execute permissions
+          sudo chmod +x /usr/local/microsoft/powershell/7/pwsh
+
+          # Create the symbolic link that points to pwsh
+          sudo ln -s /usr/local/microsoft/powershell/7/pwsh /usr/local/bin/pwsh          fi
         shell: bash
 
       - name: Execute Build Script
