@@ -32,7 +32,12 @@ function Install-VcpkgPackage {
 # Install packages, skipping duplicates
 foreach ($key in $vcpkgList.PSObject.Properties.Name) {
     $pkg = $vcpkgList.$key
-    Install-VcpkgPackage $pkg.package_name
+    try {
+        Install-VcpkgPackage $pkg.package_name
+    }
+    catch {
+        Write-Host "Failed to install $pkg.package_name, continue with other packages..."
+    }
 }
 
 Write-Host "All specified packages have been installed using the default triplets, duplicates skipped."
