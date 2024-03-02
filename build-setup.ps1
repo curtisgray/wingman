@@ -1,7 +1,7 @@
 # Build-Setup.ps1
 
 # Ensure script execution stops on error
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 
 # Read the vcpkg package list from the JSON file
 $vcpkgList = Get-Content -Path "vcpkg-list.json" -Raw | ConvertFrom-Json
