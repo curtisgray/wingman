@@ -55,12 +55,6 @@ try {
         }
     }
 
-    if ($BuildPlatform -eq "macos") {
-        $platform = "darwin"
-    } else {
-        $platform = $BuildPlatform
-    }
-
     # Build the Electron app
     Write-Host "Building Electron app..."
     if ($BuildPlatform -eq "macos") {
