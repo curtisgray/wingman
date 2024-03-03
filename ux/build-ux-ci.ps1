@@ -60,7 +60,7 @@ try {
 
     # Build the Electron app
     Write-Host "Building Electron app..."
-    ./node_modules/.bin/electron-forge make --platform=$platform --arch=$arch
+    ./node_modules/.bin/electron-forge make --platform=$platform --arch=$arch --osxUniversal.x64ArchFiles=Contents/Resources/wingman/* 
     if ($LASTEXITCODE -ne 0) {
         throw "electron-forge make failed" 
     }
