@@ -67,7 +67,6 @@ try {
     } else {
         ./node_modules/.bin/electron-forge make --platform=$platform --arch=$arch 
     }
-    ./node_modules/.bin/electron-forge make --platform=$platform --arch=$arch 
     if ($LASTEXITCODE -ne 0) {
         throw "electron-forge make failed" 
     }
