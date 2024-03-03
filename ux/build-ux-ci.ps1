@@ -37,15 +37,18 @@ try {
     Copy-Item ".next/static" ".next/standalone/.next" -Recurse -Force
 
     # Determine architecture based on platform
-    $arch = switch ($BuildPlatform) {
+    $arch = ""
+    $platform = ""
+    switch ($BuildPlatform) {
         "windows" {
-            "x64" 
+            $arch = "x64"
+            $platform = "win32"
         }
         "linux" {
-            "x64" 
+            $arch = "x64"
+            $platform = "linux"
         }
         "macos" {
-            "universal" 
         } # For universal macOS build
         default {
             throw "Unsupported platform: $BuildPlatform" 
