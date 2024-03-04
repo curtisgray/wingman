@@ -95,7 +95,7 @@ jobs:
 
       - name: Extract package.json Version
         run: |
-          package_version=$(jq -r '.version' ./package.json)
+          package_version=$(jq -r '.version' ./ux/package.json)
           echo "PACKAGE_VERSION=$package_version" >> $GITHUB_ENV
 
       - name: Define Artifact Path for Windows and Linux
