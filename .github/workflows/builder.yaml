@@ -37,6 +37,12 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+        # https://github.com/electron/forge/issues/2807
+      - name: Install Python 3 Setuptools on macOS
+        if: matrix.os == 'macos-latest'
+        run: python3 -m pip install setuptools
+
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
