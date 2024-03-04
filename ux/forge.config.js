@@ -39,7 +39,7 @@ module.exports = {
     ],
     publishers: [
         {
-            name: "@curtisgray/wingman",
+            name: '@electron-forge/publisher-github',
             config: {
                 repository: {
                     owner: "curtisgray",
