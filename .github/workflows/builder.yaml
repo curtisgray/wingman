@@ -1,4 +1,8 @@
-name: Electron App Build and Release
+name: Wingman App Build and Release
+
+defaults:
+  run:
+    shell: bash
 
 on:
   push:
@@ -82,8 +86,6 @@ jobs:
       - name: Execute Build Script
         shell: pwsh
         run: .\build.ps1 -BuildPlatform ${{ matrix.platform }}
-        env:
-          VCPKG_ROOT: ${{ env.VCPKG_ROOT }}
 
       - name: Extract package.json Version
         run: |
