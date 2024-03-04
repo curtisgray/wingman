@@ -91,6 +91,8 @@ jobs:
 
       - name: Execute Build Script
         shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: .\build.ps1 -BuildPlatform ${{ matrix.platform }}
 
       - name: Extract package.json Version
@@ -170,6 +172,8 @@ jobs:
 
       - name: Create and Push Git Tag
         if: github.ref == 'refs/heads/develop'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"

@@ -37,15 +37,13 @@ try {
     Copy-Item ".next/static" ".next/standalone/.next" -Recurse -Force
 
     # Determine architecture based on platform
-    $arch = ""
+    $arch = "x64"
     $platform = ""
     switch ($BuildPlatform) {
         "windows" {
-            $arch = "x64"
             $platform = "win32"
         }
         "linux" {
-            $arch = "x64"
             $platform = "linux"
         }
         "macos" {
@@ -56,16 +54,17 @@ try {
     }
 
     # Build the Electron app
-    Write-Host "Building Electron app..."
+    Write-Host "Build and Publish Electron app..."
     if ($BuildPlatform -eq "macos") {
         # build x64 and arm64
-        ./node_modules/.bin/electron-forge make --platform=darwin --arch=x64
-        ./node_modules/.bin/electron-forge make --platform=darwin --arch=arm64
+        ./node_modules/.bin/electron-forge publish --platform=darwin --arch="x64,arm64"
+        # ./node_modules/.bin/electron-forge make --platform=darwin --arch=x64
+        # ./node_modules/.bin/electron-forge make --platform=darwin --arch=arm64
     } else {
-        ./node_modules/.bin/electron-forge make --platform=$platform --arch=$arch 
+        ./node_modules/.bin/electron-forge publish --platform=$platform --arch=$arch 
     }
     if ($LASTEXITCODE -ne 0) {
-        throw "electron-forge make failed" 
+        throw "electron-forge publish failed" 
     }
 
     Write-Host "UX build completed successfully."
