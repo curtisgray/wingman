@@ -1,5 +1,0 @@
-{
-  "devDependencies": {
-    "@electron-forge/publisher-github": "^7.3.0"
-  }
-}
