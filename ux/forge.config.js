@@ -46,6 +46,8 @@ module.exports = {
                     name: "wingman",
                 },
                 prerelease: true,
+                force: true,
+                generateReleaseNotes: true,
             },
         },
     ],
