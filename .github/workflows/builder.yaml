@@ -39,7 +39,6 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: python3 -m pip install setuptools
 
-
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -96,76 +95,6 @@ jobs:
         run: |
           package_version=$(jq -r '.version' ./ux/package.json)
           echo "PACKAGE_VERSION=$package_version" >> $GITHUB_ENV
-
-      # - name: Define Artifact Path for Windows and Linux
-      #   if: matrix.os != 'macos-latest'
-      #   run: |
-      #     platform="${{ matrix.platform }}"
-      #     version="${{ env.PACKAGE_VERSION }}"
-      #     artifactPath=""
-      #     artifactZipPath=""
-      #     if [ "$platform" = "windows" ]; then
-      #       artifactPath="out/make/squirrel.windows/x64/wingman-$version Setup.exe"
-      #       artifactZipPath="out/make/zip/win32/x64/wingman-win32-x64-$version.zip"
-      #     elif [ "$platform" = "linux" ]; then
-      #       artifactPath="out/make/wingman-linux-x64-$version.deb"
-      #       artifactZipPath="out/make/zip/linux/x64/wingman-linux-x64-$version.zip"
-      #     fi
-      #     echo "ARTIFACT_PATH=$artifactPath" >> $GITHUB_ENV
-      #     echo "ARTIFACT_ZIP_PATH=$artifactZipPath" >> $GITHUB_ENV
-
-      # - name: Define Artifact Paths for macOS
-      #   if: matrix.os == 'macos-latest'
-      #   run: |
-      #     version="${{ env.PACKAGE_VERSION }}"
-      #     arch="x64"
-      #     echo "ARTIFACT_PATH_INTEL=out/make/wingman-$arch-$version.dmg" >> $GITHUB_ENV
-      #     echo "ARTIFACT_PATH_INTEL_ZIP=out/make/zip/darwin/$arch/wingman-$arch-$version.dmg" >> $GITHUB_ENV
-      #     arch="arm64"
-      #     echo "ARTIFACT_PATH_APPLE_SILICON=out/make/wingman-$arch-$version.dmg" >> $GITHUB_ENV
-      #     echo "ARTIFACT_PATH_APPLE_SILICON_ZIP=out/make/zip/darwin/$arch/wingman-darwin-$arch-$version.dmg" >> $GITHUB_ENV
-
-      # - name: Upload Installer Artifact for Intel macOS
-      #   if: matrix.os == 'macos-latest'
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: wingman-macos-intel-${{ env.PACKAGE_VERSION }}
-      #     path: ${{ env.ARTIFACT_PATH_INTEL }}
-
-      # - name: Upload Zip Artifact for Intel macOS
-      #   if: matrix.os == 'macos-latest'
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: wingman-macos-intel-zip-${{ env.PACKAGE_VERSION }}
-      #     path: ${{ env.ARTIFACT_PATH_INTEL_ZIP }}
-
-      # - name: Upload Installer Artifact for Apple Silicon macOS
-      #   if: matrix.os == 'macos-latest'
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: wingman-macos-apple-silicon-${{ env.PACKAGE_VERSION }}
-      #     path: ${{ env.ARTIFACT_PATH_APPLE_SILICON }}
-
-      # - name: Upload Zip Artifact for Apple Silicon macOS
-      #   if: matrix.os == 'macos-latest'
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: wingman-macos-apple-silicon-${{ env.PACKAGE_VERSION }}
-      #     path: ${{ env.ARTIFACT_PATH_APPLE_SILICON_ZIP }}
-
-      # - name: Upload Installer Artifact for Windows and Linux
-      #   if: matrix.os != 'macos-latest'
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: wingman-${{ matrix.platform }}-${{ env.PACKAGE_VERSION }}
-      #     path: ${{ env.ARTIFACT_PATH }}
-
-      # - name: Upload Zip Artifact for Windows and Linux
-      #   if: matrix.os != 'macos-latest'
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: wingman-zip-${{ matrix.platform }}-${{ env.PACKAGE_VERSION }}
-      #     path: ${{ env.ARTIFACT_PATH_ZIP }}
 
       - name: Check if Git Tag Exists
         id: check_tag
