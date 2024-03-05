@@ -1,12 +1,178 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Wingman</title>
+<meta charset="UTF-8">
+<style>
+	body {
+	font-family: Montserrat, sans-serif; color: #EBF2FA;
+	margin: 70px 200px;
+	background-color: #171717; text-align: center;
+	font-size: x-large;
+}
+
+	h2 {
+		margin-top: 2em;
+}
+	.gradient-text {
+
+/* Create the gradient.
+*/
+  background-image: linear-gradient(45deg, #EBF2FA, #FE6D73);
+  
+  /* Set the background size and repeat properties. */
+  background-size: 100%;
+  background-repeat: repeat;
+
+  /* Use the text as a mask for the background. */
+  /* This will show the gradient as a text color rather than element bg. */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; 
+  -moz-background-clip: text;
+  -moz-text-fill-color: transparent;
+}
+	.gradient-text::selection {
+		-webkit-text-fill-color: #0095FF;
+	}
+	
+
+	button {
+		background-image: linear-gradient(45deg, #0A369D, #0A369D);
+		padding: 1em;
+		border-radius: 1em;
+		font-family: Montserrat, sans-serif;
+		font-size: large;
+		font-weight: bold;
+		color: #EBF2FA;
+		border: none;
+		margin-top: 1em;
+	}
+	button:hover {
+		background-image: linear-gradient(45deg, #0095FF, #0095FF);	
+	}
+	img {
+		width:50%;
+		align-content: center;
+		border: 2px solid #EBF2FA;
+		border-radius: 5px; 
+		box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+	}
+	::selection {
+	color: #EBF2FA;
+	background-color: #0A369D;
+}
+	
+	* {
+  box-sizing: border-box;
+}
+
+/* Float four columns side by side */
+.column {
+  float: left;
+  width: 16.66%;
+} 
+
+/* Remove extra left and right margins, due to padding in columns */
+.row {margin: 0 -5px;}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Style the counter cards */
+.card {
+ /* box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); /* this adds the "card" effect */
+  /*padding: 5px;*/
+  text-align: center;
+  /*background: rgba(255, 255, 255, 0.2);*/
+	/*background-image: linear-gradient(0deg, #171717, #424242);*/
+	/*border-radius: 5px;*/
+	border-right: 1px solid white;
+	border-left: 1px solid white
+}
+	.no-left {
+		border-left: transparent
+	}
+	.no-right{
+		border-right: transparent
+	}
+	
+
+/* Responsive columns - one column layout (vertical) on small screens */
+@media screen and (max-width: 600px) 
+  .column {
+    width: 100%;
+    display: block;
+    margin-bottom: 20px;
+  }
+	.blue-text {
+		color:aqua !important
+	}
+.no-left {
+}
+	.no-border {
+		border: transparent;
+		box-shadow: none
+	}
+	figcaption {
+		font-size: large;
+	}
+</style>
+<title>Untitled Document</title>
 </head>
 <body>
-	Hello Wingman
+	<h1>Run large language models locally <br> <span class="gradient-text">for free</span> in minutes.</h1>
+	<p>Wingman is a chatbot that lets you run Large Language Models locally&nbsp;</p>
+<p>on PC and Mac (Intel or Apple Silicon). <strong>First beta release, Rooster, now available!</strong></p>
+	<button type="button">Download Now!</button>
+	<p></p>
+	<div class="row">
+  <div class="column">
+    <div class="card no-left">
+      <h3>Llama 2</h3>
+    </div>
+  </div>
+
+  <div class="column">
+    <div class="card">
+		<h3>Phi</h3>
+    </div>
+  </div>
+  
+  <div class="column">
+    <div class="card">
+      <h3>OpenAI</h3>
+    </div>
+  </div>
+	<div class="column">
+    <div class="card">
+      <h3>Mistral</h3>
+    </div>
+  </div>
+	<div class="column">
+    <div class="card">
+      <h3>Yi</h3>
+    </div>
+  </div>
+	<div class="column">
+    <div class="card no-right">
+		<h3>Zephyr</h3>
+    </div>
+  </div>
+	</div>
+	<p></p>
+<h2>An easy to use UI with no code or terminals</h2>
+	<img src="file:///Users/imani/Library/CloudStorage/OneDrive-SharedLibraries-carverlab.com/Electric%20Pipelines%20-%20Wingman/wingman-interface.png" alt="Wingman Interface" width="30">
+<h2>Open source and OpenAI models all in one place</h2>
+	<img class="no-border" src="file:///Users/imani/Library/CloudStorage/OneDrive-SharedLibraries-carverlab.com/Electric%20Pipelines%20-%20Wingman/openai-and-opensource-models.png" alt="Wingman's available LLMs" width="30">
+	<figcaption>You can even see what's popular or trending!</figcaption>
+<h2>See which LLMs are compatible with your machine at a glance</h2>
+	<img class="no-border" src="file:///Users/imani/Library/CloudStorage/OneDrive-SharedLibraries-carverlab.com/Electric%20Pipelines%20-%20Wingman/ready-for-takeoff-example.png" alt="ready for takeoff" width="30">
+	<figcaption>Wingman won't stop you from using the best, though!</figcaption>
+<h2>Talk with characters using system prompts</h2>
+	<img class="no-border" src="file:///Users/imani/Library/CloudStorage/OneDrive-SharedLibraries-carverlab.com/Electric%20Pipelines%20-%20Wingman/jarvis-example.png" alt="system prompts example" width="30">
+
 </body>
 </html>
