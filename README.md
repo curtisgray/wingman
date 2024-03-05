@@ -1,12 +1,12 @@
 <p align="center">
-  <img width="512" height="512" src="ux/assets/logo-rooster-black-white-512.png">
+  <img width="256" height="256" src="ux/assets/logo-rooster-black-white-512.png">
 </p>
 Wingman is a private ChatGPT interface for your PC. It combines Meta's Llama and OpenAI's GPT AI's into one interface, allowing you to change models mid conversation, and give real-time feedback to the AI.
 
 ---
 Wingman - Rooster is the first release of Wingman. Future releases will be named after characters from the Top Gun franchise.
 <p align="center">
-  <img width="256"  src="assets/images/rooster-flight-suit.webp">
+  <img width="256" src="assets/images/rooster-flight-suit.webp">
 </p>
 
 ---
