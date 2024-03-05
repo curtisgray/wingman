@@ -171,8 +171,21 @@ jobs:
       #     name: wingman-zip-${{ matrix.platform }}-${{ env.PACKAGE_VERSION }}
       #     path: ${{ env.ARTIFACT_PATH_ZIP }}
 
-      - name: Create and Push Git Tag
+      - name: Check if Git Tag Exists
+        id: check_tag
         if: github.ref == 'refs/heads/develop'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git fetch --tags && git tag -l | grep -q "v${{ env.PACKAGE_VERSION }}$"; then
+            echo "Tag v${{ env.PACKAGE_VERSION }} already exists. Skipping tag creation."
+            echo "::set-output name=tag_exists::true"
+          else
+            echo "::set-output name=tag_exists::false"
+          fi
+
+      - name: Create and Push Git Tag
+        if: github.ref == 'refs/heads/develop' && steps.check_tag.outputs.tag_exists == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
