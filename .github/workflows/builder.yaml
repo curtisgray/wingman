@@ -23,14 +23,10 @@ jobs:
         include:
           - os: windows-latest
             platform: windows
-            timeout-minutes: 60
           # - os: ubuntu-latest
           #   platform: linux
-          #   timeout-minutes: 60
           - os: macos-latest
             platform: macos
-            runs-on: macos-14
-            timeout-minutes: 60
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
