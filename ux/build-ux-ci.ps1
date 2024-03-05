@@ -57,9 +57,9 @@ try {
     Write-Host "Build and Publish Electron app..."
     if ($BuildPlatform -eq "macos") {
         # build x64 and arm64
-        ./node_modules/.bin/electron-forge publish --platform=darwin --arch="x64,arm64"
-        # ./node_modules/.bin/electron-forge make --platform=darwin --arch=x64
-        # ./node_modules/.bin/electron-forge make --platform=darwin --arch=arm64
+        # ./node_modules/.bin/electron-forge publish --platform=darwin --arch="x64,arm64"
+        ./node_modules/.bin/electron-forge publish --platform=darwin --arch=x64
+        ./node_modules/.bin/electron-forge publish --platform=darwin --arch=arm64
     } else {
         ./node_modules/.bin/electron-forge publish --platform=$platform --arch=$arch 
     }
