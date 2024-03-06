@@ -84,21 +84,14 @@ jobs:
         run: .\build-wingman-ci.ps1 -BuildPlatform ${{ matrix.platform }} -Destination ./dist
 
       - name: Extract package.json Version
-        working-directory: ./ux
         run: |
           package_version=$(jq -r '.version' ./ux/package.json)
           echo "PACKAGE_VERSION=$package_version" >> $GITHUB_ENV
           version="$package_version"
-          # arch="x64"
-          # echo "ARTIFACT_PATH_INTEL=dist/wingman-$arch-$version.dmg" >> $GITHUB_ENV
-          # echo "ARTIFACT_PATH_INTEL_ZIP=dist/zip/darwin/$arch/wingman-$arch-$version.dmg" >> $GITHUB_ENV
-          # arch="arm64"
-          # echo "ARTIFACT_PATH_APPLE_SILICON=dist/wingman-$arch-$version.dmg" >> $GITHUB_ENV
-          # echo "ARTIFACT_PATH_APPLE_SILICON_ZIP=dist/zip/darwin/$arch/wingman-darwin-$arch-$version.dmg" >> $GITHUB_ENV
 
       - name: Zip Distribution Files
+        working-directory: ./services/wingman.cpp/dist
         run: |
-          cd ./services/wingman.cpp/dist
           zip -r wingman-${{ matrix.os }}-$PACKAGE_VERSION.zip .
 
       - name: Create Release
