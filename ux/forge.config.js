@@ -45,7 +45,7 @@ module.exports = {
                     owner: "curtisgray",
                     name: "wingman",
                 },
-                // prerelease: true,
+                prerelease: true,
                 force: true,
                 generateReleaseNotes: true,
             },
