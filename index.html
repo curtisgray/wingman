@@ -156,6 +156,50 @@
 	margin-right:6em;
 	margin-left: 6em;*/
 }
+.container {
+	text-align: left;
+}
+
+details{
+  background-color: #202020;
+  text-align: left;
+  font-size: medium;
+  border-bottom: 1px solid #EBF2FA;
+  margin-left: 4em;
+  margin-right: 4em;
+}
+
+summary {
+  padding: .5em 1.3rem;
+  list-style: none;
+  display: flex;
+  justify-content: space-between;  
+  transition: height 1s ease;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+summary:after{
+  content: "\002B";
+}
+
+details[open] summary {
+    border-bottom: 1px solid #EBF2FA;
+    text-align: left;
+    font-size: medium;
+}
+
+details[open] summary:after{
+  content: "\00D7";
+
+}
+
+details[open] div{
+  padding: .5em 1em;
+  background-color: #171717;
+}
 
 </style>
 <title>Introducing Wingman</title>
@@ -164,7 +208,7 @@
 	<h1>Run large language models locally <br> <span class="gradient-text">for free</span> in minutes.</h1>
 	<p>Wingman is a chatbot that lets you run LLMs locally on PC and Mac (Intel or Apple Silicon).</p>
 	<p>First beta release, Rooster, now available!</p>
-	<button type="button">Download Now!</button>
+	<button type="button">Coming Soon!</button>
 	<p></p>
 	<img id="logo" src="https://electricpipelines.com/wp-content/uploads/sites/5/2024/03/WhiteWingman-Logo-Large.png">
 	<h1 class="gradient-text">Introducing Wingman</h1>
@@ -182,10 +226,72 @@
 <h2>See which LLMs are compatible with your machine at a glance</h2>
 	<p>Know which models you can (and can't) realistically run based on your system's specs. Wingman evaluates compatibility upfront to avoid crashes or slow performance. Wingman won't stop you from trying the best, though!</p>
 	<img class="no-border" src="https://electricpipelines.com/wp-content/uploads/sites/5/2024/03/ready-for-takeoff-example.png" alt="ready for takeoff" width="30">
-	<figcaption>Wingman won't stop you from using the best, though!</figcaption>
 <h2>Talk with characters using system prompts</h2>
 	<p>Get more out of LLMs by customizing system prompts and creating templates for different use cases. Prompt models like characters or with specific viewpoints.</p>
 	<img class="no-border" src="https://electricpipelines.com/wp-content/uploads/sites/5/2024/03/jarvis-example.png" alt="system prompts example" width="30">
+<div class="container">
+  <h1>Frequently Asked Questions</h1>
+  <details>
+  <summary>How much does it cost?</summary>
+  <div>
+ Wingman is open-source, so it’s, you know, free. You can download it here and give it a try yourself. 
+  </div>
+</details>
+  <details>
+  <summary>How do I use it?</summary>
+  <div>
+Using Wingman is easy:
+<ol>
+<li>Download the app</li>
+<li>Run the installer</li>
+<li>Use it </li>
+</ol>
+</div>
+</details>
+  <details>
+  <summary>What are the system requirements?</summary>
+  <div>Wingman works on Windows PCs and MacOS. On PC, we support Nvidia GPUs or (CPU-based inference). On MacOS, we support both Intel and Apple Silicon devices.</div>
+</details>
+  <details>
+  <summary>What models can I use?</summary>
+  <div>You can browse for, search for and download models right in the app, and Wingman will even try and figure out which models will run on your device. Wingman supports models through Hugging Face (link). For our Rooster release, it can handle (models it can handle). Support for (other models) is coming in a future release.  </div>
+</details>
 
+<details>
+  <summary>Is it secure?</summary>
+  <div>
+  	Wingman runs entirely on your own machine, so you aren’t sharing your secrets with OpenAI, Google or anyone else. (Our app doesn’t phone home, and it doesn’t rely on the network, except to download models.) (Wingman is the safest way to run AI models locally). 
+  </div>
+</details>
+
+<details>
+  <summary>How do I help out?</summary>
+  <div>
+The project is open-source, and I’d love it if you helped. Please visit the GitHub repo to check out and report issues, to ___ or to submit a pull request.
+  </div>
+</details>
+
+<!--<details>
+  <summary>How often can we expect updates?</summary>
+  <div>
+  	I’ve got a lot more I want to do with Wingman, so you can expect frequent updates. I’ve got to deal with bugfixes out of the gate, but I’ve got a lot planned going forward. Check out our roadmap to see what features are on the horizon.
+  </div>
+</details>-->
+
+<details>
+  <summary>Does Wingman require the internet or can it be run fully offline?</summary>
+  <div>
+Wingman doesn’t require the internet to run local models, so you can use it in an offline environment. Just make sure to download the models you want before hand so you can use them when you don’t have network capability.
+  </div>
+</details>
+
+<details>
+  <summary>Does Wingman require the internet or can it be run fully offline?</summary>
+  <div>
+Wingman doesn’t require the internet to run local models, so you can use it in an offline environment. Just make sure to download the models you want before hand so you can use them when you don’t have network capability.
+  </div>
+</details>
+
+</div>
 </body>
 </html>
