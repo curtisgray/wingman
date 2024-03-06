@@ -19,13 +19,13 @@ jobs:
       # fail-fast: false
       matrix:
         # os: [windows-latest, ubuntu-latest, macos-latest]
-        os: [windows-latest, macos-latest]
+        os: [windows-latest, macos-11]
         include:
           - os: windows-latest
             platform: windows
           # - os: ubuntu-latest
           #   platform: linux
-          - os: macos-latest
+          - os: macos-11
             platform: macos
     steps:
       - name: Checkout Repository
@@ -36,7 +36,7 @@ jobs:
 
         # https://github.com/electron/forge/issues/2807
       - name: Install Python 3 Setuptools on macOS
-        if: matrix.os == 'macos-latest'
+        if: matrix.platform == 'macos'
         run: python3 -m pip install setuptools
 
       - name: Setup Node.js
@@ -55,7 +55,7 @@ jobs:
           echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> $GITHUB_ENV
 
       - name: Install PowerShell macOS
-        if: matrix.os == 'macos-latest'
+        if: matrix.platform == 'macos'
         run: |
           architecture=$(uname -m)
           # Download the powershell '.tar.gz' archive

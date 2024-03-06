@@ -49,10 +49,6 @@ jobs:
         run: |
           echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> $GITHUB_ENV
 
-      - name: Set VCPKG Environment Variables
-        run: |
-          echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> $GITHUB_ENV
-
       - name: Install PowerShell macOS
         if: matrix.platform == 'macos'
         run: |
