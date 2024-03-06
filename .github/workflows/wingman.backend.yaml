@@ -89,10 +89,18 @@ jobs:
           echo "PACKAGE_VERSION=$package_version" >> $GITHUB_ENV
           version="$package_version"
 
-      - name: Zip Distribution Files
+      - name: Zip Distribution Files Linux and macOS
+        if: matrix.os != 'windows-latest'
         working-directory: ./services/wingman.cpp/dist
         run: |
           zip -r wingman-${{ matrix.os }}-$PACKAGE_VERSION.zip .
+
+      - name: Zip Distribution Files Windows
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        working-directory: ./services/wingman.cpp/dist
+        run: |
+          Compress-Archive -Path ./* -DestinationPath wingman-${{ matrix.os }}-$PACKAGE_VERSION.zip
 
       - name: Create Release
         if: github.ref == 'refs/heads/develop'
