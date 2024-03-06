@@ -1,4 +1,4 @@
-name: Wingman App Build and Release
+name: Wingman Service Build and Release
 
 defaults:
   run:
