@@ -1,0 +1,139 @@
+name: Wingman App Build and Release
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  push:
+    branches:
+      - develop
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+jobs:
+  build-and-release:
+    permissions: write-all
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # fail-fast: false
+      matrix:
+        # os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [windows-latest, macos-latest]
+        include:
+          - os: windows-latest
+            platform: windows
+          # - os: ubuntu-latest
+          #   platform: linux
+          - os: macos-latest
+            platform: macos
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+        # https://github.com/electron/forge/issues/2807
+      - name: Install Python 3 Setuptools on macOS
+        if: matrix.os == 'macos-latest'
+        run: python3 -m pip install setuptools
+
+      - name: Set VCPKG Environment Variables
+        run: |
+          echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> $GITHUB_ENV
+
+      - name: Install PowerShell macOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          architecture=$(uname -m)
+          # Download the powershell '.tar.gz' archive
+          if [ "$architecture" = "x86_64" ]; then
+            curl -L -o /tmp/powershell.tar.gz https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/powershell-7.4.1-osx-x64.tar.gz
+          elif [ "$architecture" = "arm64" ]; then
+            curl -L -o /tmp/powershell.tar.gz https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/powershell-7.4.1-osx-arm64.tar.gz
+          fi
+          # Create the target folder where powershell is placed
+          sudo mkdir -p /usr/local/microsoft/powershell/7
+          # Expand powershell to the target folder
+          sudo tar zxf /tmp/powershell.tar.gz -C /usr/local/microsoft/powershell/7
+          # Set execute permissions
+          sudo chmod +x /usr/local/microsoft/powershell/7/pwsh
+          # Create the symbolic link that points to pwsh
+          sudo ln -sf /usr/local/microsoft/powershell/7/pwsh /usr/local/bin/pwsh
+
+      - name: Install Build Dependencies
+        shell: pwsh
+        run: .\build-setup.ps1 -BuildPlatform ${{ matrix.platform }}
+
+      - name: Build, Package and Release to GitHub
+        shell: pwsh
+        working-directory: ./services/wingman.cpp
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: .\build-wingman-ci.ps1 -BuildPlatform ${{ matrix.platform }} -Destination ./dist
+
+      - name: Extract package.json Version
+        working-directory: ./ux
+        run: |
+          package_version=$(jq -r '.version' ./ux/package.json)
+          echo "PACKAGE_VERSION=$package_version" >> $GITHUB_ENV
+          version="$package_version"
+          # arch="x64"
+          # echo "ARTIFACT_PATH_INTEL=dist/wingman-$arch-$version.dmg" >> $GITHUB_ENV
+          # echo "ARTIFACT_PATH_INTEL_ZIP=dist/zip/darwin/$arch/wingman-$arch-$version.dmg" >> $GITHUB_ENV
+          # arch="arm64"
+          # echo "ARTIFACT_PATH_APPLE_SILICON=dist/wingman-$arch-$version.dmg" >> $GITHUB_ENV
+          # echo "ARTIFACT_PATH_APPLE_SILICON_ZIP=dist/zip/darwin/$arch/wingman-darwin-$arch-$version.dmg" >> $GITHUB_ENV
+
+      - name: Zip Distribution Files
+        run: |
+          cd ./services/wingman.cpp/dist
+          zip -r wingman-${{ matrix.os }}-$PACKAGE_VERSION.zip .
+
+      - name: Create Release
+        if: github.ref == 'refs/heads/develop'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./services/wingman.cpp/dist/wingman-${{ matrix.os }}-$PACKAGE_VERSION.zip
+          tag_name: "v${{ env.PACKAGE_VERSION }}"
+          release_name: "Wingman Service v${{ env.PACKAGE_VERSION }}"
+          body: |
+            ## Wingman v${{ env.PACKAGE_VERSION }} Executable
+          draft: false
+          prerelease: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # - uses: "marvinpinto/action-automatic-releases@latest"
+      #   with:
+      #     repo_token: "${{ secrets.GITHUB_TOKEN }}"
+      #     automatic_release_tag: "latest"
+      #     prerelease: true
+      #     title: "Wingman Executable"
+      #     files: |
+      #       LICENSE.txt
+      #       *.jar
+
+      - name: Check if Git Tag Exists
+        id: check_tag
+        if: github.ref == 'refs/heads/develop'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git fetch --tags && git tag -l | grep -q "v${{ env.PACKAGE_VERSION }}$"; then
+            echo "Tag v${{ env.PACKAGE_VERSION }} already exists. Skipping tag creation."
+            echo "::set-output name=tag_exists::true"
+          else
+            echo "::set-output name=tag_exists::false"
+          fi
+
+      - name: Create and Push Git Tag
+        if: github.ref == 'refs/heads/develop' && steps.check_tag.outputs.tag_exists == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag -a "v${{ env.PACKAGE_VERSION }}" -m "Release version ${{ env.PACKAGE_VERSION }}"
+          git push origin "v${{ env.PACKAGE_VERSION }}"
