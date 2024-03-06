@@ -95,6 +95,7 @@ jobs:
         run: |
           zip -r wingman-${{ matrix.os }}-$PACKAGE_VERSION.zip .
           ls -la
+          pwd
 
       - name: Zip Distribution Files Windows
         if: matrix.os == 'windows-latest'
@@ -102,14 +103,15 @@ jobs:
         working-directory: ./services/wingman.cpp/dist
         run: |
           Compress-Archive -Path ./* -DestinationPath wingman-${{ matrix.os }}-$PACKAGE_VERSION.zip
-          ls -la
+          Get-ChildItem
+          Get-Location
 
       - name: Create Release
         if: github.ref == 'refs/heads/develop'
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./services/wingman.cpp/dist/wingman-${{ matrix.os }}-$PACKAGE_VERSION.zip
+            ./services/wingman.cpp/dist/wingman-${{ matrix.os }}-${{ env.PACKAGE_VERSION }}.zip
           tag_name: "v${{ env.PACKAGE_VERSION }}"
           name: "Wingman Service v${{ env.PACKAGE_VERSION }}"
           body: |
