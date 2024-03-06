@@ -39,6 +39,16 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: python3 -m pip install setuptools
 
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Set VCPKG Environment Variables
+        run: |
+          echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> $GITHUB_ENV
+
       - name: Set VCPKG Environment Variables
         run: |
           echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> $GITHUB_ENV
