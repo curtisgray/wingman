@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet("windows", "linux", "macos")]
+    [ValidateSet("windows", "linux", "macos", "macos-metal")]
     [string]$BuildPlatform,
 
     [Parameter(Mandatory = $false)]
@@ -59,6 +59,8 @@ try {
         # build x64 and arm64
         # ./node_modules/.bin/electron-forge publish --platform=darwin --arch="x64,arm64"
         ./node_modules/.bin/electron-forge publish --platform=darwin --arch=x64
+        # ./node_modules/.bin/electron-forge publish --platform=darwin --arch=arm64
+    } elseif ($BuildPlatform -eq "macos-metal") {
         ./node_modules/.bin/electron-forge publish --platform=darwin --arch=arm64
     } else {
         ./node_modules/.bin/electron-forge publish --platform=$platform --arch=$arch 
