@@ -112,7 +112,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if git fetch --tags && git tag -l | grep -q "v${{ env.PACKAGE_VERSION }}"; then
+          if git fetch --tags && git tag -l 'v*' | grep -q "v${{ env.PACKAGE_VERSION }}"; then
             echo "Tag v${{ env.PACKAGE_VERSION }} already exists. Skipping tag creation."
             echo "::set-output name=tag_exists::true"
           else
