@@ -48,6 +48,8 @@ try {
         }
         "macos" {
         } # For universal macOS build
+        "macos-metal" {
+        } # For universal macOS build
         default {
             throw "Unsupported platform: $BuildPlatform" 
         }
