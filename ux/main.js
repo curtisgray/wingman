@@ -2,7 +2,7 @@ const { app, BrowserWindow } = require("electron");
 
 // run this as early in the main process as possible
 if (require("electron-squirrel-startup")) app.quit();
-const { updateElectronApp } = require('update-electron-app');
+// const { updateElectronApp } = require('update-electron-app');
 const child_process = require("node:child_process");
 const path = require("path");
 const fs = require("fs");
@@ -320,6 +320,7 @@ const createWindow = () =>
     win = new BrowserWindow({
         width: 1366,
         height: 1080,
+        icon: path.join(__dirname, "assets/logo-rooster-black-white"),
         webPreferences: {
             nodeIntegration: true,
             // contextIsolation: false,
@@ -375,7 +376,7 @@ const createWindow = () =>
         });
 };
 
-updateElectronApp(); // additional configuration options available
+// updateElectronApp(); // additional configuration options available
 
 ipcMain.on("report-error", (event, error) =>
 {

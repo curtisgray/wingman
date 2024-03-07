@@ -2,10 +2,10 @@
     "name": "wingman",
     "author": {
         "name": "Electric Curtis",
-        "url": "https://twitter.com/electric_curtis"
+        "url": "https://x.com/electric_curtis"
     },
     "description": "Wingman is the best way to launch llama locally.",
-    "version": "0.6.4",
+    "version": "0.6.5",
     "private": true,
     "main": "main.js",
     "scripts": {

@@ -17,22 +17,27 @@ module.exports = {
     makers: [
         {
             name: "@electron-forge/maker-squirrel",
+            icon: "assets/logo-rooster-black-white",
             config: {},
         },
         {
             name: "@electron-forge/maker-zip",
+            icon: "assets/logo-rooster-black-white",
             platforms: ["darwin", "win32", "linux"],
         },
         {
             name: "@electron-forge/maker-deb",
+            icon: "assets/logo-rooster-black-white",
             config: {},
         },
         {
             name: "@electron-forge/maker-rpm",
+            icon: "assets/logo-rooster-black-white",
             config: {},
         },
         {
             name: "@electron-forge/maker-dmg",
+            icon: "assets/logo-rooster-black-white",
             config: {
                 format: "ULFO",
             },
