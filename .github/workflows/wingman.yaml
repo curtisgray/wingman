@@ -128,3 +128,10 @@ jobs:
           git config user.email "github-actions@github.com"
           git tag -a "v${{ env.PACKAGE_VERSION }}" -m "Release version ${{ env.PACKAGE_VERSION }}"
           git push origin "v${{ env.PACKAGE_VERSION }}"
+
+      - name: Update Latest Tag
+        if: github.ref == 'refs/heads/develop' && steps.check_tag.outputs.tag_exists == 'false'
+        run: |
+          git tag -fa latest -m "Update latest to v${{ env.PACKAGE_VERSION }}"
+          git push origin :refs/tags/latest
+          git push origin latest
