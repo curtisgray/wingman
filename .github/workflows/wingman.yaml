@@ -120,7 +120,7 @@ jobs:
           fi
 
       - name: Create and Push Git Tag
-        if: github.ref == 'refs/heads/develop' && steps.check_tag.outputs.tag_exists == 'false'
+        if: steps.check_tag.outputs.tag_exists == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -130,7 +130,7 @@ jobs:
           git push origin "v${{ env.PACKAGE_VERSION }}"
 
       - name: Update Latest Tag
-        if: github.ref == 'refs/heads/develop' && steps.check_tag.outputs.tag_exists == 'false'
+        if: steps.check_tag.outputs.tag_exists == 'false'
         run: |
           git tag -fa latest -m "Update latest to v${{ env.PACKAGE_VERSION }}"
           git push origin :refs/tags/latest
