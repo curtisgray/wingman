@@ -11,6 +11,7 @@ module.exports = {
             "server/wingman",
             ".next/standalone",
         ],
+        icon: "assets/logo-rooster-black-white",
     },
     rebuildConfig: {},
     makers: [

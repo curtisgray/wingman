@@ -2,7 +2,7 @@ const { app, BrowserWindow } = require("electron");
 
 // run this as early in the main process as possible
 if (require("electron-squirrel-startup")) app.quit();
-// const { updateElectronApp } = require('update-electron-app');
+const { updateElectronApp } = require('update-electron-app');
 const child_process = require("node:child_process");
 const path = require("path");
 const fs = require("fs");
@@ -129,149 +129,12 @@ const getBaseDir = () =>
     return baseDir;
 };
 
-// const startNextJs = (port, nextDir) =>
-// {
-//     return new Promise((resolve, reject) =>
-//     {
-//         tell("Starting Next.js server");
-
-//         const baseDir = getBaseDir();
-//         const nextConfig = require(path.join(nextDir, 'next.config.js'));
-
-//         // const dev = process.env.NODE_ENV !== 'production';
-//         const dev = true;
-//         //   const nextApp = next({ dev, conf: { distDir: nextDir } });
-//         const nextApp = next({ dev, conf: nextConfig, dir: nextDir, customServer: true });
-//         const handleNextRequests = nextApp.getRequestHandler();
-
-//         nextApp.prepare()
-//             .then(() =>
-//             {
-//                 const server = http.createServer((req, res) => handleNextRequests(req, res));
-
-//                 server.listen(port, (err) =>
-//                 {
-//                     if (err)
-//                     {
-//                         etell(err);
-//                         reject(err);
-//                         return;
-//                     }
-//                     tell(`> Ready on http://localhost:${port}`);
-//                     resolve(server);
-//                 });
-//             })
-//             .catch(reject);
-//     });
-// };
-
-// const startNextJsServer = async (port, nextDir) =>
-// {
-//     return new Promise(async (resolve, reject) =>
-//     {
-//         tell("Starting Next.js server");
-
-//         if (!fs.existsSync(nextDir))
-//         {
-//             const errMsg = "The .next directory does not exist. Something went wrong. Exiting...";
-//             etell(errMsg);
-//             reject(new Error(errMsg));
-//             return;
-//         }
-
-//         // const exe = "npx";
-//         // const args = ["next", "start", "-p", `${port}`];
-//         // tell(`Starting Next.js server: ${exe} ${args.join(" ")}`);
-//         // nextJsProcess = child_process.spawn(exe, args, {
-//         //     cwd: baseDir,
-//         //     // cwd: __dirname,
-//         //     stdio: ["inherit", "pipe", "pipe"], // Change stdio to pipe for stdout and stderr
-//         //     shell: true,
-//         //     windowsHide: true,
-//         // });
-
-//         const controller = new AbortController();
-//         const { signal } = controller;
-//         // set process.env.PORT to the port number
-//         process.env.PORT = port;
-//         process.env.HOSTNAME = "localhost";
-//         const subprocess = child_process.spawn("node", [path.join(nextDir, "server.js")], {
-//             cwd: nextDir,
-//             stdio: ["inherit", "pipe", "pipe"], // Change stdio to pipe for stdout and stderr
-//             shell: true,
-//             windowsHide: true,
-//         }, { signal });
-
-//         signal.onabort = () =>
-//         {
-//             tell("NextJs process aborted");
-//             subprocess.kill();
-//         };
-
-//         subprocess.stdout.on("data", (data) =>
-//         {
-//             const output = data.toString();
-//             tell(`Server stdout: ${output}`);
-//             if (output.includes("✓ Ready in"))
-//             {
-//                 resolve(controller);
-//             }
-//         });
-
-//         subprocess.stderr.on("data", (data) =>
-//         {
-//             etell(`Server stderr: ${data.toString()}`);
-//         });
-
-//         subprocess.on("error", (error) =>
-//         {
-//             etell(`Error starting server: ${error}`);
-//             reject(error);
-//         });
-
-//         subprocess.on("close", (code) =>
-//         {
-//             if (code !== 0)
-//             {
-//                 reject(new Error(`Server process closed with code: ${code}`));
-//             }
-//         });
-//     });
-// };
-
-// const startNextJsStandaloneServer = (port, nextDir) => {
-//     return new Promise((resolve, reject) => {
-//       // Ensure the Next.js server file exists
-//       const serverFilePath = path.join(nextDir, 'server.js');
-//       if (!fs.existsSync(serverFilePath)) {
-//         return reject(new Error('Next.js server.js file not found.'));
-//       }
-
-//       // Set necessary environment variables
-//       process.env.PORT = port.toString();
-//       process.env.NODE_ENV = 'production';
-//       process.chdir(nextDir); // Change working directory to the Next.js app directory
-
-//       // Dynamically import and start the Next.js server
-//       try {
-//         require(serverFilePath); // This executes the server.js file
-//         tell(`Next.js server started on http://localhost:${port}`);
-//         resolve();
-//       } catch (error) {
-//         etell('Failed to start Next.js server:', error);
-//         reject(error);
-//       }
-//     });
-//   };
-
 const launchWingmanExecutable = async (baseDir) =>
 {
     return new Promise(async (resolve, reject) =>
     {
         try
         {
-            // const controller = new AbortController();
-            // const { signal } = controller;
             let executableName = 'wingman';
             let useCublas = false;
 
@@ -323,12 +186,6 @@ const launchWingmanExecutable = async (baseDir) =>
             // }, { signal });
             });
 
-            // signal.onabort = () =>
-            // {
-            //     tell("Wingman process aborted");
-            //     subprocess.kill();
-            // };
-
             subprocess.stdout.on('data', (data) =>
             {
                 const output = data.toString();
@@ -340,7 +197,6 @@ const launchWingmanExecutable = async (baseDir) =>
                         terminate: () =>
                         {
                             tell('Terminating Wingman...');
-                            // child.kill(); // Terminate the child process
                             // send a get request to http://localhost:6568/api/shutdown and wait
                             //   for `All services stopped.` response from `output` before returning
                             const options = {
@@ -416,12 +272,15 @@ const startNextJsStandaloneServer = (port, scriptPath, hostName = 'localhost') =
             reject(err);
         });
 
+        let serverReady = false;
         child.stdout.on("data", (data) =>
         {
             const output = data.toString();
             tell(`Server stdout: ${output}`);
+            // Server is ready: `✓ Ready in`
             if (output.includes("✓ Ready in"))
             {
+                serverReady = true;
                 resolve({
                     terminate: () =>
                     {
@@ -429,6 +288,22 @@ const startNextJsStandaloneServer = (port, scriptPath, hostName = 'localhost') =
                         child.kill(); // Terminate the child process
                     }
                 });
+            }
+
+            if (!serverReady)
+            {
+                // dyld error: `dyld: Symbol not found`
+                if (output.includes("dyld: Symbol not found"))
+                {
+                    etell(`Server stdout: ${output}`);
+                    reject(new Error('dyld: Symbol not found'));
+                }
+                // bad image error: `illegal hardware instruction`
+                if (output.includes("illegal hardware instruction"))
+                {
+                    etell(`Server stdout: ${output}`);
+                    reject(new Error('illegal hardware instruction'));
+                }
             }
         });
 
@@ -483,7 +358,6 @@ const createWindow = () =>
             tell(`Next.js directory: ${nextDir}`);
 
             wingmanProcessController = await launchWingmanExecutable(wingmanDir);
-            // nextJsServerProcessController = await startNextJsStandaloneServer(port, nextDir);
             nextJsServerProcessController = await startNextJsStandaloneServer(port, path.join(nextDir, 'server.js'));
             win.loadURL(url.format({
                 pathname: `localhost:${port}`,
@@ -493,7 +367,7 @@ const createWindow = () =>
         })
         .catch((error) =>
         {
-            etell(`Error finding open port: ${error}`);
+            // etell(`Error finding open port: ${error}`);
             // display error message
             win.webContents.executeJavaScript(
                 `electronAPI.sendError("${error.message}")`
@@ -501,7 +375,7 @@ const createWindow = () =>
         });
 };
 
-// updateElectronApp(); // additional configuration options available
+updateElectronApp(); // additional configuration options available
 
 ipcMain.on("report-error", (event, error) =>
 {
