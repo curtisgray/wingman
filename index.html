@@ -3,13 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <style>
-	/*html {zoom: 150%;}*/
 	body {
 	font-family: Montserrat, sans-serif; color: #EBF2FA;
-	margin: 4em 4em;
-	background-color: #171717; text-align: center;
+	/*background-attachment: fixed;*/
+	background-image: linear-gradient(45deg, #042638, #042638, #AB1F5E, #080C1F, #080C1F) ;
 	font-size: 1.8vw;
+	text-align: center;
+	text-shadow: 0 4px 8px 0 rgba(4, 4, 4, 100); 
+	/* Create the gradient.
+*/
 }
+
+#margins {
+margin: 7vw 20vw;
+}
+
+#cover-image {
+	padding-top: 15vw;
+	padding-bottom: 15vw;
+	background-image: url(https://electricpipelines.com/wp-content/uploads/sites/5/2024/03/background-image3.png);
+	background-size: cover;
+	background-position: center;
+	/*background-attachment: fixed;*/
+}
+
+#cover-image h1 {
+margin-left: 20vw;
+margin-right: 20vw;
+}
+
+
+/*#introducing-wingman {
+	background-image: url(file:///Users/imani/Library/CloudStorage/OneDrive-SharedLibraries-carverlab.com/Electric%20Pipelines%20-%20Wingman/Landing%20Page%20Assets/background-image2.png);
+}
+*/
+h1, h2, h3, h4 {
+	background-image: linear-gradient(45deg, #A9A9A9, #EBF2FA, #A9A9A9, #EBF2FA);
+  
+  /* Set the background size and repeat properties. */
+  background-size: 100%;
+  background-repeat: repeat;
+
+  /* Use the text as a mask for the background. */
+  /* This will show the gradient as a text color rather than element bg. */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; 
+  -moz-background-clip: text;
+  -moz-text-fill-color: transparent;
+}
+
+h1::selection, h2::selection, h3::selection, h4::selection {
+	-webkit-text-fill-color: #EBF2FA
+}
+
  p {
  	font-size: 1.4vw;
 
@@ -34,6 +80,7 @@
   -webkit-text-fill-color: transparent; 
   -moz-background-clip: text;
   -moz-text-fill-color: transparent;
+  text-shadow: none;
 }
 	.gradient-text::selection {
 		-webkit-text-fill-color: #0095FF;
@@ -56,16 +103,20 @@
 		background-image: linear-gradient(45deg, #0095FF, #0095FF);	
 	}
 	img {
-		width:60vw;
+		width:50vw;
 		align-content: center;
-		border: 2px solid #EBF2FA;
+		/*border: 2px solid #EBF2FA;*/
 		border-radius: 5px; 
-		box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+	border-image: linear-gradient(45deg, #A9A9A9, #EBF2FA, #A9A9A9, #EBF2FA) 30;
+	border-width: 4px;
+	border-style: solid;
+		
 	}
 	::selection {
 	color: #EBF2FA;
 	background-color: #0A369D;
 }
+
 	
 	* {
   box-sizing: border-box;
@@ -121,7 +172,6 @@
 }
 	.no-border {
 		border: transparent;
-		box-shadow: none
 	}
 
 	.no-border-big {
@@ -203,23 +253,26 @@ details[open] div{
   background-color: #171717;
 }
 
+.gradient-background {
+		background-image: linear-gradient(45deg, #EBF2FA, #FE6D73);
+}
+
+
+
 </style>
 <title>Introducing Wingman</title>
 </head>
 <body>
-	 
-
-<script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="curtisgray" data-color="#0a369d" data-emoji="✈️" data-font="Lato" data-text="Support Wingman" data-outline-color="#ffffff" data-font-color="#ffffff" data-coffee-color="#FFDD00" ></script>
-	<h1>Run large language models locally <br> <span class="gradient-text">for free</span> in minutes.</h1>
+		<div id="cover-image">
+	<h1>Run large language models locally <span class="gradient-text">for free</span> in minutes.</h1>
 	<p>Wingman is a chatbot that lets you run LLMs locally on PC and Mac (Intel or Apple Silicon).</p>
 	<p>First beta release, Rooster, now available!</p>
-	<a  href="https://github.com/curtisgray/wingman/releases"><button type="button">Download Now!</button></a>
-	<p></p>
+	<button type="button">Download Now!</button></div>
+	<div id="margins"><div id="introducing-wingman"><p></p>
 	<img id="logo" src="https://electricpipelines.com/wp-content/uploads/sites/5/2024/03/WhiteWingman-Logo-Large.png">
 	<h1 class="gradient-text">Introducing Wingman</h1>
-	<img class="no-border-big" src="https://electricpipelines.com/wp-content/uploads/sites/5/2024/03/collage-of-app-looking-good3.png">
-	<p>The best way to run </p><h4>Llama 2 • Phi • GPT4 • Mistral • Yi • Zephyr</h4> <p>Large Language Models locally.</p>
-	
+	<img class="no-border-big" src="https://electricpipelines.com/wp-content/uploads/sites/5/2024/03/collage-of-app-looking-good22.png">
+	<p>The best way to run </p><h4>Llama 2 • Phi • OpenAI • Mistral • Yi • Zephyr</h4> <p>Large Language Models locally.</p>
 	<p></p>
 <h2>An easy to use UI with no code or terminals</h2>
 	<p class="description">No more code or terminals. Wingman's intuitive graphical interface makes running LLMs approachable for anyone. Just point, click, and converse.</p> 
@@ -233,7 +286,7 @@ details[open] div{
 	<img class="no-border" src="https://electricpipelines.com/wp-content/uploads/sites/5/2024/03/ready-for-takeoff-example.png" alt="ready for takeoff" width="30">
 <h2>Talk with characters using system prompts</h2>
 	<p>Get more out of LLMs by customizing system prompts and creating templates for different use cases. Prompt models like characters or with specific viewpoints.</p>
-	<img class="no-border" src="https://electricpipelines.com/wp-content/uploads/sites/5/2024/03/jarvis-example.png" alt="system prompts example" width="30">
+	<img class="no-border" src="https://electricpipelines.com/wp-content/uploads/sites/5/2024/03/jarvis-example.png" alt="system prompts example" width="30"></div>
 <div class="container">
   <h1>Frequently Asked Questions</h1>
   <details>
@@ -298,6 +351,7 @@ Wingman doesn’t require the internet to run local models, so you can use it in
 </details>
 </div>
 <h3>Wingman's first beta release, Rooster, is now available!</h3>
-	<a  href="https://github.com/curtisgray/wingman/releases"><button type="button">Download Now!</button></a>
+	<button type="button">Download Now!</button>
+</div>
 </body>
 </html>
