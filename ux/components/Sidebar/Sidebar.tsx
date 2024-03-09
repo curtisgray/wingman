@@ -56,7 +56,7 @@ const Sidebar = <T,>({
     return isOpen ? (
         <div>
             <div
-                className={`fixed top-0 ${side}-0 z-40 flex flex-col space-y-2 h-full w-[260px] p-2 text-sm transition-all sm:relative sm:top-0`}
+                className={`fixed top-0 ${side}-0 flex flex-col space-y-2 h-full w-[260px] p-2 text-sm transition-all sm:relative sm:top-0`}
             >
                 <div className="flex items-center">
                     <button
@@ -113,7 +113,7 @@ const Sidebar = <T,>({
             </div>
 
             <CloseSidebarButton onClick={toggleOpen} side={side} data-tooltip-id="close-sidebar" data-tooltip-content="Hide sidebar" />
-            <Tooltip id="close-sidebar" className="z-100" />
+            <Tooltip id="close-sidebar" />
         </div>
     ) : (
         <>

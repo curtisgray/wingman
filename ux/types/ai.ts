@@ -1,4 +1,4 @@
-export type VendorName = "openai" | "meta";
+export type VendorName = "openai" | "meta" | "unknown";
 
 export interface VendorInfo
 {
@@ -92,7 +92,14 @@ export const Vendors: Record<string, VendorInfo> = {
         displayName: "Meta",
         isDownloadable: true,
         isEnabled: true,
-    }
+    },
+    unknown: {
+        isa: "VendorInfo",
+        name: "unknown",
+        displayName: "Unknown",
+        isDownloadable: false,
+        isEnabled: false,
+    },
 };
 
 export const AIModels: Record<AIModelID, AIModel> = {

@@ -6,11 +6,11 @@ import { StripFormatFromModelRepo, quantizationFromFilePath } from "@/types/down
 import { IconRotateRectangle } from "@tabler/icons-react";
 import { Tooltip } from "react-tooltip";
 import HomeContext from "@/pages/api/home/home.context";
-import Image from "next/image";
-import { AIModel, AIModelID, Vendors } from "@/types/ai";
-import { displayModelVendor } from "./Util";
+import { VendorInfo, VendorName, Vendors } from "@/types/ai";
+import { displayModelVendor, displayVendorIcon } from "./Util";
+import { ChatSettingsDialog } from "./ChatSettingsDialog";
 
-const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, showModel = true, showQuantization = true, showAlias = false, className = "" }) =>
+const WingmanInferenceStatus = ({ title = "Inference Status", showTitle = true, showModel = true, showQuantization = true, showAlias = false, className = "" }) =>
 {
     const {
         state: { wingmanItems, currentWingmanInferenceItem, isOnline },
@@ -20,16 +20,18 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
     const {
         state: { models, globalModel },
         handleSyncModel,
-    } = useContext(HomeContext)
+    } = useContext(HomeContext);
 
     const [wingmanItem, setWingmanItem] = useState<WingmanItem | undefined>(undefined);
     const [wingmanStatusLabel, setWingmanStatusLabel] = useState<string>("unknown");
     const [wingmanStatusTitle, setWingmanStatusTitle] = useState<string>("");
     const [model, setModel] = useState<string>("");
     const [modelAlias, setModelAlias] = useState<string>("");
+    const [vendor, setVendor] = useState<VendorInfo>(Vendors["unknown"]);
     const [quantizationName, setQuantizationName] = useState<string>("");
     const [downloadableModelSelected, setDownloadableModelSelected] = useState<boolean>(false);
     const [isRunningInferenceModel, setIsRunningInferenceModel] = useState<boolean>(false);
+    // const [isChatSettingsDialogOpen, setIsChatSettingsDialogOpen] = useState<boolean>(false);
 
     const reset = () =>
     {
@@ -69,7 +71,7 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
                 <Tooltip id="sync-selected-model" /></>;
         else
             return <></>;
-    }
+    };
 
     const handleSyncModelLocal = () =>
     {
@@ -78,7 +80,7 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
             // find model in models by wingmanItem
             const model = models.find((m) => m.id === wingmanItem.modelRepo);
             if (model !== undefined) {
-                const draftModel = {...model};
+                const draftModel = { ...model };
                 const vendor = Vendors[model.vendor];
                 if (vendor !== undefined && vendor.isDownloadable) {
                     const item = model.items?.find((item) => item.filePath === wingmanItem.filePath);
@@ -120,7 +122,7 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
                         break;
                 }
             }
-        }
+        };
 
         if (currentWingmanInferenceItem && wingmanItems?.length > 0) {
             const wi = wingmanItems.find((wi) => wi.filePath === currentWingmanInferenceItem?.alias);
@@ -139,10 +141,15 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
                 if (showAlias)
                     setModelAlias(wi.alias);
                 const quantizationLocal = quantizationFromFilePath(wi.filePath);
-                if (showQuantization){
+                if (showQuantization) {
                     setQuantizationName(quantizationLocal.quantizationName);
                 }
                 updateWingmanStatusLabel(wi);
+                // find model vendor for wi
+                const model = models.find((m) => m.id === wi.modelRepo);
+                if (model !== undefined) {
+                    setVendor(Vendors[model.vendor]);
+                }
             } else {
                 reset();
             }
@@ -150,15 +157,14 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
             reset();
         }
     }, [wingmanItems, currentWingmanInferenceItem, globalModel, models]);
-    
+
     useEffect(() =>
     {
         handleUpdateWingmanStatusMessage(wingmanStatusLabel);
     }, [wingmanStatusLabel]);
 
     // if running an API model, just return the name of the model
-    if (globalModel && !Vendors[globalModel.vendor].isDownloadable)
-    {
+    if (globalModel && !Vendors[globalModel.vendor].isDownloadable) {
         return (
             <div className={`${className}`}>
                 <span>{displayModelVendor(globalModel)}</span>
@@ -175,10 +181,17 @@ const WingmanInferenceStatus = ({title = "Inference Status", showTitle = true, s
 
     if (currentWingmanInferenceItem && currentWingmanInferenceItem.alias) {
         return (
-            <div className={`${className} flex`}>
-                <span>{wingmanStatusTitle} <span>{model} {modelAlias} {(showQuantization) && <span>({quantizationName})</span>}</span> {displayMonitoredStatusIndicator(wingmanItem)} {wingmanStatusLabel}</span>
-                &nbsp;{displaySyncModelControl()}
-            </div>
+            <>
+                <div className={`${className} flex px-1 dark:border-none dark:bg-gray-800 dark:text-gray-200 rounded`}>
+                    <div className="flex space-x-1">
+                        {displayVendorIcon(vendor)}
+                        <span>{wingmanStatusTitle} <span>{model} {modelAlias} {(showQuantization) && <span>({quantizationName})</span>}</span>
+                            {displayMonitoredStatusIndicator(wingmanItem)} {wingmanStatusLabel}
+                        </span>
+                    </div>
+                    &nbsp;{displaySyncModelControl()}
+                </div>
+            </>
         );
     } else {
         return (

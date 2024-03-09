@@ -9,7 +9,17 @@
       "Argument parser for modern C++"
     ]
   },
-  "curl:x64-osx": {
+    "boost-process:x64-osx": {
+        "package_name": "boost-process",
+        "triplet": "x64-osx",
+        "version": "1.83.0",
+        "port_version": 0,
+        "features": [],
+        "desc": [
+            "Boost process module"
+        ]
+    },
+    "curl:x64-osx": {
     "package_name": "curl",
     "triplet": "x64-osx",
     "version": "8.5.0",

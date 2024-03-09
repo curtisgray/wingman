@@ -29,6 +29,8 @@ import ChatStatus from "./ChatStatus";
 import { SelectModel } from "./SelectModel";
 import { AIModel, AIModelID } from "@/types/ai";
 import InitialModelListing from "./InitialModelListing";
+import { Settings } from "@/types/settings";
+import { getSettings, saveSettings } from "@/utils/app/settings";
 
 export const runtime = 'edge'; // 'nodejs' (default) | 'edge'
 
@@ -61,6 +63,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     const {
         state: { downloadItems, isOnline, currentWingmanInferenceItem },
     } = useContext(WingmanContext);
+    
+    const settings: Settings = getSettings();
 
     const [currentMessage, setCurrentMessage] = useState<Message>();
     const [autoScrollEnabled, setAutoScrollEnabled] = useState<boolean>(true);
@@ -377,7 +381,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     }, [selectedConversation, throttledScrollDown]);
 
     useEffect(() => {
-        if (messageIsStreaming) {
+        if (messageIsStreaming || !isOnline) {
             // if the message is streaming ensure the settings are closed
             setShowSettings(false);
         }
@@ -454,8 +458,16 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     };
 
     const showOnboarding = () => {
-        return !(apiKey && serverSideApiKeyIsSet)
+        if (settings.needsOnboarding == false) return false;
+        const ret = !(apiKey && serverSideApiKeyIsSet)
             && (!hasDownloadItems() || !hasModelBeenSelected() || !isModelInferring(selectedConversation?.model));
+        let savedSettings = getSettings();
+        if (savedSettings.needsOnboarding !== ret) {
+            savedSettings.needsOnboarding = ret;
+            saveSettings(savedSettings);
+            settings.needsOnboarding = ret;
+        }
+        return ret;
     };
 
     return (

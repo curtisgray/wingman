@@ -219,7 +219,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                 if (isGlobalModel(model)) {
                     return <div className="self-center m-4">
                         <button type="button"
-                            className="w-24 bg-orange-800 disabled:shadow-none disabled:cursor-default text-gray-900 dark:text-white py-2 rounded"
+                            className="w-24 bg-orange-800 disabled:shadow-none disabled:cursor-default text-white py-2 rounded"
                             disabled
                         >
                             <div className="flex space-x-1 items-center justify-center">
@@ -232,7 +232,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                     if (isModelInferring(model)) {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-24 bg-emerald-800 hover:bg-emerald-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
+                                className="w-24 bg-emerald-800 hover:bg-emerald-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                                 onClick={() => handleStartInference(model)}
                             >
                                 <div className="flex space-x-1 items-center justify-center">
@@ -244,7 +244,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                     } else {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-24 bg-gray-800 hover:bg-gray-500 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
+                                className="w-24 bg-gray-800 hover:bg-gray-500 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                                 onClick={() => handleStartInference(model)}
                             >
                                 Engage
@@ -268,14 +268,14 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
             // if the global model is the same as the current model display 'Engaged', otherwise display 'Engage'
             if (globalModel?.id === model.id) {
                 return <div className="self-center m-4">
-                    <div className="w-24 bg-orange-600 hover:bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded">
+                    <div className="w-24 bg-orange-600 hover:bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
                         Engaged
                     </div>
                 </div>;
             } else {
                 return <div className="self-center m-4" style={disabled ? { pointerEvents: "none", opacity: "0.4" } : {}}>
                     <button type="button" disabled={disabled}
-                        className="w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
+                        className="w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                         onClick={() => handleStartInference(model)}
                     >
                         Engage
@@ -313,13 +313,13 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
     return (
         <div className='w-full px-2 py-4 sm:px-0 mt-4 mb-4'>
             <Tab.Group selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
-                <Tab.List className='flex space-x-1 rounded-xl bg-blue-900/20 p-1'>
+                <Tab.List className='flex space-x-1 rounded bg-gray-900 dark:bg-blue-900/20 p-1'>
                     {Object.keys(categories).map(category => (
                         <Tab
                             key={category}
                             className={({ selected }) =>
                                 classNames(
-                                    'w-full rounded-lg py-2.5 text-sm font-medium leading-5',
+                                    'w-full rounded py-2.5 text-sm font-medium leading-5',
                                     'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
                                     selected
                                         ? 'bg-white text-blue-700 shadow'

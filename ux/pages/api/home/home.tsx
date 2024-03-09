@@ -149,7 +149,7 @@ const Home = ({
             );
             return m;
         },
-        { enabled: enableAutoModelsRefresh, refetchOnMount: false }
+        { enabled: (enableAutoModelsRefresh && isOnline), refetchOnMount: false }
     );
 
     useEffect(() =>
@@ -259,7 +259,15 @@ const Home = ({
         if (selectedConversation) {
             let m = model;
             if (selectedConversation.model !== m) {
-                setLastConversationModel(selectedConversation.model);
+                // if the current model has an error, then it is currently being changed to another model
+                //  due to the error. Setting the model to the passed in model is unintuitive, as this is
+                //  behavior is a side effect of changing the conversation model. If `model` has an error,
+                //  then rather than causing an infinite loop, we simply set the last model to the fallback.
+                if (selectedConversation.model.item?.hasError) {
+                    setLastConversationModel(AIModels[fallbackModelID]);
+                } else {
+                    setLastConversationModel(selectedConversation.model);
+                }
             }
             handleUpdateConversation(selectedConversation, {
                 key: "model",
@@ -416,7 +424,7 @@ const Home = ({
                     let item = undefined;
                     item = m.items?.find((item) => item.quantization === selectedConversation.model.item?.quantization);
                     if (item === undefined) {
-                        toast.error(`Model '${selectedConversation.model.name}' is not available. Please select another model.`);
+                        toast.error(`Model '${selectedConversation.model.name}' is not available. Please choose another model.`);
                         setCurrentConversationModel(undefined);
                         return;
                     }
@@ -426,13 +434,13 @@ const Home = ({
                         const wi = wingmanItems?.find((wi) => wi.alias === selectedConversation.model.item?.filePath);
                         if (wi !== undefined) {
                             toast.error(
-                                `Model '${selectedConversation.model.name}' has an error and cannot run. Please select another model or reset it to try again using the Reset button on the AI model list. Error: ${wi.error}`,
-                                { duration: 10000 }
+                                `Model '${selectedConversation.model.name}' has an error and cannot run. Please choose another model. Error: ${wi.error}`,
+                                { duration: 5000 }
                             );
                         } else {
                             toast.error(
-                                `Model '${selectedConversation.model.name}' has an error and cannot run. Please select another model or reset it to try again using the Reset button on the AI model list.`,
-                                { duration: 10000 }
+                                `Model '${selectedConversation.model.name}' has an error and cannot run. Please choose another model.`,
+                                { duration: 5000 }
                             );
                         }
                         // setCurrentConversationModel(undefined);
@@ -454,6 +462,11 @@ const Home = ({
             }
         }
     }, [selectedConversation?.id, selectedConversation?.model, models]);
+
+    useEffect(() =>
+    {
+
+    }, [currentConversationModel]);
 
     useEffect(() =>
     {
@@ -483,6 +496,20 @@ const Home = ({
     ]);
 
     // ON LOAD --------------------------------------------
+
+    const isReady = () =>
+    {
+        if (globalModel && isOnline) {
+            if (!Vendors[globalModel.vendor].isDownloadable) {
+                return true;
+            } else if (globalModel.id === currentWingmanInferenceItem?.modelRepo) {
+                if (currentWingmanInferenceItem?.status === "inferring") {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
 
     useEffect(() =>
     {
@@ -651,6 +678,11 @@ const Home = ({
             homeDispatch({ field: "loading", value: false });
         }
     }, [isSwitchingModel]);
+
+    useEffect(() =>
+    {
+        homeDispatch({ field: "isReady", value: isReady() });
+    });
 
     const isWaiting = () =>
     {

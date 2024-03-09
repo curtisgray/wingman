@@ -5,9 +5,9 @@
         "url": "https://x.com/electric_curtis"
     },
     "description": "Wingman is the best way to launch llama locally.",
-    "version": "0.6.8",
+    "version": "0.7.0",
     "private": true,
-    "main": "main.js",
+    "main": "tron/main.js",
     "scripts": {
         "dev": "next dev -p 2000",
         "pstart": "next start -p 2000",

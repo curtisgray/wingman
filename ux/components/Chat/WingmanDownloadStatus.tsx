@@ -1,15 +1,30 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useContext, useEffect, useState } from "react";
-import { DownloadButtonProps, DownloadItem } from "@/types/download";
-import { HF_MODEL_ENDS_WITH } from "@/utils/app/const";
+import React, { ReactNode, useContext, useEffect, useState } from "react";
+import { DownloadItem, StripFormatFromModelRepo } from "@/types/download";
 import { useRequestDownloadAction } from "@/hooks/useRequestDownloadAction";
 import WingmanContext from "@/pages/api/home/wingman.context";
 import HomeContext from "@/pages/api/home/home.context";
 
-const DownloadButton = ({ modelRepo, filePath,
+
+export type Props = {
+    className?: string;
+    showRepoName?: boolean;
+    showFileName?: boolean;
+    showProgress?: boolean;
+    showProgressText?: boolean;
+    hideIfDisabled?: boolean;
+    onComplete?: (item: DownloadItem) => void;
+    onStarted?: (item: DownloadItem) => void;
+    onCancelled?: (item: DownloadItem) => void;
+    onProgress?: (value: number) => void;
+    onInitialized?: (success: boolean) => void;
+};
+
+
+const WingmanDownloadStatus = ({ 
     showRepoName = true, showFileName = true, showProgress = true, showProgressText = true,
     onComplete = () => { }, onStarted = () => { }, onCancelled = () => { }, onProgress = () => { }, onInitialized = () => { },
-    className = undefined, children = undefined, autoStart = false }: DownloadButtonProps) =>
+    className = undefined }: Props) =>
 {
     const {
         state: { downloadItems },
@@ -30,8 +45,9 @@ const DownloadButton = ({ modelRepo, filePath,
     const [disabled, setDisabled] = useState<boolean>(true);
     const [isInitialized, setIsInitialized] = useState<boolean>(false);
     const [isInitializing, setIsInitializing] = useState<boolean>(false);
-    
-    const handleInitializeButton = () => {
+
+    const handleInitializeButton = () =>
+    {
         setDisabled(false);
         setDownloadLabel("Download");
         setDownloadStatus("Docked");
@@ -42,28 +58,16 @@ const DownloadButton = ({ modelRepo, filePath,
         setProgressText("");
     };
 
-    const handleRequestDownload = () => {
+    const handleCancelDownload = () =>
+    {
         setDisabled(true);
-        downloadActions.requestDownload(modelRepo, filePath);
-        setIsDownloading(true);
-        setDownloadLabel("Queued");
+        if (downloadItem !== undefined && downloadStarted)
+            downloadActions.requestCancelDownload(downloadItem.modelRepo, downloadItem.filePath);
+        setDownloadLabel("Cancelled");
     };
 
-    const handleCancelDownload = () => {
-        setDisabled(false);
-        downloadActions.requestCancelDownload(modelRepo, filePath);
-        setDownloadLabel("Redownload");
-    };
-
-    const handleRequestOrCancelDownload = () => {
-        if (downloadStarted) {
-            handleCancelDownload();
-        } else {
-            handleRequestDownload();
-        }
-    };
-
-    const handleError = () => {
+    const handleError = () =>
+    {
         setDownloadLabel("Error");
         setDownloadStatus("Failure to Takeoff");
         setDisabled(true);
@@ -74,12 +78,17 @@ const DownloadButton = ({ modelRepo, filePath,
     {
         if (isInitializing) return;
         let localUpdatedDownloadItem = false;
-        if (downloadItems !== undefined) {
-            const di = downloadItems.find((item) => item.modelRepo === modelRepo && item.filePath === filePath);
-            if (di !== undefined && di !== downloadItem) {
+        if (downloadItems !== undefined && downloadItems.length > 0) {
+            const di = downloadItems.find((item) => item.status !== "complete" && item.status !== "cancelled");
+            if (di === undefined) {
+                setDownloadItem(undefined);
+                handleInitializeButton();
+            } else if (di !== downloadItem) {
                 setDownloadItem(di);
                 localUpdatedDownloadItem = true;
             }
+        } else {
+            setDownloadItem(undefined);
         }
 
         if (localUpdatedDownloadItem) {
@@ -90,7 +99,7 @@ const DownloadButton = ({ modelRepo, filePath,
                         setDownloadLabel("Downloaded");
                         setDownloadStatus("Aircraft Landed");
                         setDisabled(true);
-                        if (isDownloading && !downloadCompleted){
+                        if (isDownloading && !downloadCompleted) {
                             setProgress(downloadItem.progress);
                             // setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
                             setProgressText(`${downloadItem.downloadSpeed}`);
@@ -115,16 +124,17 @@ const DownloadButton = ({ modelRepo, filePath,
                         onProgress(downloadItem.progress);
                         break;
                     case "cancelled":
-                        if (isDownloading && !downloadCompleted){
-                            setDownloadLabel("Redownload");
+                        if (isDownloading && !downloadCompleted) {
+                            setDownloadLabel("Cancelled");
                             setDownloadStatus("Flight Aborted");
-                            setDisabled(false);
+                            setDisabled(true);
                             setProgress(downloadItem.progress);
                             // setProgressText(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
                             setProgressText(`${downloadItem.downloadSpeed}`);
                             localIsDownloading = false;
                             setDownloadStarted(false);
                             onCancelled(downloadItem);
+                            // handleInitializeButton();
                         }
                         break;
                     case "error":
@@ -151,7 +161,8 @@ const DownloadButton = ({ modelRepo, filePath,
         }
     }, [downloadItems]);
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         if (isInitializing && isInitialized) {
             setIsInitializing(false);
             if (downloadItem !== undefined) {
@@ -162,61 +173,41 @@ const DownloadButton = ({ modelRepo, filePath,
                     setDisabled(true);
                 }
             } else {
-                if (autoStart)
-                    handleRequestDownload();
-                else
-                    handleInitializeButton();
+                handleInitializeButton();
             }
         }
     }, [downloadItem, isInitialized, isInitializing]);
 
-    useEffect(() => {
-        setIsInitializing(true);
-        setDownloadLabel(<span className="animate-pulse inline-flex h-2 w-2 mx-1 rounded-full bg-orange-400"></span>);
-        setDisabled(true);
-        // request download status to set initial state of the control
-        const response = downloadActions.requestDownloadItems(modelRepo, filePath);
-        if (response !== undefined) {
-            response.then((items) => {
-                if (items.length > 0)
-                    setDownloadItem(items[0]);
-                setIsInitialized(true);
-                onInitialized(true);
-            });
-            response.catch(() => {
-                setIsInitialized(true);
-                handleError();
-                onInitialized(false);
-            });
-        } else {
-            setIsInitialized(true);
-            handleError();
-            onInitialized(false);
-        }
-    }, []);
+    if (downloadItem === undefined) {
+        return <></>;
+    }
 
     return (
-        <button type="button" disabled={disabled}
-            onClick={handleRequestOrCancelDownload}
-            className={className == undefined ? "flex flex-col w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 px-4 rounded" : className}>
-            {
-                children == undefined ?
-                    (
-                        <>
-                            <p className="self-center">{downloadLabel}</p>
-                            {showRepoName && <p>{modelRepo.replace(HF_MODEL_ENDS_WITH, "")}</p>}
-                            {showFileName && <p className="text-gray-300">{filePath}</p>}
-                            {showProgress && isDownloading && <progress
-                                value={progress}
-                                max="100"
-                                className="mt-2 w-full"
-                            ></progress>}
-                            <span className="text-xs self-center">{showProgressText && isDownloading && ` ${progressText}`}</span>
-                        </>
-                    ) : children
-            }
-        </button>
+        <div className={className === undefined ? "relative flex text-xs justify-center align-middle bg-gray-600 rounded" : `relative ${className}`}>
+            <div className="flex rounded-l">
+                <div className="flex flex-col justify-center align-middle space-x-2 px-1 w-40 text-ellipsis z-10">
+                    {showRepoName && <p>{StripFormatFromModelRepo(downloadItem.modelRepo)}</p>}
+                    {showFileName && <p className="text-gray-300">{downloadItem.filePath}</p>}
+                    {showProgress && isDownloading && (
+                        <span className="text-xs self-center">{showProgressText && `${progressText}`}</span>
+                    )}
+                </div>
+                {showProgress && isDownloading && (
+                    <progress
+                        value={progress}
+                        max="100"
+                        className="w-40 h-full absolute rounded-l"
+                    ></progress>
+                )}
+            </div>
+            <button type="button"
+                disabled={disabled}
+                onClick={handleCancelDownload}
+                className="bg-gray-800 hover:bg-gray-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white px-2 rounded-r z-10">
+                <p className="self-center">{downloadLabel}</p>
+            </button>
+        </div>
     );
 };
 
-export default DownloadButton;
+export default WingmanDownloadStatus;

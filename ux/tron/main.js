@@ -12,11 +12,11 @@ const winston = require("winston");
 const net = require("net");
 const si = require('systeminformation');
 const url = require('url');
-const next = require('next');
 const http = require('http');
-// const kill = require('tree-kill');
+const { createMenu } = require('./menu');
 
 const APP_DIR = path.join(os.homedir(), ".wingman");
+let LOGGER_WINDOW = null;
 
 const logger = winston.createLogger({
     level: "silly",
@@ -113,13 +113,12 @@ const isPackaged = __dirname.includes('app.asar');
 
 const getBaseDir = () =>
 {
-    let baseDir = __dirname;
+    let baseDir = path.resolve(path.join(__dirname, '..'));
     if (isPackaged)
     {
         tell(`App is packaged. Using Resources path.`);
         baseDir = path.resolve(process.resourcesPath);
-        // } else if (process.platform === 'darwin')
-        // {
+
         if (process.platform === 'darwin')
         {
             tell(`App is packaged on ${process.platform}. Using Contents/Resources path`);
@@ -135,7 +134,7 @@ const launchWingmanExecutable = async (baseDir) =>
     {
         try
         {
-            let executableName = 'wingman';
+            let executableName = 'wingman_launcher';
             let useCublas = false;
 
             const graphics = await si.graphics();
@@ -180,17 +179,19 @@ const launchWingmanExecutable = async (baseDir) =>
             tell(`Launching Wingman executable: ${executablePath}`);
             const subprocess = child_process.spawn(executablePath, [], {
                 stdio: ['inherit', 'pipe', 'pipe'],
-                shell: true,
+                // shell: true,
                 cwd: path.join(baseDir, 'wingman', wingman_runtime, 'bin'),
                 windowsHide: true,
             // }, { signal });
             });
 
+            let serverReady = false;
             subprocess.stdout.on('data', (data) =>
             {
                 const output = data.toString();
                 tell(`Wingman stdout: ${output}`);
-                if (output.includes("Wingman websocket accepting connections"))
+                // Server is ready: `96ad0fad-82da-43a9-a313-25f51ef90e7c`
+                if (output.includes("96ad0fad-82da-43a9-a313-25f51ef90e7c"))
                 {
                     // resolve(controller);
                     resolve({
@@ -215,6 +216,28 @@ const launchWingmanExecutable = async (baseDir) =>
                             req.end();
                         }
                     });
+                }
+
+                if (!serverReady)
+                {
+                    // dyld error: `dyld: Symbol not found`
+                    if (output.includes("dyld: Symbol not found"))
+                    {
+                        etell(`Server stdout: ${output}`);
+                        reject(new Error('dyld: Symbol not found'));
+                    }
+                    // bad image error: `illegal hardware instruction`
+                    if (output.includes("illegal hardware instruction"))
+                    {
+                        etell(`Server stdout: ${output}`);
+                        reject(new Error('illegal hardware instruction'));
+                    }
+                    // `Wingman Launcher Exception: `
+                    if (output.includes("Wingman Launcher Exception: "))
+                    {
+                        etell(`Server stdout: ${output}`);
+                        reject(new Error('Wingman Launcher Exception'));
+                    }
                 }
             });
 
@@ -320,7 +343,7 @@ const createWindow = () =>
     win = new BrowserWindow({
         width: 1366,
         height: 1080,
-        icon: path.join(__dirname, "assets/logo-rooster-black-white"),
+        icon: path.resolve(path.join(__dirname, "..", "assets", "logo-rooster-black-white")),
         webPreferences: {
             nodeIntegration: true,
             // contextIsolation: false,
@@ -374,6 +397,17 @@ const createWindow = () =>
                 `electronAPI.sendError("${error.message}")`
             );
         });
+
+    win.on("closed", () =>
+    {
+        win = null;
+        // close the logger window
+        if (LOGGER_WINDOW)
+        {
+            LOGGER_WINDOW.close();
+            LOGGER_WINDOW = null;
+        }
+    });
 };
 
 // updateElectronApp(); // additional configuration options available
@@ -387,6 +421,18 @@ ipcMain.on("report-error", (event, error) =>
 app.whenReady().then(() =>
 {
     createWindow();
+    createMenu(onShowLogViewer => {
+        if (LOGGER_WINDOW)
+        {
+            LOGGER_WINDOW.focus();
+            return;
+        }
+        LOGGER_WINDOW = require('./logViewer').createLogWindow();
+        LOGGER_WINDOW.on("closed", () =>
+        {
+            LOGGER_WINDOW = null;
+        });
+    });
 
     app.on("activate", () =>
     {
@@ -396,6 +442,12 @@ app.whenReady().then(() =>
 
 app.on("window-all-closed", () =>
 {
+    // close the logger window
+    if (LOGGER_WINDOW)
+    {
+        LOGGER_WINDOW.close();
+    }
+
     if (process.platform !== "darwin") app.quit();
 
     // TODO: the processes are not being killed when the app is closed. perhaps

@@ -10,6 +10,7 @@ import {
     IconBolt,
     IconBrandGoogle,
     IconPlayerStop,
+    IconPlugConnected,
     IconRepeat,
     IconSend,
 } from "@tabler/icons-react";
@@ -46,7 +47,7 @@ export const ChatInput = ({
     const { t } = useTranslation("chat");
 
     const {
-        state: { selectedConversation, messageIsStreaming, prompts },
+        state: { selectedConversation, messageIsStreaming, prompts, isReady },
 
         dispatch: homeDispatch,
     } = useContext(HomeContext);
@@ -86,7 +87,7 @@ export const ChatInput = ({
     };
 
     const handleSendInput = () => {
-        if (messageIsStreaming) {
+        if (messageIsStreaming || !isReady) {
             return;
         }
 
@@ -275,19 +276,19 @@ export const ChatInput = ({
                     </button>
                 )}
 
-                {!messageIsStreaming &&
+                {!messageIsStreaming && isReady &&
                     selectedConversation &&
                     selectedConversation.messages.length > 0 && (
                         <button
                             className="absolute top-0 left-0 right-0 mx-auto mb-3 flex w-fit items-center gap-3 rounded border border-gray-200 bg-white py-2 px-4 text-black hover:opacity-50 dark:border-gray-600 dark:bg-gray-900 dark:text-white md:mb-0 md:mt-2"
                             onClick={onRegenerate}
                         >
-                            <IconRepeat size={16} /> {t("Regenerate response")}
+                            <IconRepeat size={18} /> {t("Regenerate response")}
                         </button>
                     )}
 
                 <div className="relative mx-2 flex w-full flex-grow flex-col rounded-md border border-black/10 bg-white shadow-[0_0_10px_rgba(0,0,0,0.10)] dark:border-gray-900/50 dark:bg-gray-700 dark:text-white dark:shadow-[0_0_15px_rgba(0,0,0,0.10)] sm:mx-4">
-                    <button
+                    {/* <button
                         className="absolute left-2 top-2 rounded-sm p-1 text-gray-800 opacity-60 hover:bg-gray-200 hover:text-gray-900 dark:bg-opacity-50 dark:text-gray-100 dark:hover:text-gray-200"
                         onClick={() => setShowPluginSelect(!showPluginSelect)}
                         onKeyDown={(e) => {}}
@@ -295,9 +296,9 @@ export const ChatInput = ({
                         {plugin ? (
                             <IconBrandGoogle size={20} />
                         ) : (
-                            <IconBolt size={20} />
+                            <IconPlugConnected size={20} />
                         )}
-                    </button>
+                    </button> */}
 
                     {/* {showPluginSelect && (
                         <div className="absolute left-0 bottom-14 rounded bg-white dark:bg-gray-900">
@@ -324,7 +325,7 @@ export const ChatInput = ({
 
                     <textarea
                         ref={textareaRef}
-                        className="m-0 w-full resize-none border-0 bg-transparent p-0 py-2 pr-8 pl-10 text-black dark:bg-transparent dark:text-white md:py-3 md:pl-10"
+                        className="m-0 w-full resize-none border-0 bg-transparent p-0 py-2 pr-8 pl-4 text-black dark:bg-transparent dark:text-white md:py-3 md:pl-4"
                         style={disabled ? {pointerEvents: "none", opacity: "0.4"} : {
                             resize: "none",
                             bottom: `${textareaRef?.current?.scrollHeight}px`,
@@ -353,7 +354,7 @@ export const ChatInput = ({
                         className="absolute right-2 top-2 rounded-sm p-1 text-gray-800 opacity-60 hover:bg-gray-200 hover:text-gray-900 dark:bg-opacity-50 dark:text-gray-100 dark:hover:text-gray-200"
                         onClick={handleSendInput}
                     >
-                        {messageIsStreaming ? (
+                        {(messageIsStreaming || !isReady) ? (
                             <div className="h-4 w-4 animate-spin rounded-full border-t-2 border-gray-800 opacity-60 dark:border-gray-100"></div>
                         ) : (
                             <IconSend size={18} />

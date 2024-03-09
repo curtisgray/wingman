@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("electronAPI", {
     sendError: (error) => ipcRenderer.send("report-error", error),
+    receiveLogData: (callback) => ipcRenderer.on('logData', callback)
 });
 
 window.addEventListener("DOMContentLoaded", () => {

@@ -146,7 +146,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                 if (isGlobalModel(model)) {
                     return <div className="self-center m-4">
                         <button type="button"
-                            className="w-24 bg-orange-800 disabled:shadow-none disabled:cursor-default text-gray-900 dark:text-white py-2 rounded"
+                            className="w-24 bg-orange-800 disabled:shadow-none disabled:cursor-default text-white py-2 rounded"
                             disabled
                         >
                             <div className="flex space-x-1 items-center justify-center">
@@ -159,7 +159,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                     if (isModelInferring(model)) {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-24 bg-emerald-800 hover:bg-emerald-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
+                                className="w-24 bg-emerald-800 hover:bg-emerald-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                                 onClick={() => handleStartInference(model)}
                             >
                                 <div className="flex space-x-1 items-center justify-center">
@@ -171,7 +171,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                     } else {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-24 bg-gray-800 hover:bg-gray-500 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
+                                className="w-24 bg-gray-800 hover:bg-gray-500 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                                 onClick={() => handleStartInference(model)}
                             >
                                 Engage
@@ -195,14 +195,14 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
             // if the global model is the same as the current model display 'Engaged', otherwise display 'Engage'
             if (globalModel?.id === model.id) {
                 return <div className="self-center m-4">
-                    <div className="w-24 bg-orange-600 hover:bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded">
+                    <div className="w-24 bg-orange-600 hover:bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
                         Engaged
                     </div>
                 </div>;
             } else {
                 return <div className="self-center m-4" style={disabled ? { pointerEvents: "none", opacity: "0.4" } : {}}>
                     <button type="button" disabled={disabled}
-                        className="w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-gray-900 dark:text-white py-2 rounded"
+                        className="w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                         onClick={() => handleStartInference(model)}
                     >
                         Engage

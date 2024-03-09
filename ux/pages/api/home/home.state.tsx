@@ -32,6 +32,7 @@ export interface HomeStateProps {
     serverSidePluginKeysSet: boolean;
     serverSideHostAddress: string;
     hostAddress: string;
+    isReady: boolean;
 }
 
 export const initialState: HomeStateProps = {
@@ -61,4 +62,5 @@ export const initialState: HomeStateProps = {
     serverSidePluginKeysSet: false,
     serverSideHostAddress: "",
     hostAddress: "",
+    isReady: false,
 };

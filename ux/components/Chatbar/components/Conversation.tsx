@@ -150,7 +150,7 @@ export const ConversationComponent = ({ conversation}: Props) => {
                 </div>
             ) : (
                 <button
-                        className={`flex w-full cursor-pointer items-center gap-3 rounded-lg p-3 text-sm transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-700 ${
+                        className={`flex w-full cursor-pointer items-center gap-3 rounded-lg px-2 py-3 text-sm transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-700 ${
                         messageIsStreaming ? "disabled:cursor-not-allowed" : ""
                     } ${
                         selectedConversation?.id === conversation.id
@@ -162,14 +162,14 @@ export const ConversationComponent = ({ conversation}: Props) => {
                     draggable="true"
                     onDragStart={(e) => handleDragStart(e, conversation)}
                 >
-                    <IconMessage size={18}
+                    {/* <IconMessage size={18}
                             className={`${
                                 selectedConversation?.id === conversation.id
                                     ? "text-gray-700 dark:text-gray-100"
                                     : "text-gray-400 dark:text-gray-400"
-                        }`} />
+                        }`} /> */}
                     <div
-                        className={`relative max-h-5 flex-1 overflow-hidden text-ellipsis whitespace-nowrap break-all text-left text-xs leading-3 ${
+                        className={`relative max-h-5 max-w-52 flex-1 overflow-hidden text-ellipsis whitespace-nowrap break-all text-left text-xs leading-3 ${
                             selectedConversation?.id === conversation.id
                                 ? "pr-12"
                                 : "pr-1"
@@ -219,7 +219,7 @@ export const ConversationComponent = ({ conversation}: Props) => {
                             handleClick={handleOpenDeleteModal}
                             toolTipText="Delete conversation..."
                         >
-                            <IconTrash size={18} color="red" />
+                            <IconTrash size={18} />
                         </SidebarActionButton>
                     </div>
                 )}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Log Viewer</title>
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                height: 100vh; /* Ensure body takes full viewport height */
+                margin: 0; /* Remove default margin */
+                display: flex;
+                flex-direction: column; /* Stack children vertically */
+                justify-content: center;
+                align-items: center;
+                background-color: #000;
+                color: #fff;
+                overflow: hidden; /* Prevent body from scrolling */
+            }
+            .content,
+            pre {
+                width: 100%; /* Full width */
+                flex: 1; /* Take up remaining space */
+                overflow: auto; /* Allow scrolling */
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+        </style>
+    </head>
+    <body>
+        <pre id="logContent">Loading log...</pre>
+        <script>
+            window.electronAPI.receiveLogData((event, data) => {
+                const logContent = document.getElementById('logContent')
+                logContent.textContent = data
+                // Ensure the pre element scrolls to the bottom
+                logContent.scrollTop = logContent.scrollHeight
+            })
+        </script>
+    </body>
+</html>

@@ -1,751 +1,280 @@
 {
-  "argparse:x64-windows": {
-    "package_name": "argparse",
-    "triplet": "x64-windows",
-    "version": "2.9",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Argument parser for modern C++"
-    ]
-  },
-  "argparse:x64-windows-static": {
-    "package_name": "argparse",
-    "triplet": "x64-windows-static",
-    "version": "2.9",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Argument parser for modern C++"
-    ]
-  },
-  "boost-assert:x64-windows": {
-    "package_name": "boost-assert",
-    "triplet": "x64-windows",
-    "version": "1.83.0",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Boost assert module"
-    ]
-  },
-  "boost-config:x64-windows": {
-    "package_name": "boost-config",
-    "triplet": "x64-windows",
-    "version": "1.83.0",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Boost config module"
-    ]
-  },
-  "boost-static-assert:x64-windows": {
-    "package_name": "boost-static-assert",
-    "triplet": "x64-windows",
-    "version": "1.83.0",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Boost static_assert module"
-    ]
-  },
-  "boost-throw-exception:x64-windows": {
-    "package_name": "boost-throw-exception",
-    "triplet": "x64-windows",
-    "version": "1.83.0",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Boost throw_exception module"
-    ]
-  },
-  "boost-uninstall:x64-windows": {
-    "package_name": "boost-uninstall",
-    "triplet": "x64-windows",
-    "version": "1.83.0",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Internal vcpkg port used to uninstall Boost"
-    ]
-  },
-  "boost-vcpkg-helpers:x64-windows": {
-    "package_name": "boost-vcpkg-helpers",
-    "triplet": "x64-windows",
-    "version": "1.83.0",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Internal vcpkg port used to modularize Boost"
-    ]
-  },
-  "bzip2:x64-windows-static": {
-    "package_name": "bzip2",
-    "triplet": "x64-windows-static",
-    "version": "1.0.8",
-    "port_version": 5,
-    "features": [
-      "tool"
-    ],
-    "desc": [
-      "bzip2 is a freely available, patent free, high-quality data compressor. It typically compresses files to within 10% to 15% of the best available techniques (the PPM family of statistical compressors), whilst being around twice as fast at compression and six times faster at decompression."
-    ]
-  },
-  "catch2:x64-windows": {
-    "package_name": "catch2",
-    "triplet": "x64-windows",
-    "version": "3.4.0",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "A modern, header-only test framework for unit testing."
-    ]
-  },
-  "catch2:x64-windows-static": {
-    "package_name": "catch2",
-    "triplet": "x64-windows-static",
-    "version": "3.4.0",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "A modern, header-only test framework for unit testing."
-    ]
-  },
-  "cli11:x64-windows": {
-    "package_name": "cli11",
-    "triplet": "x64-windows",
-    "version": "2.3.2",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "CLI11 is a command line parser for C++11 and beyond that provides a rich feature set with a simple and intuitive interface."
-    ]
-  },
-  "cli11:x64-windows-static": {
-    "package_name": "cli11",
-    "triplet": "x64-windows-static",
-    "version": "2.3.2",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "CLI11 is a command line parser for C++11 and beyond that provides a rich feature set with a simple and intuitive interface."
-    ]
-  },
-  "cpr:x64-windows": {
-    "package_name": "cpr",
-    "triplet": "x64-windows",
-    "version": "1.10.2+3",
-    "port_version": 0,
-    "features": [
-      "ssl"
-    ],
-    "desc": [
-      "C++ Requests is a simple wrapper around libcurl inspired by the excellent Python Requests project."
-    ]
-  },
-  "cpr:x64-windows-static": {
-    "package_name": "cpr",
-    "triplet": "x64-windows-static",
-    "version": "1.10.2+3",
-    "port_version": 0,
-    "features": [
-      "ssl"
-    ],
-    "desc": [
-      "C++ Requests is a simple wrapper around libcurl inspired by the excellent Python Requests project."
-    ]
-  },
-  "curl:x64-windows": {
-    "package_name": "curl",
-    "triplet": "x64-windows",
-    "version": "8.3.0",
-    "port_version": 0,
-    "features": [
-      "non-http",
-      "schannel",
-      "ssl",
-      "sspi"
-    ],
-    "desc": [
-      "A library for transferring data with URLs"
-    ]
-  },
-  "curl:x64-windows-static": {
-    "package_name": "curl",
-    "triplet": "x64-windows-static",
-    "version": "8.3.0",
-    "port_version": 0,
-    "features": [
-      "non-http",
-      "schannel",
-      "ssl",
-      "sspi"
-    ],
-    "desc": [
-      "A library for transferring data with URLs"
-    ]
-  },
-  "egl-registry:x64-windows": {
-    "package_name": "egl-registry",
-    "triplet": "x64-windows",
-    "version": "2022-09-20",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "the EGL API and Extension Registry"
-    ]
-  },
-  "egl-registry:x64-windows-static": {
-    "package_name": "egl-registry",
-    "triplet": "x64-windows-static",
-    "version": "2022-09-20",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "the EGL API and Extension Registry"
-    ]
-  },
-  "eigen3:x64-windows-static": {
-    "package_name": "eigen3",
-    "triplet": "x64-windows-static",
-    "version": "3.4.0",
-    "port_version": 2,
-    "features": [],
-    "desc": [
-      "C++ template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms."
-    ]
-  },
-  "flatbuffers:x64-windows": {
-    "package_name": "flatbuffers",
-    "triplet": "x64-windows",
-    "version": "23.5.26",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Memory Efficient Serialization Library",
-      "FlatBuffers is an efficient cross platform serialization library for games and other memory constrained apps. It allows you to directly access serialized data without unpacking/parsing it first, while still having great forwards/backwards compatibility."
-    ]
-  },
-  "flatbuffers:x64-windows-static": {
-    "package_name": "flatbuffers",
-    "triplet": "x64-windows-static",
-    "version": "23.5.26",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Memory Efficient Serialization Library",
-      "FlatBuffers is an efficient cross platform serialization library for games and other memory constrained apps. It allows you to directly access serialized data without unpacking/parsing it first, while still having great forwards/backwards compatibility."
-    ]
-  },
-  "fmt:x64-windows": {
-    "package_name": "fmt",
-    "triplet": "x64-windows",
-    "version": "10.1.1",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Formatting library for C++. It can be used as a safe alternative to printf or as a fast alternative to IOStreams."
-    ]
-  },
-  "fmt:x64-windows-static": {
-    "package_name": "fmt",
-    "triplet": "x64-windows-static",
-    "version": "10.1.1",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Formatting library for C++. It can be used as a safe alternative to printf or as a fast alternative to IOStreams."
-    ]
-  },
-  "gtest:x64-windows": {
-    "package_name": "gtest",
-    "triplet": "x64-windows",
-    "version": "1.14.0",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "GoogleTest and GoogleMock testing frameworks"
-    ]
-  },
-  "gtest:x64-windows-static": {
-    "package_name": "gtest",
-    "triplet": "x64-windows-static",
-    "version": "1.14.0",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "GoogleTest and GoogleMock testing frameworks"
-    ]
-  },
-  "icu:x64-windows": {
-    "package_name": "icu",
-    "triplet": "x64-windows",
-    "version": "73.1",
-    "port_version": 0,
-    "features": [
-      "tools"
-    ],
-    "desc": [
-      "Mature and widely used Unicode and localization library."
-    ]
-  },
-  "icu:x64-windows-static": {
-    "package_name": "icu",
-    "triplet": "x64-windows-static",
-    "version": "73.1",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Mature and widely used Unicode and localization library."
-    ]
-  },
-  "libjpeg-turbo:x64-windows-static": {
-    "package_name": "libjpeg-turbo",
-    "triplet": "x64-windows-static",
-    "version": "3.0.0",
-    "port_version": 2,
-    "features": [],
-    "desc": [
-      "libjpeg-turbo is a JPEG image codec that uses SIMD instructions (MMX, SSE2, NEON, AltiVec) to accelerate baseline JPEG compression and decompression on x86, x86-64, ARM, and PowerPC systems."
-    ]
-  },
-  "liblzma:x64-windows-static": {
-    "package_name": "liblzma",
-    "triplet": "x64-windows-static",
-    "version": "5.4.3",
-    "port_version": 1,
-    "features": [],
-    "desc": [
-      "Compression library with an API similar to that of zlib."
-    ]
-  },
-  "libpng:x64-windows-static": {
-    "package_name": "libpng",
-    "triplet": "x64-windows-static",
-    "version": "1.6.39",
-    "port_version": 1,
-    "features": [],
-    "desc": [
-      "libpng is a library implementing an interface for reading and writing PNG (Portable Network Graphics) format files"
-    ]
-  },
-  "libuv:x64-windows": {
-    "package_name": "libuv",
-    "triplet": "x64-windows",
-    "version": "1.46.0",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "libuv is a multi-platform support library with a focus on asynchronous I/O."
-    ]
-  },
-  "libuv:x64-windows-static": {
-    "package_name": "libuv",
-    "triplet": "x64-windows-static",
-    "version": "1.46.0",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "libuv is a multi-platform support library with a focus on asynchronous I/O."
-    ]
-  },
-  "libwebp:x64-windows-static": {
-    "package_name": "libwebp",
-    "triplet": "x64-windows-static",
-    "version": "1.3.2",
-    "port_version": 0,
-    "features": [
-      "libwebpmux",
-      "nearlossless",
-      "simd",
-      "unicode"
-    ],
-    "desc": [
-      "WebP codec: library to encode and decode images in WebP format"
-    ]
-  },
-  "libwebsockets:x64-windows-static": {
-    "package_name": "libwebsockets",
-    "triplet": "x64-windows-static",
-    "version": "4.3.2",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Libwebsockets is a lightweight pure C library built to use minimal CPU and memory resources, and provide fast throughput in both directions as client or server."
-    ]
-  },
-  "nlohmann-json:x64-windows": {
-    "package_name": "nlohmann-json",
-    "triplet": "x64-windows",
-    "version": "3.11.2",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "JSON for Modern C++"
-    ]
-  },
-  "nlohmann-json:x64-windows-static": {
-    "package_name": "nlohmann-json",
-    "triplet": "x64-windows-static",
-    "version": "3.11.2",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "JSON for Modern C++"
-    ]
-  },
-  "opencl:x64-windows": {
-    "package_name": "opencl",
-    "triplet": "x64-windows",
-    "version": "v2023.02.06",
-    "port_version": 2,
-    "features": [],
-    "desc": [
-      "C/C++ headers and ICD loader (Installable Client Driver) for OpenCL"
-    ]
-  },
-  "opencl:x64-windows-static": {
-    "package_name": "opencl",
-    "triplet": "x64-windows-static",
-    "version": "v2023.02.06",
-    "port_version": 2,
-    "features": [],
-    "desc": [
-      "C/C++ headers and ICD loader (Installable Client Driver) for OpenCL"
-    ]
-  },
-  "opencv4:x64-windows-static": {
-    "package_name": "opencv4",
-    "triplet": "x64-windows-static",
-    "version": "4.8.0",
-    "port_version": 7,
-    "features": [
-      "default-features",
-      "dnn",
-      "jpeg",
-      "png",
-      "quirc",
-      "tiff",
-      "webp"
-    ],
-    "desc": [
-      "computer vision library"
-    ]
-  },
-  "opencv:x64-windows-static": {
-    "package_name": "opencv",
-    "triplet": "x64-windows-static",
-    "version": "4.8.0",
-    "port_version": 0,
-    "features": [
-      "default-features"
-    ],
-    "desc": [
-      "Computer vision library"
-    ]
-  },
-  "opengl-registry:x64-windows": {
-    "package_name": "opengl-registry",
-    "triplet": "x64-windows",
-    "version": "2022-09-29",
-    "port_version": 1,
-    "features": [],
-    "desc": [
-      "the API and Extension registries for the OpenGL family APIs"
-    ]
-  },
-  "opengl-registry:x64-windows-static": {
-    "package_name": "opengl-registry",
-    "triplet": "x64-windows-static",
-    "version": "2022-09-29",
-    "port_version": 1,
-    "features": [],
-    "desc": [
-      "the API and Extension registries for the OpenGL family APIs"
-    ]
-  },
-  "opengl:x64-windows": {
-    "package_name": "opengl",
-    "triplet": "x64-windows",
-    "version": "2022-12-04",
-    "port_version": 3,
-    "features": [],
-    "desc": [
-      "Open Graphics Library (OpenGL)[3][4][5] is a cross-language, cross-platform application programming interface (API) for rendering 2D and 3D vector graphics."
-    ]
-  },
-  "opengl:x64-windows-static": {
-    "package_name": "opengl",
-    "triplet": "x64-windows-static",
-    "version": "2022-12-04",
-    "port_version": 3,
-    "features": [],
-    "desc": [
-      "Open Graphics Library (OpenGL)[3][4][5] is a cross-language, cross-platform application programming interface (API) for rendering 2D and 3D vector graphics."
-    ]
-  },
-  "openssl:x64-windows-static": {
-    "package_name": "openssl",
-    "triplet": "x64-windows-static",
-    "version": "3.1.3",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "OpenSSL is an open source project that provides a robust, commercial-grade, and full-featured toolkit for the Transport Layer Security (TLS) and Secure Sockets Layer (SSL) protocols. It is also a general-purpose cryptography library."
-    ]
-  },
-  "protobuf:x64-windows": {
-    "package_name": "protobuf",
-    "triplet": "x64-windows",
-    "version": "3.21.12",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Protocol Buffers - Google's data interchange format"
-    ]
-  },
-  "protobuf:x64-windows-static": {
-    "package_name": "protobuf",
-    "triplet": "x64-windows-static",
-    "version": "3.21.12",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Protocol Buffers - Google's data interchange format"
-    ]
-  },
-  "pthreads:x64-windows-static": {
-    "package_name": "pthreads",
-    "triplet": "x64-windows-static",
-    "version": "3.0.0",
-    "port_version": 14,
-    "features": [],
-    "desc": [
-      "Meta-package that provides PThreads4W on Windows, or assumes presence of system pthreads on POSIX systems."
-    ]
-  },
-  "quirc:x64-windows-static": {
-    "package_name": "quirc",
-    "triplet": "x64-windows-static",
-    "version": "1.1",
-    "port_version": 3,
-    "features": [],
-    "desc": [
-      "quirc is one of the C library available for scanning QR Codes"
-    ]
-  },
-  "spdlog:x64-windows": {
-    "package_name": "spdlog",
-    "triplet": "x64-windows",
-    "version": "1.12.0",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Very fast, header only, C++ logging library"
-    ]
-  },
-  "spdlog:x64-windows-static": {
-    "package_name": "spdlog",
-    "triplet": "x64-windows-static",
-    "version": "1.12.0",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Very fast, header only, C++ logging library"
-    ]
-  },
-  "sqlite3:x64-windows": {
-    "package_name": "sqlite3",
-    "triplet": "x64-windows",
-    "version": "3.43.1",
-    "port_version": 0,
-    "features": [
-      "json1"
-    ],
-    "desc": [
-      "SQLite is a software library that implements a self-contained, serverless, zero-configuration, transactional SQL database engine."
-    ]
-  },
-  "sqlite3:x64-windows-static": {
-    "package_name": "sqlite3",
-    "triplet": "x64-windows-static",
-    "version": "3.43.1",
-    "port_version": 0,
-    "features": [
-      "json1"
-    ],
-    "desc": [
-      "SQLite is a software library that implements a self-contained, serverless, zero-configuration, transactional SQL database engine."
-    ]
-  },
-  "sqlitecpp:x64-windows": {
-    "package_name": "sqlitecpp",
-    "triplet": "x64-windows",
-    "version": "3.3.1",
-    "port_version": 0,
-    "features": [
-      "sqlite"
-    ],
-    "desc": [
-      "SQLiteC++ (SQLiteCpp) is a smart and easy to use C++ SQLite3 wrapper."
-    ]
-  },
-  "sqlitecpp:x64-windows-static": {
-    "package_name": "sqlitecpp",
-    "triplet": "x64-windows-static",
-    "version": "3.3.1",
-    "port_version": 0,
-    "features": [
-      "sqlite"
-    ],
-    "desc": [
-      "SQLiteC++ (SQLiteCpp) is a smart and easy to use C++ SQLite3 wrapper."
-    ]
-  },
-  "strtk:x64-windows": {
-    "package_name": "strtk",
-    "triplet": "x64-windows",
-    "version": "2020-09-14",
-    "port_version": 3,
-    "features": [],
-    "desc": [
-      "robust, optimized and portable string processing algorithms for the C++ language"
-    ]
-  },
-  "strtk:x64-windows-static": {
-    "package_name": "strtk",
-    "triplet": "x64-windows-static",
-    "version": "2020-09-14",
-    "port_version": 3,
-    "features": [],
-    "desc": [
-      "robust, optimized and portable string processing algorithms for the C++ language"
-    ]
-  },
-  "tiff:x64-windows-static": {
-    "package_name": "tiff",
-    "triplet": "x64-windows-static",
-    "version": "4.5.1",
-    "port_version": 2,
-    "features": [
-      "jpeg",
-      "lzma",
-      "zip"
-    ],
-    "desc": [
-      "A library that supports the manipulation of TIFF image files"
-    ]
-  },
-  "tiny-process-library:x64-windows": {
-    "package_name": "tiny-process-library",
-    "triplet": "x64-windows",
-    "version": "2.0.4",
-    "port_version": 2,
-    "features": [],
-    "desc": [
-      "A small platform independent library to create and stop new processes in C++"
-    ]
-  },
-  "tiny-process-library:x64-windows-static": {
-    "package_name": "tiny-process-library",
-    "triplet": "x64-windows-static",
-    "version": "2.0.4",
-    "port_version": 2,
-    "features": [],
-    "desc": [
-      "A small platform independent library to create and stop new processes in C++"
-    ]
-  },
-  "usockets:x64-windows": {
-    "package_name": "usockets",
-    "triplet": "x64-windows",
-    "version": "0.8.6",
-    "port_version": 1,
-    "features": [],
-    "desc": [
-      "Miniscule cross-platform eventing, networking & crypto for async applications"
-    ]
-  },
-  "usockets:x64-windows-static": {
-    "package_name": "usockets",
-    "triplet": "x64-windows-static",
-    "version": "0.8.6",
-    "port_version": 1,
-    "features": [],
-    "desc": [
-      "Miniscule cross-platform eventing, networking & crypto for async applications"
-    ]
-  },
-  "uwebsockets:x64-windows": {
-    "package_name": "uwebsockets",
-    "triplet": "x64-windows",
-    "version": "20.45.0",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Simple, secure & standards compliant web I/O for the most demanding of applications"
-    ]
-  },
-  "uwebsockets:x64-windows-static": {
-    "package_name": "uwebsockets",
-    "triplet": "x64-windows-static",
-    "version": "20.45.0",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "Simple, secure & standards compliant web I/O for the most demanding of applications"
-    ]
-  },
-  "vcpkg-cmake-config:x64-windows": {
-    "package_name": "vcpkg-cmake-config",
-    "triplet": "x64-windows",
-    "version": "2022-02-06",
-    "port_version": 1,
-    "features": [],
-    "desc": []
-  },
-  "vcpkg-cmake-get-vars:x64-windows": {
-    "package_name": "vcpkg-cmake-get-vars",
-    "triplet": "x64-windows",
-    "version": "2023-03-02",
-    "port_version": 0,
-    "features": [],
-    "desc": []
-  },
-  "vcpkg-cmake:x64-windows": {
-    "package_name": "vcpkg-cmake",
-    "triplet": "x64-windows",
-    "version": "2023-05-04",
-    "port_version": 0,
-    "features": [],
-    "desc": []
-  },
-  "vcpkg-get-python-packages:x64-windows": {
-    "package_name": "vcpkg-get-python-packages",
-    "triplet": "x64-windows",
-    "version": "2023-07-28",
-    "port_version": 0,
-    "features": [],
-    "desc": []
-  },
-  "zlib:x64-windows": {
-    "package_name": "zlib",
-    "triplet": "x64-windows",
-    "version": "1.3",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "A compression library"
-    ]
-  },
-  "zlib:x64-windows-static": {
-    "package_name": "zlib",
-    "triplet": "x64-windows-static",
-    "version": "1.3",
-    "port_version": 0,
-    "features": [],
-    "desc": [
-      "A compression library"
-    ]
-  }
+    "argparse:x64-linux": {
+        "package_name": "argparse",
+        "triplet": "x64-linux",
+        "version": "2.9",
+        "port_version": 0,
+        "features": [],
+        "desc": [
+            "Argument parser for modern C++"
+        ]
+    },
+    "catch2:x64-linux": {
+        "package_name": "catch2",
+        "triplet": "x64-linux",
+        "version": "3.4.0",
+        "port_version": 0,
+        "features": [],
+        "desc": [
+            "A modern, header-only test framework for unit testing."
+        ]
+    },
+    "cli11:x64-linux": {
+        "package_name": "cli11",
+        "triplet": "x64-linux",
+        "version": "2.3.2",
+        "port_version": 0,
+        "features": [],
+        "desc": [
+            "CLI11 is a command line parser for C++11 and beyond that provides a rich feature set with a simple and intuitive interface."
+        ]
+    },
+    "cpr:x64-linux": {
+        "package_name": "cpr",
+        "triplet": "x64-linux",
+        "version": "1.10.2+3",
+        "port_version": 0,
+        "features": [
+            "ssl"
+        ],
+        "desc": [
+            "C++ Requests is a simple wrapper around libcurl inspired by the excellent Python Requests project."
+        ]
+    },
+    "curl:x64-linux": {
+        "package_name": "curl",
+        "triplet": "x64-linux",
+        "version": "8.3.0",
+        "port_version": 0,
+        "features": [
+            "non-http",
+            "schannel",
+            "ssl",
+            "sspi"
+        ],
+        "desc": [
+            "A library for transferring data with URLs"
+        ]
+    },
+    "egl-registry:x64-linux": {
+        "package_name": "egl-registry",
+        "triplet": "x64-linux",
+        "version": "2022-09-20",
+        "port_version": 0,
+        "features": [],
+        "desc": [
+            "the EGL API and Extension Registry"
+        ]
+    },
+    "flatbuffers:x64-linux": {
+        "package_name": "flatbuffers",
+        "triplet": "x64-linux",
+        "version": "23.5.26",
+        "port_version": 0,
+        "features": [],
+        "desc": [
+            "Memory Efficient Serialization Library",
+            "FlatBuffers is an efficient cross platform serialization library for games and other memory constrained apps. It allows you to directly access serialized data without unpacking/parsing it first, while still having great forwards/backwards compatibility."
+        ]
+    },
+    "fmt:x64-linux": {
+        "package_name": "fmt",
+        "triplet": "x64-linux",
+        "version": "10.1.1",
+        "port_version": 0,
+        "features": [],
+        "desc": [
+            "Formatting library for C++. It can be used as a safe alternative to printf or as a fast alternative to IOStreams."
+        ]
+    },
+    "gtest:x64-linux": {
+        "package_name": "gtest",
+        "triplet": "x64-linux",
+        "version": "1.14.0",
+        "port_version": 0,
+        "features": [],
+        "desc": [
+            "GoogleTest and GoogleMock testing frameworks"
+        ]
+    },
+    "icu:x64-linux": {
+        "package_name": "icu",
+        "triplet": "x64-linux",
+        "version": "73.1",
+        "port_version": 0,
+        "features": [
+            "tools"
+        ],
+        "desc": [
+            "Mature and widely used Unicode and localization library."
+        ]
+    },
+    "libuv:x64-linux": {
+        "package_name": "libuv",
+        "triplet": "x64-linux",
+        "version": "1.46.0",
+        "port_version": 0,
+        "features": [],
+        "desc": [
+            "libuv is a multi-platform support library with a focus on asynchronous I/O."
+        ]
+    },
+    "nlohmann-json:x64-linux": {
+        "package_name": "nlohmann-json",
+        "triplet": "x64-linux",
+        "version": "3.11.2",
+        "port_version": 0,
+        "features": [],
+        "desc": [
+            "JSON for Modern C++"
+        ]
+    },
+    "opencl:x64-linux": {
+        "package_name": "opencl",
+        "triplet": "x64-linux",
+        "version": "v2023.02.06",
+        "port_version": 2,
+        "features": [],
+        "desc": [
+            "C/C++ headers and ICD loader (Installable Client Driver) for OpenCL"
+        ]
+    },
+    "opengl-registry:x64-linux": {
+        "package_name": "opengl-registry",
+        "triplet": "x64-linux",
+        "version": "2022-09-29",
+        "port_version": 1,
+        "features": [],
+        "desc": [
+            "the API and Extension registries for the OpenGL family APIs"
+        ]
+    },
+    "opengl:x64-linux": {
+        "package_name": "opengl",
+        "triplet": "x64-linux",
+        "version": "2022-12-04",
+        "port_version": 3,
+        "features": [],
+        "desc": [
+            "Open Graphics Library (OpenGL)[3][4][5] is a cross-language, cross-platform application programming interface (API) for rendering 2D and 3D vector graphics."
+        ]
+    },
+    "spdlog:x64-linux": {
+        "package_name": "spdlog",
+        "triplet": "x64-linux",
+        "version": "1.12.0",
+        "port_version": 0,
+        "features": [],
+        "desc": [
+            "Very fast, header only, C++ logging library"
+        ]
+    },
+    "sqlite3:x64-linux": {
+        "package_name": "sqlite3",
+        "triplet": "x64-linux",
+        "version": "3.43.1",
+        "port_version": 0,
+        "features": [
+            "json1"
+        ],
+        "desc": [
+            "SQLite is a software library that implements a self-contained, serverless, zero-configuration, transactional SQL database engine."
+        ]
+    },
+    "strtk:x64-linux": {
+        "package_name": "strtk",
+        "triplet": "x64-linux",
+        "version": "2020-09-14",
+        "port_version": 3,
+        "features": [],
+        "desc": [
+            "robust, optimized and portable string processing algorithms for the C++ language"
+        ]
+    },
+    "tiff:x64-linux-static": {
+        "package_name": "tiff",
+        "triplet": "x64-linux-static",
+        "version": "4.5.1",
+        "port_version": 2,
+        "features": [
+            "jpeg",
+            "lzma",
+            "zip"
+        ],
+        "desc": [
+            "A library that supports the manipulation of TIFF image files"
+        ]
+    },
+    "tiny-process-library:x64-linux": {
+        "package_name": "tiny-process-library",
+        "triplet": "x64-linux",
+        "version": "2.0.4",
+        "port_version": 2,
+        "features": [],
+        "desc": [
+            "A small platform independent library to create and stop new processes in C++"
+        ]
+    },
+    "usockets:x64-linux": {
+        "package_name": "usockets",
+        "triplet": "x64-linux",
+        "version": "0.8.6",
+        "port_version": 1,
+        "features": [],
+        "desc": [
+            "Miniscule cross-platform eventing, networking & crypto for async applications"
+        ]
+    },
+    "uwebsockets:x64-linux": {
+        "package_name": "uwebsockets",
+        "triplet": "x64-linux",
+        "version": "20.45.0",
+        "port_version": 0,
+        "features": [],
+        "desc": [
+            "Simple, secure & standards compliant web I/O for the most demanding of applications"
+        ]
+    },
+    "vcpkg-cmake-config:x64-linux": {
+        "package_name": "vcpkg-cmake-config",
+        "triplet": "x64-linux",
+        "version": "2022-02-06",
+        "port_version": 1,
+        "features": [],
+        "desc": []
+    },
+    "vcpkg-cmake-get-vars:x64-linux": {
+        "package_name": "vcpkg-cmake-get-vars",
+        "triplet": "x64-linux",
+        "version": "2023-03-02",
+        "port_version": 0,
+        "features": [],
+        "desc": []
+    },
+    "vcpkg-cmake:x64-linux": {
+        "package_name": "vcpkg-cmake",
+        "triplet": "x64-linux",
+        "version": "2023-05-04",
+        "port_version": 0,
+        "features": [],
+        "desc": []
+    },
+    "vcpkg-get-python-packages:x64-linux": {
+        "package_name": "vcpkg-get-python-packages",
+        "triplet": "x64-linux",
+        "version": "2023-07-28",
+        "port_version": 0,
+        "features": [],
+        "desc": []
+    },
+    "zlib:x64-linux": {
+        "package_name": "zlib",
+        "triplet": "x64-linux",
+        "version": "1.3",
+        "port_version": 0,
+        "features": [],
+        "desc": [
+            "A compression library"
+        ]
+    }
 }

@@ -8,6 +8,7 @@ export const getSettings = (): Settings => {
         expertMode: false,
         showDownloadedItemsOnly: false,
         showReadyForTakeoffOnly: false,
+        needsOnboarding: true,
     };
     const settingsJson = localStorage.getItem(STORAGE_KEY);
     if (settingsJson) {

@@ -3,4 +3,5 @@ export interface Settings {
     expertMode: boolean;
     showDownloadedItemsOnly: boolean;
     showReadyForTakeoffOnly: boolean;
+    needsOnboarding: boolean;
 }
