@@ -83,9 +83,9 @@ jobs:
           # Create the symbolic link that points to pwsh
           sudo ln -sf /usr/local/microsoft/powershell/7/pwsh /usr/local/bin/pwsh
 
-      - name: Install Build Dependencies
-        shell: pwsh
-        run: .\build-setup.ps1
+      # - name: Install Build Dependencies
+      #   shell: pwsh
+      #   run: .\build-setup.ps1
 
       - name: Cache npm dependencies
         uses: actions/cache@v2
