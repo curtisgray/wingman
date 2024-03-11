@@ -214,6 +214,7 @@ const launchWingmanExecutable = async (baseDir) =>
                                 });
                             });
                             req.end();
+                            subprocess.kill('SIGINT');
                         }
                     });
                 }
@@ -308,7 +309,7 @@ const startNextJsStandaloneServer = (port, scriptPath, hostName = 'localhost') =
                     terminate: () =>
                     {
                         tell('Terminating Next.js server...');
-                        child.kill(); // Terminate the child process
+                        child.kill('SIGINT'); // Terminate the child process
                     }
                 });
             }
@@ -440,8 +441,13 @@ app.whenReady().then(() =>
     });
 });
 
-app.on("window-all-closed", () =>
+let alreadyShuttingDown = false;
+
+const shutdownApp = async () =>
 {
+    if (alreadyShuttingDown) return;
+
+    tell('All windows closed. Cleaning up...');
     // close the logger window
     if (LOGGER_WINDOW)
     {
@@ -454,13 +460,31 @@ app.on("window-all-closed", () =>
     //    the abort controller is not being triggered. need to investigate.
     if (nextJsServerProcessController)
     {
-        // nextJsServerProcessController();
-        nextJsServerProcessController.terminate();
+        try {
+            nextJsServerProcessController.terminate();
+        } catch (error) {
+            etell(`Error terminating Next.js server: ${error}`);
+        }
     }
 
     if (wingmanProcessController)
     {
-        // wingmanProcessController.abort();
-        wingmanProcessController.terminate();
+        try {
+            wingmanProcessController.terminate();
+        } catch (error) {
+            etell(`Error terminating Wingman server: ${error}`);
+        }
     }
+    alreadyShuttingDown = true;
+    tell('All windows closed. Clean up complete.');
+};
+
+app.on("will-quit", () =>
+{
+    shutdownApp();
+});
+
+app.on("window-all-closed", () =>
+{
+    shutdownApp();
 });
