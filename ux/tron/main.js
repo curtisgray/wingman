@@ -122,7 +122,7 @@ const getBaseDir = () =>
         if (process.platform === 'darwin')
         {
             tell(`App is packaged on ${process.platform}. Using Contents/Resources path`);
-            baseDir = path.resolve(path.dirname(path.join(__dirname, '..', 'Resources')));
+            baseDir = path.resolve(path.dirname(path.join(__dirname, '..', '..', 'Resources')));
         }
     }
     return baseDir;
