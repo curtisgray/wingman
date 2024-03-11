@@ -1,0 +1,588 @@
+		@media (min-width: 1000px) {
+
+		body {
+			font-family: Montserrat, sans-serif; color: #EBF2FA;
+			/*background-attachment: fixed;*/
+			background-image: linear-gradient(45deg, #080C1F, #042638, #AB1F5E, #080C1F, #080C1F) ;
+			font-size: 1.8vw;
+			text-align: center;
+			text-shadow: 0 4px 8px 0 rgba(4, 4, 4, 100); 
+			/* Create the gradient.
+			*/
+		}
+
+		#margins {
+			margin: 7vw 20vw;
+		}
+
+		#cover-image {
+			padding-top: 12vw;
+			padding-bottom: 12vw;
+			background-image: url(https://electricpipelines.com/wp-content/uploads/sites/5/2024/03/background-image3.png);
+			background-size: cover;
+			background-position: center;
+			/*background-attachment: fixed;*/
+		}
+
+		#cover-image h1 {
+			margin-left: 20vw;
+			margin-right: 20vw;
+		}
+
+
+		/*#introducing-wingman {
+			background-image: url(file:///Users/imani/Library/CloudStorage/OneDrive-SharedLibraries-carverlab.com/Electric%20Pipelines%20-%20Wingman/Landing%20Page%20Assets/background-image2.png);
+		}
+		*/
+		h1, h2, h3, h4 {
+			background-image: linear-gradient(45deg, #A9A9A9, #EBF2FA, #A9A9A9, #EBF2FA);
+
+			/* Set the background size and repeat properties. */
+			background-size: 100%;
+			background-repeat: repeat;
+
+			/* Use the text as a mask for the background. */
+			/* This will show the gradient as a text color rather than element bg. */
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent; 
+			-moz-background-clip: text;
+			-moz-text-fill-color: transparent;
+		}
+
+		h1::selection, h2::selection, h3::selection, h4::selection {
+			-webkit-text-fill-color: #EBF2FA
+		}
+
+		p {
+			font-size: 1.4vw;
+
+		}
+
+		h2 {
+			margin-top: 2em;
+		}
+		.gradient-text {
+
+			/* Create the gradient.
+			*/
+			background-image: linear-gradient(45deg, #EBF2FA, #FE6D73);
+
+			/* Set the background size and repeat properties. */
+			background-size: 100%;
+			background-repeat: repeat;
+
+			/* Use the text as a mask for the background. */
+			/* This will show the gradient as a text color rather than element bg. */
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent; 
+			-moz-background-clip: text;
+			-moz-text-fill-color: transparent;
+			text-shadow: none;
+		}
+		.gradient-text::selection {
+			-webkit-text-fill-color: #0095FF;
+		}
+
+
+		button {
+			padding: 1vw;
+			border-radius: 1vw;
+			font-family: Montserrat, sans-serif;
+			font-size: 1.3vw;
+			font-weight: bold;
+			color: #EBF2FA;
+			border: none;
+			margin-top: 1vw;
+			margin-bottom: vw;
+			box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+			background-image: linear-gradient(45deg, #0A369D, #0095FF, #0A369D);
+		}
+		button:hover {
+			background-image: linear-gradient(45deg, #0095FF, #0095FF);
+		}
+
+		#right-button:hover {
+			background-image: linear-gradient(45deg, slategray, slategray);	
+		}
+
+		img {
+			width:50vw;
+			align-content: center;
+		}
+
+		#has-border {
+				border: 4px solid #EBF2FA;
+			border-radius: 10px; 
+		}
+
+		::selection {
+			color: #EBF2FA;
+			background-color: #0A369D;
+		}
+
+
+		* {
+			box-sizing: border-box;
+
+		}
+
+		/* Float four columns side by side */
+		.column {
+			float: left;
+			width: 12.5%;
+		} 
+
+		/* Remove extra left and right margins, due to padding in columns */
+		.row {
+			margin: 0 -5px;
+		}
+
+		/* Clear floats after the columns */
+		.row:after {
+			content: "";
+			display: table;
+			clear: both;
+		}
+	
+	.no-left {
+		border-left: transparent
+	}
+	.no-right{
+		border-right: transparent
+	}
+
+	.card {
+		/* Add shadows to create the "card" effect */
+		/*box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);*/
+		transition: 0.3s;
+
+		background-image: linear-gradient(0deg, rgba(200,200,200,0), rgba(200,200,200,0.4));
+	}
+
+	/* On mouse-over, add a deeper shadow */
+	.card:hover {
+		/*box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);*/
+	}
+
+	/* Add some padding inside the card container */
+	.container {
+		padding: 2px 16px;
+	}
+
+	/* Responsive columns - one column layout (vertical) on small screens */
+	@media screen and (max-width: 600px) {
+	.column {
+		width: 100%;
+		display: block;
+		margin-bottom: 20px;
+	}
+	.blue-text {
+		color:aqua !important
+	}
+	.no-left {
+	}
+	.no-border {
+		border: transparent;
+	}
+	}
+	.no-border-big {
+		border: transparent;
+		box-shadow: none;
+		width: 100% ;
+	}
+
+	figcaption, .small-text {
+		font-size: 1.5vw;
+	}
+	.models {
+		margin-top: 1px;
+	}
+	ul {
+		list-style-type: square;
+
+	}
+	li {
+		text-align: left;
+		margin: auto;
+		line-height: 2em;
+	}
+
+	#logo {
+		border: transparent;
+		box-shadow: none;
+		width: 30%;
+	}
+
+	/*.description {
+		margin-right:6em;
+		margin-left: 6em;
+		}*/
+	
+	.container {
+		text-align: left;
+	}
+
+	details{
+		background-color: transparent;
+		text-align: left;
+		font-size: 1.4vw;
+		border-bottom: 1px solid #EBF2FA;
+		margin-left: 4em;
+		margin-right: 4em;
+	}
+
+	summary {
+		padding: .5em 1.3rem;
+		list-style: none;
+		display: flex;
+		justify-content: space-between;  
+		transition: height 1s ease;
+	}
+
+	summary::-webkit-details-marker {
+		display: none;
+	}
+
+	summary:after{
+		content: "\002B";
+	}
+
+	details[open] summary {
+		border-bottom: 1px solid #EBF2FA;
+		text-align: left;
+		font-size: 1.4vw;
+
+	}
+
+	details[open] summary:after{
+		content: "\00D7";
+
+	}
+
+	details[open] div{
+		padding: .5em 1.3rem;
+		background-color: rgba(0, 0, 0, 0.2);
+	}
+
+	.gradient-background {
+		background-image: linear-gradient(45deg, #EBF2FA, #FE6D73);
+	}
+
+	#left-button {
+		margin-right: 1vw;
+		background-image: linear-gradient(45deg, #0A369D, #0095FF, #0A369D);
+	}
+	#left-button:hover {
+		background-image: linear-gradient(45deg, #0095FF, #0095FF);
+	}
+	#right-button {
+		margin-left: 1vw;
+		background-image: linear-gradient(45deg, #171717, #43464F, #171717);
+	}
+
+	#star {
+		width: 10%;
+		border: none;
+		margin-top: 2em;
+	}
+
+	.pretty-link {
+		text-decoration-color: goldenrod;
+	}
+
+	.pretty-link:hover {
+		text-decoration-color: gold;
+	}
+
+	br {
+		display: none;
+	}
+ }
+
+
+@media (min-width: 320px) and (max-width: 999px) {
+
+	body {
+		font-family: Montserrat, sans-serif; color: #EBF2FA;
+		/*background-attachment: fixed;*/
+		background-image: linear-gradient(45deg, #042638, #042638, #AB1F5E, #080C1F, #080C1F) ;
+		font-size: 4vw;
+		text-align: center;
+		text-shadow: 0 4px 8px 0 rgba(4, 4, 4, 100); 
+		/* Create the gradient.
+	*/
+	}
+	
+	#cover-image {
+		padding-top: 12vw;
+		padding-bottom: 12vw;
+		background-image: url(https://electricpipelines.com/wp-content/uploads/sites/5/2024/03/background-image3.png);
+		background-size: cover;
+		background-position: center;
+		/*background-attachment: fixed;*/
+	}
+	
+	#cover-image h1 {
+		margin-left: 10vw;
+	margin-right: 10vw;
+	}
+	
+	#cover-image p {
+		margin-left: 10vw;
+	margin-right: 10vw;
+	}
+	
+	#margins p, #margins h1, #margins h2, #margins h3, #margins h4, #margins h5 {
+		margin-left: 10vw;
+	margin-right: 10vw;
+	}
+	
+	
+	
+	h1, h2, h3, h4 {
+		background-image: linear-gradient(45deg, #A9A9A9, #EBF2FA, #A9A9A9, #EBF2FA);
+	  
+	  /* Set the background size and repeat properties. */
+	  background-size: 100%;
+	  background-repeat: repeat;
+	
+	  /* Use the text as a mask for the background. */
+	  /* This will show the gradient as a text color rather than element bg. */
+	  -webkit-background-clip: text;
+	  -webkit-text-fill-color: transparent; 
+	  -moz-background-clip: text;
+	  -moz-text-fill-color: transparent;
+	}
+	
+	
+	 p {
+		 font-size: 3vw;
+	
+	 }
+	
+		h2 {
+			margin-top: 2em;
+	}
+		.gradient-text {
+	
+	/* Create the gradient.
+	*/
+	  background-image: linear-gradient(45deg, #EBF2FA, #FE6D73);
+	  
+	  /* Set the background size and repeat properties. */
+	  background-size: 100%;
+	  background-repeat: repeat;
+	
+	  /* Use the text as a mask for the background. */
+	  /* This will show the gradient as a text color rather than element bg. */
+	  -webkit-background-clip: text;
+	  -webkit-text-fill-color: transparent; 
+	  -moz-background-clip: text;
+	  -moz-text-fill-color: transparent;
+	  text-shadow: none;
+	}
+		
+	
+		button {
+			padding: 3vw;
+			border-radius: 2vw;
+			font-family: Montserrat, sans-serif;
+			font-size: 3vw;
+			font-weight: bold;
+			color: #EBF2FA;
+			border: none;
+			margin-top: 1vw;
+			margin-bottom: vw;
+			box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+			background-image: linear-gradient(45deg, #0A369D, #0095FF, #0A369D);
+	}
+		button:hover {
+		background-image: linear-gradient(45deg, #0095FF, #0095FF);
+	}
+	
+		#right-button:hover {
+			background-image: linear-gradient(45deg, slategray, slategray);	
+		}
+	
+		img {
+			width:95%;
+			align-content: center;	
+		}
+
+		#has-border {
+				border: 2px solid #EBF2FA;
+			border-radius: 10px; 
+		}
+		
+		* {
+	  box-sizing: border-box;
+	
+	}
+	
+	/* Float four columns side by side */
+	.column {
+	  float: left;
+	  width: 12.5%;
+	} 
+	
+	/* Remove extra left and right margins, due to padding in columns */
+	.row {margin: 0 -5px;}
+	
+	/* Clear floats after the columns */
+	.row:after {
+	  content: "";
+	  display: table;
+	  clear: both;
+	}
+	
+	/* Style the counter cards */
+	.card {
+	 /* box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2); /* this adds the "card" effect */
+	  /*padding: 5px;*/
+	  text-align: center;
+	  /*background: rgba(255, 255, 255, 0.2);*/
+		/*background-image: linear-gradient(0deg, #171717, #424242);*/
+		/*border-radius: 5px;*/
+		border-right: 1px solid white;
+		border-left: 1px solid white
+	}
+		.no-left {
+			border-left: transparent
+		}
+		.no-right{
+			border-right: transparent
+		}
+		
+	
+	/* Responsive columns - one column layout (vertical) on small screens */
+	@media screen and (max-width: 600px) {
+	  .column {
+		width: 100%;
+		display: block;
+		margin-bottom: 20px;
+	  }
+		.blue-text {
+			color:aqua !important
+		}
+	}
+	.no-left {
+	}
+		.no-border {
+			border: transparent;
+			border-radius: 1px;
+		}
+	
+		.no-border-big {
+			border: transparent;
+			box-shadow: none;
+			width: 100% ;
+		}
+	
+		figcaption, .small-text {
+			font-size: 3vw;
+			margin: auto 10vw;
+		}
+		.models {
+			margin-top: 1px;
+		}
+		ul {
+	  list-style-type: square;
+	
+	}
+		li {
+			text-align: left;
+			margin: auto;
+			line-height: 2em;
+		}
+	
+		#logo {
+				border: transparent;
+			box-shadow: none;
+			width: 50%;
+		}
+	
+	/*.description {
+		margin-right:6em;
+		margin-left: 6em;}*/
+	
+	.container {
+		text-align: left;
+	}
+	
+	details{
+	  background-color: transparent;
+	  text-align: left;
+	  font-size: 4vw;
+	  border-bottom: 1px solid #EBF2FA;
+	}
+	
+	summary {
+	  padding: .5em 1.3rem;
+	  list-style: none;
+	  display: flex;
+	  justify-content: space-between;  
+	  transition: height 1s ease;
+	}
+	
+	summary::-webkit-details-marker {
+	  display: none;
+	}
+	
+	summary:after{
+	  content: "\002B";
+	}
+	
+	details[open] summary {
+		border-bottom: 1px solid #EBF2FA;
+		text-align: left;
+		font-size: 4vw;
+	
+	}
+	
+	details[open] summary:after{
+	  content: "\00D7";
+	
+	}
+	
+	details[open] div{
+	  padding: .5em 1.3rem;
+	  background-color: rgba(0, 0, 0, 0.2);
+	}
+	
+	.gradient-background {
+			background-image: linear-gradient(45deg, #EBF2FA, #FE6D73);
+	}
+	
+	#left-button {
+		/*margin-right: 1vw;*/
+		margin-bottom: 2vw;
+			background-image: linear-gradient(45deg, #0A369D, #0095FF, #0A369D);
+	}
+	#left-button:hover {
+		background-image: linear-gradient(45deg, #0095FF, #0095FF);
+	}
+	#right-button {
+		/*margin-left: 1vw;*/
+		background-image: linear-gradient(45deg, #171717, #43464F, #171717);
+		margin-top: 2vw;
+	} 
+	
+	#bottom-button {
+		margin-bottom: 10vw;
+	}
+	
+	#star {
+		width: 10%;
+		border: none;
+		margin-top: 2em;
+	}
+	
+	.pretty-link {
+		text-decoration-color: goldenrod;
+	}
+	
+	.pretty-link:hover {
+		text-decoration-color: gold;
+	}
+  
+  }
