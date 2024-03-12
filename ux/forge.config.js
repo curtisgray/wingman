@@ -11,33 +11,33 @@ module.exports = {
             "server/wingman",
             ".next/standalone",
         ],
-        icon: "assets/logo-rooster-black-white",
+        icon: "assets/logo-color",
     },
     rebuildConfig: {},
     makers: [
         {
             name: "@electron-forge/maker-squirrel",
-            icon: "assets/logo-rooster-black-white",
+            icon: "assets/logo-color",
             config: {},
         },
         {
             name: "@electron-forge/maker-zip",
-            icon: "assets/logo-rooster-black-white",
+            icon: "assets/logo-color",
             platforms: ["darwin", "win32", "linux"],
         },
         {
             name: "@electron-forge/maker-deb",
-            icon: "assets/logo-rooster-black-white",
+            icon: "assets/logo-color",
             config: {},
         },
         {
             name: "@electron-forge/maker-rpm",
-            icon: "assets/logo-rooster-black-white",
+            icon: "assets/logo-color",
             config: {},
         },
         {
             name: "@electron-forge/maker-dmg",
-            icon: "assets/logo-rooster-black-white",
+            icon: "assets/logo-color",
             config: {
                 format: "ULFO",
             },

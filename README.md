@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="256" height="256" src="ux/assets/logo-rooster-black-white-512.png">
+  <img width="256" height="256" src="ux/assets/logo-color.png">
 </p>
 Wingman is a private ChatGPT interface for your PC. It combines Meta's Llama and OpenAI's GPT AI's into one interface, allowing you to change models mid conversation, and give real-time feedback to the AI.
 

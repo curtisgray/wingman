@@ -344,7 +344,7 @@ const createWindow = () =>
     win = new BrowserWindow({
         width: 1366,
         height: 1080,
-        icon: path.resolve(path.join(__dirname, "..", "assets", "logo-rooster-black-white")),
+        icon: path.resolve(path.join(__dirname, "..", "assets", "logo-color")),
         webPreferences: {
             nodeIntegration: true,
             // contextIsolation: false,
