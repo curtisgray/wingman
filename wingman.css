@@ -300,7 +300,7 @@
  }
 
 
-@media (min-width: 320px) and (max-width: 1206px) {
+@media (min-width: 320px) and (max-width: 999px) {
 
 	body {
 		font-family: Montserrat, sans-serif; color: #EBF2FA;
