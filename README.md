@@ -40,7 +40,7 @@ Wingman - Rooster is the first release of Wingman. Future releases will be named
 
 **Genius Primer** - Unlock Model Potential: Genius Primer is a groundbreaking feature that amplifies the capabilities of smaller language models, transforming them into high-performing AI powerhouses. By leveraging advanced priming techniques, Genius Primer equips modest models with knowledge and contextual understanding far beyond their natural capacity. This cutting-edge technology opens up new realms of possibility, enabling users to harness the full potential of AI without the need for resource-intensive, large-scale models.
 
-**Radar Enrichment** - Contextualize External Sources: Wingman's Radar Enrichment unlocks new levels of AI awareness by contextualizing external documents and multimedia directly into your conversations. Whether incorporating PDFs, text files, images, or YouTube videos, this powerful feature allows any open-source model to build upon the insights and knowledge contained within auxiliary sources. With Radar Enrichment, you can simply paste links or upload files, and the AI will ingest and synthesize that supplementary information to produce outputs backed by an enriched, multifaceted context. Expand your AI's perspective by providing access to external documents and media.
+**Radar Augmentation** - Contextualize External Sources: Wingman's Radar Augmentation increases AI awareness by contextualizing external documents and multimedia directly into your conversations. Whether incorporating PDFs, text files, images, or YouTube videos, this powerful feature allows any open-source model to build upon the insights and knowledge contained within auxiliary sources. With Radar Augmentation, you can simply paste links or upload files, and the AI will ingest and synthesize that supplementary information to produce outputs backed by an enriched, multifaceted context. Expand your AI's perspective by providing access to external documents and media.
 
 **Super Context** - Defy Context Limitations: Shatter the constraints of traditional context windows with Wingman's Super Context capability. This innovative feature exponentially extends any model's maximum context length, empowering even smaller, lower-capacity models to build upon a vastly expanded knowledge base. By dynamically increasing the conversational context far beyond natural bounds, Super Context facilitates generation of coherent, substantive outputs that seamlessly combine information across broad timelines and subject areas. Unlock new frontiers of hyper-aware AI outputs backed by comprehensive, contextualized understanding that defies ordinary context limitations.
 
@@ -59,7 +59,7 @@ Wingman is more than just an application; it's a gateway to a more accessible an
 - ⏳ Deploy to Windows Store and Mac App Store
 - ✉️ Silk Tuning
 - ✅ Swift Switch
-- ⏳ Radar Enrichment
+- ⏳ Radar Augmentation
 - ⏳ Airborne Server
 - ✉️ Super Context
 - ✉️ Genius Primer
