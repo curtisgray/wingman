@@ -1,14 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useContext, useEffect, useState } from "react";
 import WingmanContext from "@/pages/api/home/wingman.context";
-import { WingmanItem } from "@/types/wingman";
+import { WingmanItem, getWingmanItemStatusMessage } from "@/types/wingman";
 import { StripFormatFromModelRepo, quantizationFromFilePath } from "@/types/download";
-import { IconRotateRectangle } from "@tabler/icons-react";
-import { Tooltip } from "react-tooltip";
 import HomeContext from "@/pages/api/home/home.context";
-import { VendorInfo, VendorName, Vendors } from "@/types/ai";
+import { AIModelID, VendorInfo, Vendors } from "@/types/ai";
 import { displayModelVendor, displayVendorIcon } from "./Util";
-import { ChatSettingsDialog } from "./ChatSettingsDialog";
 
 const WingmanInferenceStatus = ({ title = "Inference Status", showTitle = true, showModel = true, showQuantization = true, showAlias = false, className = "" }) =>
 {
@@ -18,8 +15,7 @@ const WingmanInferenceStatus = ({ title = "Inference Status", showTitle = true, 
     } = useContext(WingmanContext);
 
     const {
-        state: { models, globalModel },
-        handleSyncModel,
+        state: { models, globalModel, isModelSelected },
     } = useContext(HomeContext);
 
     const [wingmanItem, setWingmanItem] = useState<WingmanItem | undefined>(undefined);
@@ -62,66 +58,11 @@ const WingmanInferenceStatus = ({ title = "Inference Status", showTitle = true, 
         }
     };
 
-    const displaySyncModelControl = () =>
-    {
-        return <></>;
-        if (downloadableModelSelected)
-            return <><IconRotateRectangle size={18} className="rounded-sm cursor-pointer" onClick={handleSyncModelLocal}
-                data-tooltip-id="sync-selected-model" data-tooltip-content="Engage the AI model that's currently running on the server" />
-                <Tooltip id="sync-selected-model" /></>;
-        else
-            return <></>;
-    };
-
-    const handleSyncModelLocal = () =>
-    {
-        if (wingmanItem !== undefined) {
-            // handleSyncModel(wingmanItem);
-            // find model in models by wingmanItem
-            const model = models.find((m) => m.id === wingmanItem.modelRepo);
-            if (model !== undefined) {
-                const draftModel = { ...model };
-                const vendor = Vendors[model.vendor];
-                if (vendor !== undefined && vendor.isDownloadable) {
-                    const item = model.items?.find((item) => item.filePath === wingmanItem.filePath);
-                    draftModel.item = item;
-                }
-                handleSyncModel(draftModel);
-            }
-        }
-    };
-
     useEffect(() =>
     {
         const updateWingmanStatusLabel = (wi: WingmanItem) =>
         {
-            if (wi !== undefined) {
-                switch (wi.status) {
-                    case "queued":
-                        setWingmanStatusLabel("Mission Briefing"); // The item is queued and ready to start, like an aircraft taxiing to the runway for takeoff
-                        break;
-                    case "preparing":
-                        setWingmanStatusLabel("Final Checks"); // The item is in the final preparation stages, similar to an aircraft cleared for takeoff
-                        break;
-                    case "inferring":
-                        setWingmanStatusLabel("Engaged"); // The item is actively being processed, akin to a plane that has taken off and is in flight
-                        break;
-                    case "complete":
-                        setWingmanStatusLabel("Mission Complete"); // Signifies the successful completion of the task, like a plane safely landing
-                        break;
-                    case "error":
-                        setWingmanStatusLabel("Mission Compromised"); // Communicates a problem or error, as in distress signals
-                        break;
-                    case "cancelling":
-                        setWingmanStatusLabel("Mission Aborted"); // Indicates aborting the current task and returning, similar to a plane returning to base
-                        break;
-                    case "unknown":
-                        setWingmanStatusLabel("Mission Status Unknown"); // Reflects uncertainty or lack of information about the status
-                        break;
-                    default:
-                        break;
-                }
-            }
+            setWingmanStatusLabel(getWingmanItemStatusMessage(wi));
         };
 
         if (currentWingmanInferenceItem && wingmanItems?.length > 0) {
@@ -163,6 +104,22 @@ const WingmanInferenceStatus = ({ title = "Inference Status", showTitle = true, 
         handleUpdateWingmanStatusMessage(wingmanStatusLabel);
     }, [wingmanStatusLabel]);
 
+    // if isModelSelected is false, return no model running
+    if (!isModelSelected)
+        return (
+            <div className={`${className}`}>
+                <span>No AI model selected</span>
+            </div>
+        );
+
+    // if AIModelID.NO_MODEL_SELECTED is selected, return no model running
+    if (globalModel && globalModel.id === AIModelID.NO_MODEL_SELECTED)
+        return (
+            <div className={`${className}`}>
+                <span>No AI model engaged</span>
+            </div>
+        );
+
     // if running an API model, just return the name of the model
     if (globalModel && !Vendors[globalModel.vendor].isDownloadable) {
         return (
@@ -189,14 +146,13 @@ const WingmanInferenceStatus = ({ title = "Inference Status", showTitle = true, 
                             {displayMonitoredStatusIndicator(wingmanItem)} {wingmanStatusLabel}
                         </span>
                     </div>
-                    &nbsp;{displaySyncModelControl()}
                 </div>
             </>
         );
     } else {
         return (
             <div className={`${className}`}>
-                No AI model is running
+                No AI model engaged
             </div>
         );
     }

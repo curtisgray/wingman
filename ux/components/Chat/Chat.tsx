@@ -31,6 +31,7 @@ import { AIModel, AIModelID } from "@/types/ai";
 import InitialModelListing from "./InitialModelListing";
 import { Settings } from "@/types/settings";
 import { getSettings, saveSettings } from "@/utils/app/settings";
+import { ChatAlert } from "./ChatAlert";
 
 export const runtime = 'edge'; // 'nodejs' (default) | 'edge'
 
@@ -45,16 +46,14 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         state: {
             selectedConversation,
             conversations,
-            models,
             apiKey,
             pluginKeys,
             serverSideApiKeyIsSet,
             modelError,
             loading,
-            prompts,
             globalModel,
-            isSwitchingModel,
-            messageIsStreaming
+            messageIsStreaming,
+            isModelSelected,
         },
         handleUpdateConversation,
         dispatch: homeDispatch,
@@ -81,6 +80,10 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             deleteCount = 0,
             plugin: Plugin | null = null
         ) => {
+            if (globalModel?.id === AIModelID.NO_MODEL_SELECTED) {
+                toast.error(t("No model selected"));
+                return;
+            }
             if (selectedConversation && globalModel) {
                 let updatedConversation: Conversation;
 
@@ -283,13 +286,6 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         [apiKey, conversations, homeDispatch, pluginKeys, selectedConversation, stopConversationRef, globalModel]
     );
 
-    const scrollToBottom = useCallback(() => {
-        if (autoScrollEnabled) {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-            textareaRef.current?.focus();
-        }
-    }, [autoScrollEnabled]);
-
     const handleScroll = () => {
         if (chatContainerRef.current) {
             const { scrollTop, scrollHeight, clientHeight } =
@@ -328,27 +324,6 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             handleScrollBottom();
     };
 
-    const handleChangeSystemPrompt = (prompt: string) => {
-        if (selectedConversation) {
-            handleUpdateConversation(selectedConversation, {
-                key: "systemPrompt",
-                value: prompt,
-            });
-        }
-    };
-    
-    const handleChangeTemperature = (temperature: number) => {
-        if (selectedConversation) {
-            handleUpdateConversation(
-                selectedConversation,
-                {
-                    key: "temperature",
-                    value: temperature,
-                }
-            );
-        }
-    };
-
     const onClearAll = () => {
         if (
             confirm(
@@ -385,7 +360,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             // if the message is streaming ensure the settings are closed
             setShowSettings(false);
         }
-    }, [messageIsStreaming]);
+    }, [messageIsStreaming, isOnline]);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -411,19 +386,11 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         };
     }, []);
 
-    const handleValidateChangeModel = (model: DownloadProps): boolean => {
-        return true;
-    };
-
-    const handleSwitchingModel = (isSwitching: boolean) => {
-        // homeDispatch({ field: "isSwitchingModel", value: isSwitching });
-    };
-
-    const handleOnboardingDownloadStart = (model: DownloadProps) => {
+    const handleOnboardingDownloadStart = () => {
         // handleSwitchingModel(true);
     };
 
-    const handleOnboardingDownloadComplete = (model: DownloadProps) => {
+    const handleOnboardingDownloadComplete = () => {
         // handleSwitchingModel(false);
     };
 
@@ -561,6 +528,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                         )}
 
                         {loading && <ChatLoader />}
+                        {/* {!isModelSelected && <ChatAlert message={t("No model selected")} />} */}
 
                         {/* add a buffer at the bottom of the messages list */}
                         <div ref={messagesEndRef} className="h-[153.333px]" />

@@ -33,6 +33,7 @@ export interface HomeStateProps {
     serverSideHostAddress: string;
     hostAddress: string;
     isReady: boolean;
+    isModelSelected: boolean;
 }
 
 export const initialState: HomeStateProps = {
@@ -63,4 +64,5 @@ export const initialState: HomeStateProps = {
     serverSideHostAddress: "",
     hostAddress: "",
     isReady: false,
+    isModelSelected: false,
 };

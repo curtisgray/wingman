@@ -185,7 +185,7 @@ const WingmanDownloadStatus = ({
     return (
         <div className={className === undefined ? "relative flex text-xs justify-center align-middle bg-gray-600 rounded" : `relative ${className}`}>
             <div className="flex rounded-l">
-                <div className="flex flex-col justify-center align-middle space-x-2 px-1 w-40 text-ellipsis z-10">
+                <div className="flex flex-col justify-center align-middle space-x-2 px-1 w-40 text-ellipsis overflow-x-clip z-10">
                     {showRepoName && <p>{StripFormatFromModelRepo(downloadItem.modelRepo)}</p>}
                     {showFileName && <p className="text-gray-300">{downloadItem.filePath}</p>}
                     {showProgress && isDownloading && (

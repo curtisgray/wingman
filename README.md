@@ -29,7 +29,7 @@ Wingman is more than just an application; it's a gateway to a more accessible an
 - ✅ Duplicate existing conversations
 - ✅ Add local Llama support (in progress)
 - ✅ Download Llama models locally
-- ⏳ Desktop app
+- ✅ Desktop app
 - ⏳ Deploy to Windows Store and Mac App Store
 - ✉️ Silk Tuning
 - ✅ Swift Switch

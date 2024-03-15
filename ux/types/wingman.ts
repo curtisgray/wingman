@@ -123,7 +123,63 @@ export interface WingmanStateProps
     downloadItems: DownloadItem[];
     currentWingmanInferenceItem: WingmanItem | undefined;
     wingmanStatusMessage: string;
+    isInferring: boolean;
+    isDownloading: boolean;
+    inferringAlias: string;
+    wingmanStatusLabel: string;
 }
+
+export const getWingmanItemStatusMessage = (wi: WingmanItem | undefined) =>
+{
+    if (wi !== undefined) {
+        switch (wi.status) {
+            case "queued":
+                return "Mission Briefing"; // The item is queued and ready to start, like an aircraft taxiing to the runway for takeoff
+            case "preparing":
+                return "Final Checks"; // The item is in the final preparation stages, similar to an aircraft cleared for takeoff
+            case "inferring":
+                return "Engaged"; // The item is actively being processed, akin to a plane that has taken off and is in flight
+            case "complete":
+                return "Mission Complete"; // Signifies the successful completion of the task, like a plane safely landing
+            case "error":
+                return "Mission Compromised"; // Communicates a problem or error, as in distress signals
+            case "cancelling":
+                return "Mission Aborted"; // Indicates aborting the current task and returning, similar to a plane returning to base
+            case "unknown":
+                return "Mission Status Unknown"; // Reflects uncertainty or lack of information about the status
+            default:
+                throw new Error(`Unknown WingmanItem status: ${wi.status}`);
+        }
+    } else {
+        return "No Mission";
+    }
+};
+
+export const getWingmanItemStatusLabel = (wi: WingmanItem | undefined) =>
+{
+    if (wi !== undefined) {
+        switch (wi.status) {
+            case "queued":
+                return "Briefing"; // The item is queued and ready to start, like an aircraft taxiing to the runway for takeoff
+            case "preparing":
+                return "Final"; // The item is in the final preparation stages, similar to an aircraft cleared for takeoff
+            case "inferring":
+                return "Engaged"; // The item is actively being processed, akin to a plane that has taken off and is in flight
+            case "complete":
+                return "Complete"; // Signifies the successful completion of the task, like a plane safely landing
+            case "error":
+                return "Compromised"; // Communicates a problem or error, as in distress signals
+            case "cancelling":
+                return "Aborted"; // Indicates aborting the current task and returning, similar to a plane returning to base
+            case "unknown":
+                return "Unknown"; // Reflects uncertainty or lack of information about the status
+            default:
+                throw new Error(`Unknown WingmanItem status: ${wi.status}`);
+        }
+    } else {
+        return "Down";
+    }
+};
 
 export const isValidWingmanItem = (item: WingmanItem) => item.alias !== undefined && item.alias.trim() !== "";
 export const WINGMAN_TABLE = "wingman";

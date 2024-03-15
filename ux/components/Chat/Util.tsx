@@ -1,5 +1,5 @@
 import { AIModel, AIModelID, VendorInfo, Vendors } from "@/types/ai";
-import { IconBrandOpenai, IconBrandMeta, IconRobot } from "@tabler/icons-react";
+import { IconBrandOpenai, IconBrandMeta, IconRobot, IconUnlink } from "@tabler/icons-react";
 
 export const WINGMAN_DEFAULT_ICON_SIZE = 18;
 
@@ -11,7 +11,7 @@ export const displayVendorIcon = (vendor: VendorInfo, iconSize: number = WINGMAN
         case "meta":
             return <div className="text-blue-600"><IconBrandMeta size={iconSize} /></div>
         default:
-            return <IconRobot size={iconSize} />;
+            return <IconUnlink size={iconSize} />;
     }
 };
 

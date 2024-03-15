@@ -7,7 +7,7 @@ import { TemperatureSlider } from "./Temperature";
 import { Conversation } from "@/types/chat";
 import { Prompt } from "@/types/prompt";
 import ModelListing from "./ModelListing";
-import WingmanInferenceStatus from "./WingmanInferenceStatus";
+import SelectedConversationModelStatus from "./SelectedConversationModelStatus";
 
 interface Props {
     models: AIModel[];
@@ -24,7 +24,8 @@ const ChatSettings = ({ models, conversation, prompts, onChangeSystemPrompt, onC
                 {models.length > 0 && (
                     <div className="flex h-full w-full flex-col space-y-4 rounded-lg border border-gray-200  dark:border-gray-600 text-gray-800 dark:text-gray-100 ">
                         <div className="flex w-full justify-center dark:bg-gray-600 rounded-t-lg p-1">
-                            <WingmanInferenceStatus showTitle={false} showQuantization={false} />
+                            {/* <WingmanInferenceStatus showTitle={false} showQuantization={false} /> */}
+                            <SelectedConversationModelStatus showQuantization={false} />
                         </div>
                         <div className="flex flex-col space-y-4 p-4">
                         <ModelListing />

@@ -47,7 +47,7 @@ export const ChatInput = ({
     const { t } = useTranslation("chat");
 
     const {
-        state: { selectedConversation, messageIsStreaming, prompts, isReady },
+        state: { selectedConversation, messageIsStreaming, prompts, isReady, isModelSelected },
 
         dispatch: homeDispatch,
     } = useContext(HomeContext);
@@ -118,6 +118,10 @@ export const ChatInput = ({
         const mobileRegex =
             /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i;
         return mobileRegex.test(userAgent);
+    };
+
+    const canUsePrompt = () => {
+        return !messageIsStreaming && isReady && isModelSelected;
     };
 
     const handleInitModal = () => {
@@ -276,7 +280,7 @@ export const ChatInput = ({
                     </button>
                 )}
 
-                {!messageIsStreaming && isReady &&
+                {canUsePrompt() &&
                     selectedConversation &&
                     selectedConversation.messages.length > 0 && (
                         <button
@@ -354,10 +358,15 @@ export const ChatInput = ({
                         className="absolute right-2 top-2 rounded-sm p-1 text-gray-800 opacity-60 hover:bg-gray-200 hover:text-gray-900 dark:bg-opacity-50 dark:text-gray-100 dark:hover:text-gray-200"
                         onClick={handleSendInput}
                     >
-                        {(messageIsStreaming || !isReady) ? (
+                        {(messageIsStreaming) ? (
                             <div className="h-4 w-4 animate-spin rounded-full border-t-2 border-gray-800 opacity-60 dark:border-gray-100"></div>
                         ) : (
-                            <IconSend size={18} />
+                            (canUsePrompt() ? (
+                                <IconSend size={18} />
+                                ) : (
+                                    <></>
+                                )
+                            )
                         )}
                     </button>
 

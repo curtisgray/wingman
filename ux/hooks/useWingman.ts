@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { ConnectionStatus, DownloadItem, DownloadServerAppItem } from "@/types/download";
+import { ConnectionStatus, DownloadItem, DownloadItemStatus, DownloadServerAppItem } from "@/types/download";
 import { LlamaStats, LlamaStatsTimings, newLlamaStatsTimings, LlamaStatsSystem, newLlamaStatsSystem, LlamaStatsMeta, newLlamaStatsMeta, LlamaStatsTensors, newLlamaStatsTensors } from "@/types/llama_stats";
-import { WINGMAN_CONTROL_PORT, WINGMAN_SERVER_DEFAULT_HOST, WingmanItem, WingmanServiceAppItem, WingmanStateProps, hasActiveStatus } from "@/types/wingman";
+import { WINGMAN_CONTROL_PORT, WINGMAN_SERVER_DEFAULT_HOST, WingmanItem, WingmanItemStatus, WingmanServiceAppItem, WingmanStateProps, getWingmanItemStatusLabel, getWingmanItemStatusMessage, hasActiveStatus } from "@/types/wingman";
 import { useEffect, useState } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { isEqual } from "lodash";
@@ -13,7 +13,18 @@ function precisionRound(value: number, precision: number)
     return Math.round(value * factor) / factor;
 }
 
-export function useWingman(): { pauseMetrics: boolean; status: ConnectionStatus; isOnline: boolean; timeSeries: LlamaStats[]; meta: LlamaStatsMeta; system: LlamaStatsSystem; tensors: LlamaStatsTensors; metrics: LlamaStatsTimings; wingmanServiceStatus: WingmanServiceAppItem | undefined; downloadServiceStatus: DownloadServerAppItem | undefined; wingmanItems: WingmanItem[]; downloadItems: DownloadItem[]; currentWingmanInferenceItem: WingmanItem | undefined;}
+export function useWingman():
+    {
+        pauseMetrics: boolean;
+        status: ConnectionStatus;
+        isOnline: boolean;
+        timeSeries: LlamaStats[]; meta: LlamaStatsMeta; system: LlamaStatsSystem; tensors: LlamaStatsTensors; metrics: LlamaStatsTimings;
+        wingmanServiceStatus: WingmanServiceAppItem | undefined;
+        downloadServiceStatus: DownloadServerAppItem | undefined;
+        wingmanItems: WingmanItem[]; isInferring: boolean; inferringAlias: string;
+        downloadItems: DownloadItem[]; isDownloading: boolean;
+        currentWingmanInferenceItem: WingmanItem | undefined; wingmanStatusMessage: string; wingmanStatusLabel: string;
+    }
 {
     const fractionDigits = 1;
     const [status, setStatus] = useState<ConnectionStatus>("❓");
@@ -28,7 +39,12 @@ export function useWingman(): { pauseMetrics: boolean; status: ConnectionStatus;
     const [wingmanItems, setWingmanItems] = useState<WingmanItem[]>([]);
     const [downloadItems, setDownloadItems] = useState<DownloadItem[]>([]);
     const [currentWingmanInferenceItem, setCurrentWingmanInferenceItem] = useState<WingmanItem | undefined>(undefined);
+    const [wingmanStatusMessage, setWingmanStatusMessage] = useState<string>("Checking...");
+    const [wingmanStatusLabel, setWingmanStatusLabel] = useState<string>("N/A");
     const [isOnline, setIsOnline] = useState<boolean>(false);
+    const [isInferring, setIsInferring] = useState<boolean>(false);
+    const [isDownloading, setIsDownloading] = useState<boolean>(false);
+    const [inferringAlias, setInferringAlias] = useState<string>("");
 
     const {
         lastMessage,
@@ -46,6 +62,37 @@ export function useWingman(): { pauseMetrics: boolean; status: ConnectionStatus;
         [ReadyState.CLOSED]: "❌",
         [ReadyState.UNINSTANTIATED]: "❓",
     }[readyState];
+
+    const updateStatusMessage = (wi: WingmanItem | undefined) =>
+    {
+        setWingmanStatusMessage(getWingmanItemStatusMessage(wi));
+    };
+
+    const updateStatusLabel = (wi: WingmanItem | undefined) =>
+    {
+        setWingmanStatusLabel(getWingmanItemStatusLabel(wi));
+    };
+
+    const updateInferringStatus = (wi: WingmanItem | undefined) =>
+    {
+        if (wi && hasActiveStatus(wi)) {
+            setIsInferring(true);
+            setInferringAlias(wi.alias);
+        } else {
+            setIsInferring(false);
+            setInferringAlias("");
+        }
+    };
+
+    const updateIsDownloading = () =>
+    {
+        const statuses: DownloadItemStatus[] = ["queued", "downloading"];
+        if (downloadItems.length > 0 && downloadItems.some((d: DownloadItem) => statuses.includes(d.status))) {
+            setIsDownloading(true);
+        } else {
+            setIsDownloading(false);
+        }
+    };
 
     useEffect(() =>
     {
@@ -78,17 +125,29 @@ export function useWingman(): { pauseMetrics: boolean; status: ConnectionStatus;
                     setDownloadServiceStatus(json.DownloadService);
             }
             if (json?.WingmanItems) {
-                if (!isEqual(json?.WingmanItems, wingmanItems)) {
+                if (json.WingmanItems.length === 0) {
+                    setCurrentWingmanInferenceItem(undefined);
+                    setWingmanItems([]);
+                } else {
                     setWingmanItems(json.WingmanItems);
-                    // let's try setting the current inference item to the one that is inferring
-                    const wi = json.WingmanItems.find((w: WingmanItem) => hasActiveStatus(w));
-                    if (wi !== undefined && !isEqual(wi, currentWingmanInferenceItem)) {
-                        setCurrentWingmanInferenceItem(wi);
-                    }
                 }
             }
             if (json?.DownloadItems) {
                 setDownloadItems(json.DownloadItems);
+                updateIsDownloading();
+            }
+            if (json?.currentWingmanInferenceItem) {
+                // currentWingmanInferenceItem could be an empty object. If it is, we should set it to undefined
+                let wi = undefined;
+                if (Object.keys(json.currentWingmanInferenceItem).length === 0) {
+                    setCurrentWingmanInferenceItem(undefined);
+                } else {
+                    setCurrentWingmanInferenceItem(json.currentWingmanInferenceItem);
+                    wi = json.currentWingmanInferenceItem;
+                }
+                updateStatusMessage(wi);
+                updateStatusLabel(wi);
+                updateInferringStatus(wi);                
             }
         }
     }, [lastMessage, pauseMetrics]);
@@ -105,8 +164,8 @@ export function useWingman(): { pauseMetrics: boolean; status: ConnectionStatus;
         pauseMetrics,
         timeSeries, meta, system, tensors, metrics,
         wingmanServiceStatus, downloadServiceStatus,
-        wingmanItems,
+        wingmanItems, inferringAlias,
         downloadItems,
-        currentWingmanInferenceItem,
+        currentWingmanInferenceItem, wingmanStatusMessage, wingmanStatusLabel, isInferring, isDownloading,
     };
 }

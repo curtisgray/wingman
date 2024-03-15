@@ -21,7 +21,7 @@ export interface HomeContextProps {
     handleDuplicateConversation: (conversation: Conversation) => void;
     handleDeleteConversation: (conversation: Conversation) => void;
     handleChangeModel: (model: AIModel | undefined) => void;
-    handleSyncModel: (model: AIModel | undefined) => void;
+    handleResetInferenceError: (alias: string) => void;
     handleRefreshModels: () => void;
 }
 

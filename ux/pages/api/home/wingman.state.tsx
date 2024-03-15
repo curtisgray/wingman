@@ -16,5 +16,9 @@ export const initialWingmanState: WingmanStateProps = {
     wingmanItems: [],
     downloadItems: [],
     currentWingmanInferenceItem: undefined,
-    wingmanStatusMessage: "",
+    wingmanStatusMessage: "Unknown status",
+    isInferring: false,
+    isDownloading: false,
+    inferringAlias: "",
+    wingmanStatusLabel: "Unknown",
 };
