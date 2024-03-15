@@ -62,7 +62,7 @@ jobs:
 
           # import certificate to keychain
           echo "Importing certificate to keychain"
-          security -v import $CERTIFICATE_PATH -A -t cert -k $KEYCHAIN_PATH
+          security -v import $CERTIFICATE_PATH -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           echo "Verifying certificate import"
           security -v find-identity -v -p codesigning $KEYCHAIN_PATH
           echo "Setting keychain partition list"
