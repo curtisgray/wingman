@@ -19,10 +19,11 @@ jobs:
       # fail-fast: false
       matrix:
         # os: [windows-latest, ubuntu-latest, macos-latest]
-        os: [windows-latest, macos-11, macos-14]
+        # os: [windows-latest, macos-11, macos-14]
+        os: [macos-11, macos-14]
         include:
-          - os: windows-latest
-            platform: windows
+          # - os: windows-latest
+          #   platform: windows
           # - os: ubuntu-latest
           #   platform: linux
           - os: macos-11

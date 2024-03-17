@@ -1,5 +1,13 @@
 # Notes
 
+## Code Sign on Windows using signtool with Hardware Token
+ 
+ via: <https://stackoverflow.com/a/54439759
+ >
+```pwsh
+signtool sign /a /tr http://timestamp.comodoca.com /td sha256 /fd sha256 /f "$env:WINGMAN_CODESIGN_CERT_PATH" /n "$env:WINGMAN_CODESIGN_CERT_NAME" /csp "$env:WINGMAN_CODESIGN_CERT_CSP" /kc "[{{$env:WINGMAN_CODESIGN_CERT_PASSWORD}}]=$env:WINGMAN_CODESIGN_CERT_CONTAINER" ./out/wingman-win32-x64/wingman.exe
+```
+
 ## Example Prompts
 
 1. List the most common categories for personal banking transactions.
