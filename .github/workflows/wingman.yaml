@@ -130,6 +130,9 @@ jobs:
         shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_ID: ${{ secrets.MACOS_APP_NOTARIZATION_USERID }}
+          APPLE_PASSWORD: ${{ secrets.MACOS_APP_NOTARIZATION_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.MACOS_APP_NOTARIZATION_TEAMID }}
         run: .\build.ps1 -BuildPlatform ${{ matrix.platform }}
 
       - name: Extract package.json Version
