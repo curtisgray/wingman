@@ -49,9 +49,9 @@ module.exports = {
         },
         {
             name: "@electron-forge/maker-dmg",
-            icon: "assets/logo-color.icns",
             config: {
                 format: "ULFO",
+                icon: "assets/logo-color.icns",
             },
         },
     ],
