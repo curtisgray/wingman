@@ -182,7 +182,7 @@ const launchWingmanExecutable = async (baseDir) =>
                 // shell: true,
                 cwd: path.join(baseDir, 'wingman', wingman_runtime, 'bin'),
                 windowsHide: true,
-            // }, { signal });
+                // }, { signal });
             });
 
             let serverReady = false;
@@ -382,13 +382,28 @@ const createWindow = () =>
             }
             tell(`Next.js directory: ${nextDir}`);
 
-            wingmanProcessController = await launchWingmanExecutable(wingmanDir);
-            nextJsServerProcessController = await startNextJsStandaloneServer(port, path.join(nextDir, 'server.js'));
-            win.loadURL(url.format({
-                pathname: `localhost:${port}`,
-                protocol: 'http:',
-                slashes: true
-            }));
+            try
+            {
+                wingmanProcessController = await launchWingmanExecutable(wingmanDir);
+                if (!wingmanProcessController)
+                    throw new Error("Failed to launch Wingman executable");
+                nextJsServerProcessController = await startNextJsStandaloneServer(port, path.join(nextDir, 'server.js'));
+                if (!nextJsServerProcessController)
+                    throw new Error("Failed to start Next.js server");
+                win.loadURL(url.format({
+                    pathname: `localhost:${port}`,
+                    protocol: 'http:',
+                    slashes: true
+                })).catch((error) =>
+                {
+                    etell(`Error loading URL: ${error}`);
+                    ipcMain.emit('report-error', null, `Failed to load the app page: ${error}`);
+                });
+            } catch (error)
+            {
+                etell(`Error launching Wingman and Next.js ${error}`);
+                ipcMain.emit('report-error', null, error.toString());
+             }
         })
         .catch((error) =>
         {
@@ -422,7 +437,8 @@ ipcMain.on("report-error", (event, error) =>
 app.whenReady().then(() =>
 {
     createWindow();
-    createMenu(onShowLogViewer => {
+    createMenu(onShowLogViewer =>
+    {
         if (LOGGER_WINDOW)
         {
             LOGGER_WINDOW.focus();
@@ -460,18 +476,22 @@ const shutdownApp = async () =>
     //    the abort controller is not being triggered. need to investigate.
     if (nextJsServerProcessController)
     {
-        try {
+        try
+        {
             nextJsServerProcessController.terminate();
-        } catch (error) {
+        } catch (error)
+        {
             etell(`Error terminating Next.js server: ${error}`);
         }
     }
 
     if (wingmanProcessController)
     {
-        try {
+        try
+        {
             wingmanProcessController.terminate();
-        } catch (error) {
+        } catch (error)
+        {
             etell(`Error terminating Wingman server: ${error}`);
         }
     }

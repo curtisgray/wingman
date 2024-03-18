@@ -57,11 +57,10 @@ try {
 
     # Build the Electron app
     Write-Host "Build and Publish Electron app..."
+    # set environment variable DEBUG=* to see verbose output
+    $env:DEBUG="*"
     if ($BuildPlatform -eq "macos") {
-        # build x64 and arm64
-        # ./node_modules/.bin/electron-forge publish --platform=darwin --arch="x64,arm64"
         ./node_modules/.bin/electron-forge publish --platform=darwin --arch=x64
-        # ./node_modules/.bin/electron-forge publish --platform=darwin --arch=arm64
     } elseif ($BuildPlatform -eq "macos-metal") {
         ./node_modules/.bin/electron-forge publish --platform=darwin --arch=arm64
     } else {
