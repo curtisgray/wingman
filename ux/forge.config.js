@@ -34,12 +34,12 @@ module.exports = {
         },
         {
             name: "@electron-forge/maker-zip",
-            icon: "assets/logo-color",
+            icon: "assets/logo-color.ico",
             platforms: ["darwin", "win32", "linux"],
         },
         {
             name: "@electron-forge/maker-deb",
-            icon: "assets/logo-color",
+            icon: "assets/logo-color.png",
             config: {},
         },
         {
@@ -49,7 +49,7 @@ module.exports = {
         },
         {
             name: "@electron-forge/maker-dmg",
-            icon: "assets/logo-color",
+            icon: "assets/logo-color.icns",
             config: {
                 format: "ULFO",
             },
