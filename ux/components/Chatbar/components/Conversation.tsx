@@ -150,10 +150,9 @@ export const ConversationComponent = ({ conversation}: Props) => {
                 </div>
             ) : (
                 <button
-                        className={`flex w-full cursor-pointer items-center gap-3 rounded-lg px-2 py-3 text-sm transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-700 ${
-                        messageIsStreaming ? "disabled:cursor-not-allowed" : ""
-                    } ${
-                        selectedConversation?.id === conversation.id
+                        className={`flex w-full cursor-pointer items-center gap-3 rounded-lg px-2 py-3 text-sm transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-700
+                         ${messageIsStreaming ? "disabled:cursor-not-allowed" : ""}
+                         ${selectedConversation?.id === conversation.id
                             ? "bg-gray-300 dark:bg-gray-700"
                             : "bg-gray-100 dark:bg-gray-800"
                     }`}

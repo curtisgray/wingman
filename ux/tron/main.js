@@ -282,8 +282,9 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                 handleAIModelLoadingError(data.toString());
                 // etell(`Wingman stderr: ${data.toString()}`);
                 if (data.toString() === ".")
-                {
-                    tell(`${data.toString()}}`);
+                {   // this should be written directly to stderr
+                    // tell(`${data.toString()}`);
+                    process.stderr.write(data.toString());
                 }
                 else
                 {

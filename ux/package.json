@@ -5,7 +5,7 @@
         "url": "https://x.com/electric_curtis"
     },
     "description": "Wingman is the best way to run Llama AI locally.",
-    "version": "0.8.4",
+    "version": "0.8.5",
     "private": true,
     "main": "tron/main.js",
     "scripts": {

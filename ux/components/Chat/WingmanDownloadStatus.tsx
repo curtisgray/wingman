@@ -4,6 +4,7 @@ import { DownloadItem, StripFormatFromModelRepo } from "@/types/download";
 import { useRequestDownloadAction } from "@/hooks/useRequestDownloadAction";
 import WingmanContext from "@/pages/api/home/wingman.context";
 import HomeContext from "@/pages/api/home/home.context";
+import { Tooltip } from "react-tooltip";
 
 
 export type Props = {
@@ -45,6 +46,7 @@ const WingmanDownloadStatus = ({
     const [disabled, setDisabled] = useState<boolean>(true);
     const [isInitialized, setIsInitialized] = useState<boolean>(false);
     const [isInitializing, setIsInitializing] = useState<boolean>(false);
+    const [tooltipString, setTooltipString] = useState<string>("");
 
     const handleInitializeButton = () =>
     {
@@ -157,6 +159,11 @@ const WingmanDownloadStatus = ({
                         break;
                 }
                 setIsDownloading(localIsDownloading);
+                if (localIsDownloading) {
+                    setTooltipString(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
+                } else {
+                    setTooltipString("");
+                }
             }
         }
     }, [downloadItems]);
@@ -183,7 +190,9 @@ const WingmanDownloadStatus = ({
     }
 
     return (
-        <div className={className === undefined ? "relative flex text-xs justify-center align-middle bg-gray-600 rounded" : `relative ${className}`}>
+        <div className={className === undefined ? "relative flex text-xs justify-center align-middle bg-gray-600 rounded" : `relative ${className}`}
+            data-tooltip-id="download-status"
+            data-tooltip-content={`${tooltipString}`}>
             <div className="flex rounded-l">
                 <div className="flex flex-col justify-center align-middle space-x-2 px-1 w-40 text-ellipsis overflow-x-clip z-10">
                     {showRepoName && <p>{StripFormatFromModelRepo(downloadItem.modelRepo)}</p>}
@@ -200,6 +209,7 @@ const WingmanDownloadStatus = ({
                     ></progress>
                 )}
             </div>
+            <Tooltip id="download-status" place="bottom" />
             <button type="button"
                 disabled={disabled}
                 onClick={handleCancelDownload}
