@@ -13,6 +13,7 @@ function getVideoCardInfo() {
 	  };
 	}
 	const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+	alert(window.navigator.userAgent);
 	return debugInfo ? {
 	  vendor: gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL),
 	  renderer:  gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL),
