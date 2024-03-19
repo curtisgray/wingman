@@ -17,6 +17,8 @@ const { createMenu } = require('./menu');
 
 const APP_DIR = path.join(os.homedir(), ".wingman");
 let LOGGER_WINDOW = null;
+// set WINGMAN_UI_PORT to -1 to use a random port
+let WINGMAN_UI_PORT = 49152;
 
 const logger = winston.createLogger({
     level: "silly",
@@ -71,22 +73,28 @@ const findOpenPortWithProgressAndCancel = () =>
     {
         return new Promise(async (resolve) =>
         {
-            for (let i = 0; i < ports.length; i++)
+            if (WINGMAN_UI_PORT !== -1)
             {
-                if (cancelRequested)
+                for (let i = 0; i < ports.length; i++)
                 {
-                    resolve(-1); // Cancelled
-                    return;
+                    if (cancelRequested)
+                    {
+                        resolve(-1); // Cancelled
+                        return;
+                    }
+                    const port = await checkPort(ports[i], progressCallback);
+                    if (port !== null)
+                    {
+                        resolve(port);
+                        return;
+                    }
+                    progressCallback(i + 1, ports.length);
                 }
-                const port = await checkPort(ports[i], progressCallback);
-                if (port !== null)
-                {
-                    resolve(port);
-                    return;
-                }
-                progressCallback(i + 1, ports.length);
+                resolve(-1); // No open port found
+            } else
+            {
+                resolve(WINGMAN_UI_PORT);
             }
-            resolve(-1); // No open port found
         });
     };
 
@@ -128,13 +136,14 @@ const getBaseDir = () =>
     return baseDir;
 };
 
-const launchWingmanExecutable = async (baseDir) =>
+const launchWingmanExecutable = async (wingmanDir, nextDir) =>
 {
     return new Promise(async (resolve, reject) =>
     {
         try
         {
-            let executableName = 'wingman_launcher';
+            let hasShutdown = false;
+            let executableName = 'wingman';
             let useCublas = false;
 
             const graphics = await si.graphics();
@@ -146,7 +155,7 @@ const launchWingmanExecutable = async (baseDir) =>
                 useCublas = true;
             }
 
-            tell(`Wingman Base directory: ${baseDir}`);
+            tell(`Wingman Base directory: ${wingmanDir}`);
             let executablePath = "";
             let cwd = "";
             let wingman_runtime = "";
@@ -172,7 +181,7 @@ const launchWingmanExecutable = async (baseDir) =>
                     reject(new Error(`Unsupported platform: ${process.platform}`));
                     return;
             }
-            cwd = path.join(baseDir, 'wingman', wingman_runtime, 'bin');
+            cwd = path.join(wingmanDir, 'wingman', wingman_runtime, 'bin');
             executablePath = path.resolve(path.join(cwd, executableName));
             tell(`Wingman Runtime: ${wingman_runtime}`);
 
@@ -180,10 +189,31 @@ const launchWingmanExecutable = async (baseDir) =>
             const subprocess = child_process.spawn(executablePath, [], {
                 stdio: ['inherit', 'pipe', 'pipe'],
                 // shell: true,
-                cwd: path.join(baseDir, 'wingman', wingman_runtime, 'bin'),
+                cwd: path.join(wingmanDir, 'wingman', wingman_runtime, 'bin'),
                 windowsHide: true,
                 // }, { signal });
             });
+
+            const handleAIModelLoadingError = (output) =>
+            {
+                // Loading an AI model failed:
+                // - `cudaMalloc failed: out of memory`
+                // - `::startInference run_inference returned 1024.`
+                let hasModelLoadingError = false;
+                if (output.includes("cudaMalloc failed: out of memory"))
+                {
+                    hasModelLoadingError = true;
+                }
+                if (output.includes("::startInference run_inference returned 1024."))
+                {
+                    hasModelLoadingError = true;
+                }
+                if (hasModelLoadingError)
+                {
+                    hasShutdown = true;
+                    ipcMain.emit("start-wingman", wingmanDir, nextDir);
+                }
+            };
 
             let serverReady = false;
             subprocess.stdout.on('data', (data) =>
@@ -197,6 +227,7 @@ const launchWingmanExecutable = async (baseDir) =>
                     resolve({
                         terminate: () =>
                         {
+                            if (hasShutdown) return;
                             tell('Terminating Wingman...');
                             // send a get request to http://localhost:6568/api/shutdown and wait
                             //   for `All services stopped.` response from `output` before returning
@@ -240,17 +271,44 @@ const launchWingmanExecutable = async (baseDir) =>
                         reject(new Error('Wingman Launcher Exception'));
                     }
                 }
+                else
+                {
+                    handleAIModelLoadingError(output);
+                }
             });
 
             subprocess.stderr.on('data', (data) =>
             {
-                etell(`Wingman stderr: ${data.toString()}`);
+                handleAIModelLoadingError(data.toString());
+                // etell(`Wingman stderr: ${data.toString()}`);
+                if (data.toString() === ".")
+                {
+                    tell(`${data.toString()}}`);
+                }
+                else
+                {
+                    etell(`Wingman stderr: ${data.toString()}`);
+                }
             });
 
             subprocess.on('error', (err) =>
             {
                 etell(`Failed to start subprocess: ${err}`);
                 reject(err);
+            });
+
+            subprocess.on('close', (code) =>
+            {
+                hasShutdown = true;
+                if (code !== 0)
+                {
+                    etell(`Wingman process exited with code ${code}`);
+                    // reject(new Error(`Wingman process exited with code ${code}`));
+                }
+                else
+                {
+                    tell(`Wingman process exited with code ${code}`);
+                }
             });
 
         } catch (error)
@@ -260,6 +318,7 @@ const launchWingmanExecutable = async (baseDir) =>
         }
     });
 };
+
 
 /**
  * Starts the NextJS app in a separate process with specified port and hostname,
@@ -384,34 +443,35 @@ const createWindow = () =>
 
             try
             {
-                wingmanProcessController = await launchWingmanExecutable(wingmanDir);
-                if (!wingmanProcessController)
-                    throw new Error("Failed to launch Wingman executable");
-                nextJsServerProcessController = await startNextJsStandaloneServer(port, path.join(nextDir, 'server.js'));
-                if (!nextJsServerProcessController)
-                    throw new Error("Failed to start Next.js server");
-                win.loadURL(url.format({
-                    pathname: `localhost:${port}`,
-                    protocol: 'http:',
-                    slashes: true
-                })).catch((error) =>
-                {
-                    etell(`Error loading URL: ${error}`);
-                    ipcMain.emit('report-error', null, `Failed to load the app page: ${error}`);
-                });
+                // wingmanProcessController = await launchWingmanExecutable(wingmanDir);
+                // if (!wingmanProcessController)
+                //     throw new Error("Failed to launch Wingman executable");
+                ipcMain.emit('start-wingman', wingmanDir, nextDir);
+                // nextJsServerProcessController = await startNextJsStandaloneServer(port, path.join(nextDir, 'server.js'));
+                // if (!nextJsServerProcessController)
+                //     throw new Error("Failed to start Next.js server");
+                // win.loadURL(url.format({
+                //     pathname: `localhost:${port}`,
+                //     protocol: 'http:',
+                //     slashes: true
+                // })).catch((error) =>
+                // {
+                //     etell(`Error loading URL: ${error}`);
+                //     ipcMain.emit('report-error', null, `Failed to load the app page: ${error}`);
+                // });
             } catch (error)
             {
                 etell(`Error launching Wingman and Next.js ${error}`);
-                ipcMain.emit('report-error', null, error.toString());
-             }
+            }
         })
         .catch((error) =>
         {
             // etell(`Error finding open port: ${error}`);
             // display error message
-            win.webContents.executeJavaScript(
-                `electronAPI.sendError("${error.message}")`
-            );
+            // win.webContents.executeJavaScript(
+            //     `electronAPI.sendError("${error.message}")`
+            // );
+            ipcMain.emit('report-error', null, error.toString());
         });
 
     win.on("closed", () =>
@@ -432,6 +492,64 @@ ipcMain.on("report-error", (event, error) =>
 {
     etell(`Error from renderer: ${error}`);
     win.loadURL(`error.html?error=${encodeURIComponent(error)}`);
+});
+
+let firstTimeStartingWingman = true;
+ipcMain.on("start-wingman", async (wingmanDir, nextDir) =>
+{
+    if (wingmanProcessController)
+    {
+        etell('Wingman is already running');
+        wingmanProcessController.terminate();
+    }
+    await launchWingmanExecutable(wingmanDir, nextDir)
+        .then(async (controller) =>
+        {
+            if (firstTimeStartingWingman)
+            {
+                wingmanProcessController = controller;
+                ipcMain.emit("start-nextjs", WINGMAN_UI_PORT, nextDir);
+                firstTimeStartingWingman = false;
+            }
+        })
+        .catch((error) =>
+        {
+            etell(`Error starting Wingman: ${error}`);
+            ipcMain.emit('report-error', null, `Failed to start Wingman services. Please restart: ${error}`);
+        });
+});
+
+ipcMain.on("start-nextjs", async (port, nextDir) =>
+{
+    if (nextJsServerProcessController)
+    {
+        etell('Next.js server is already running');
+        nextJsServerProcessController.terminate();
+    }
+    await startNextJsStandaloneServer(port, path.join(nextDir, 'server.js'))
+        .then((controller) =>
+        {
+            nextJsServerProcessController = controller;
+            ipcMain.emit('go-to-ux', port);
+        })
+        .catch((error) => 
+        {
+            etell(`Error starting Next.js server: ${error}`);
+            ipcMain.emit('report-error', null, `Failed to start Next.js server: ${error}`);
+        });
+});
+
+ipcMain.on("go-to-ux", (port) =>
+{
+    win.loadURL(url.format({
+        pathname: `localhost:${port}`,
+        protocol: 'http:',
+        slashes: true
+    })).catch((error) =>
+    {
+        etell(`Error loading URL: ${error}`);
+        ipcMain.emit('report-error', null, `Failed to load the app page: ${error}`);
+    });
 });
 
 app.whenReady().then(() =>
@@ -462,6 +580,7 @@ let alreadyShuttingDown = false;
 const shutdownApp = async () =>
 {
     if (alreadyShuttingDown) return;
+    alreadyShuttingDown = true;
 
     tell('All windows closed. Cleaning up...');
     // close the logger window
@@ -495,7 +614,6 @@ const shutdownApp = async () =>
             etell(`Error terminating Wingman server: ${error}`);
         }
     }
-    alreadyShuttingDown = true;
     tell('All windows closed. Clean up complete.');
 };
 

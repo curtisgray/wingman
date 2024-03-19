@@ -29,7 +29,6 @@ module.exports = {
                 name: "Wingman",
                 setupIcon: "assets/logo-color.ico",
                 signWithParams: `/a /tr http://timestamp.comodoca.com /td sha256 /fd sha256 /f \"${process.env.WINGMAN_CODESIGN_CERT_PATH}\" /n \"${process.env.WINGMAN_CODESIGN_CERT_NAME}\" /csp \"${process.env.WINGMAN_CODESIGN_CERT_CSP}\" /kc \"[{{${process.env.WINGMAN_CODESIGN_CERT_PASSWORD}}}]=${process.env.WINGMAN_CODESIGN_CERT_CONTAINER}\"`,
-                // signWithParams: "/a /tr http://timestamp.comodoca.com /td sha256 /fd sha256 /f `\"$(env:WINGMAN_CODESIGN_CERT_PATH)`\" /n `\"$(env:WINGMAN_CODESIGN_CERT_NAME)`\" /csp `\"$(env:WINGMAN_CODESIGN_CERT_CSP)`\" /kc `\"[{{$(env:WINGMAN_CODESIGN_CERT_PASSWORD)}}]=$(env:WINGMAN_CODESIGN_CERT_CONTAINER)`\""
             },
         },
         {
