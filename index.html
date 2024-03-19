@@ -4,67 +4,6 @@
 	<meta charset="UTF-8">
 	  <link rel="stylesheet" href="wingman.css">
 <title>Introducing Wingman</title>
-	<script>
-        function detectOS() {
-	let userAgent = window.navigator.userAgent,
-		platform = window.navigator.platform,
-		macosPlatforms = ['Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'],
-		windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'],
-		iosPlatforms = ['iPhone', 'iPad', 'iPod'],
-		os = null;
-
-	if (macosPlatforms.indexOf(platform) !== -1) {
-		os = 'Mac OS';
-	} else if (iosPlatforms.indexOf(platform) !== -1) {
-		os = 'iOS';
-	} else if (windowsPlatforms.indexOf(platform) !== -1) {
-		os = 'Windows';
-	} else if (/Android/.test(userAgent)) {
-		os = 'Android';
-	} else if (!os && /Linux/.test(platform)) {
-		os = 'Linux';
-	}
-
-	return os;
-}
-function getVideoCardInfo() {
-	const gl = document.createElement('canvas').getContext('webgl');
-	if (!gl) {
-	  return {
-		error: "no webgl",
-	  };
-	}
-	const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-    const os = detectOS();
-	var renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL).toString();
-	var vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL).toString();
-	var output_platform;
-
-	if (os == 'Windows')
-	{
-		if (renderer.toLowerCase().includes("NVIDIA".toLowerCase())){
-			output_platform = "Windows Nvidia";
-		}
-		else{
-			output_platform = "Windows CPU";
-		}
-	}
-	else if (os == 'Mac OS')
-	{
-		if (renderer.toLowerCase().includes("Intel".toLowerCase())){
-			output_platform = "Intel Mac";
-		}
-		else{
-			output_platform = "Mac Metal";
-		}
-
-	}
-	return output_platform;
-  }
-  
-  console.log(getVideoCardInfo());
-
-  </script>
 </head>
 <body>
 	<div id="cover-image">
@@ -175,4 +114,75 @@ function getVideoCardInfo() {
 				<a href="https://github.com/curtisgray/wingman/releases" target="blank"><button id="bottom-button" type="button">Download Now!</button></a>
 		</div>
 	</body>
+    <footer>
+        <script>
+            function detectOS() {
+        let userAgent = window.navigator.userAgent,
+            platform = window.navigator.platform,
+            macosPlatforms = ['Macintosh', 'MacIntel', 'MacPPC', 'Mac68K'],
+            windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'],
+            iosPlatforms = ['iPhone', 'iPad', 'iPod'],
+            os = null;
+    
+        if (macosPlatforms.indexOf(platform) !== -1) {
+            os = 'Mac OS';
+        } else if (iosPlatforms.indexOf(platform) !== -1) {
+            os = 'iOS';
+        } else if (windowsPlatforms.indexOf(platform) !== -1) {
+            os = 'Windows';
+        } else if (/Android/.test(userAgent)) {
+            os = 'Android';
+        } else if (!os && /Linux/.test(platform)) {
+            os = 'Linux';
+        }
+    
+        return os;
+    }
+    function getVideoCardInfo() {
+        const gl = document.createElement('canvas').getContext('webgl');
+        if (!gl) {
+          return {
+            error: "no webgl",
+          };
+        }
+        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        const os = detectOS();
+        var renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL).toString();
+        var vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL).toString();
+        var output_platform;
+    
+        if (os == 'Windows')
+        {
+            if (renderer.toLowerCase().includes("NVIDIA".toLowerCase())){
+                output_platform = "Windows Nvidia";
+                document.getElementById("left-button").innerHTML = "Download for Windows!";
+                document.getElementById("left-button").parentElement.href = "https://github.com/curtisgray/wingman/releases/download/untagged-40137c17dd305de95a65/wingman-0.8.2-x64.dmg";
+            }
+            else{
+                output_platform = "Windows CPU";
+                document.getElementById("left-button").innerHTML = "Download for Windows!";
+            }
+        }
+        else if (os == 'Mac OS')
+        {
+            if (renderer.toLowerCase().includes("Intel".toLowerCase())){
+                output_platform = "Intel Mac";
+                document.getElementById("left-button").innerHTML = "Download for Mac!";
+                document.getElementById("left-button").parentElement.href = "https://github.com/curtisgray/wingman/releases/download/untagged-40137c17dd305de95a65/wingman-darwin-x64-0.8.2.zip";
+
+            }
+            else{
+                output_platform = "Mac Metal";
+                document.getElementById("left-button").innerHTML = "Download for Mac!";
+                document.getElementById("left-button").parentElement.href = "https://github.com/curtisgray/wingman/releases/download/untagged-40137c17dd305de95a65/wingman-darwin-arm64-0.8.2.zip";
+            }
+    
+        }
+        return output_platform;
+      }
+      
+      console.log(getVideoCardInfo());
+    
+      </script>
+    </footer>
 </html>
