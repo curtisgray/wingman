@@ -1,7 +1,10 @@
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("windows", "linux", "macos", "macos-metal")]
-    [string]$BuildPlatform
+    [string]$BuildPlatform,
+
+    [Parameter(Mandatory = $false)]
+    [switch]$Force
 )
 
 Push-Location -Path $PSScriptRoot
@@ -12,7 +15,7 @@ try {
     # Build Wingman.cpp
     Write-Host "Building Wingman.cpp"
     Push-Location -Path "./services/wingman.cpp"
-    ./build-wingman-ci.ps1 -BuildPlatform $BuildPlatform -Force
+    ./build-wingman-ci.ps1 -BuildPlatform $BuildPlatform -Force:$Force
     if ($LASTEXITCODE -ne 0) {
         throw "Building Wingman.cpp failed with exit code $LASTEXITCODE" 
     }
@@ -21,7 +24,7 @@ try {
     # Build Wingman UX
     Write-Host "Building Wingman UX"
     Push-Location -Path "./ux"
-    ./build-ux-ci.ps1 -BuildPlatform $BuildPlatform
+    ./build-ux-ci.ps1 -BuildPlatform $BuildPlatform -Force:$Force
     if ($LASTEXITCODE -ne 0) {
         throw "Building Wingman UX failed with exit code $LASTEXITCODE" 
     }

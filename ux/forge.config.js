@@ -85,5 +85,11 @@ module.exports = {
             var dst = path.join(__dirname, ".next", "standalone", ".next", "static");
             await fs.cp(src, dst, { recursive: true });
         },
+        afterCopyExtraResources: async (config, buildPath) => {
+            // files under server/wingman are already copied to
+            //   resources folder so we can delete them from the root
+            await fs.rm(path.join(buildPath, "server", "wingman"), { recursive: true });
+            await fs.rm(path.join(buildPath, ".next"), { recursive: true });
+        },
     },
 };

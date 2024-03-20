@@ -58,7 +58,9 @@ try {
     # Build the Electron app
     Write-Host "Build and Publish Electron app..."
     # set environment variable DEBUG=* to see verbose output
-    $env:DEBUG="*"
+    $oldDebug = $env:DEBUG
+    # $env:DEBUG="*"
+    $env:DEBUG="electron-packager,squirrel"
     if ($BuildPlatform -eq "macos") {
         ./node_modules/.bin/electron-forge publish --platform=darwin --arch=x64
     } elseif ($BuildPlatform -eq "macos-metal") {
@@ -66,6 +68,7 @@ try {
     } else {
         ./node_modules/.bin/electron-forge publish --platform=$platform --arch=$arch 
     }
+    $env:DEBUG = $oldDebug
     if ($LASTEXITCODE -ne 0) {
         throw "electron-forge publish failed" 
     }
