@@ -396,7 +396,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
 
     const isModelInferring = (model: AIModel | undefined) =>
     {
-        if (model === undefined || globalModel === undefined || currentWingmanInferenceItem === undefined) return false;
+        if (!model || !globalModel || !currentWingmanInferenceItem) return false;
         if (model.id === AIModelID.NO_MODEL_SELECTED) return false;
         if (model.id === globalModel?.id) {
             if (currentWingmanInferenceItem?.status === "inferring") {
@@ -416,7 +416,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
 
     const hasModelBeenSelected = () => {
         if (selectedConversation?.model) {
-            if (selectedConversation?.model?.id === AIModelID.NO_MODEL_SELECTED) {
+            if (selectedConversation.model.id === AIModelID.NO_MODEL_SELECTED) {
                 return false;
             }
             return true;
@@ -425,16 +425,17 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     };
 
     const showOnboarding = () => {
-        if (settings.needsOnboarding == false) return false;
-        const ret = !(apiKey && serverSideApiKeyIsSet)
+        if (!settings.needsOnboarding) return false;
+        const needsOnboarding = !(apiKey && serverSideApiKeyIsSet)
             && (!hasDownloadItems() || !hasModelBeenSelected() || !isModelInferring(selectedConversation?.model));
-        let savedSettings = getSettings();
-        if (savedSettings.needsOnboarding !== ret) {
-            savedSettings.needsOnboarding = ret;
+        if (!needsOnboarding)
+        {
+            let savedSettings = getSettings();
+            savedSettings.needsOnboarding = needsOnboarding;
             saveSettings(savedSettings);
-            settings.needsOnboarding = ret;
+            settings.needsOnboarding = needsOnboarding;
         }
-        return ret;
+        return needsOnboarding;
     };
 
     return (

@@ -7,7 +7,7 @@ import WingmanContext from '@/pages/api/home/wingman.context';
 import { timeAgo } from '@/types/download';
 import { IconApi, IconPlaneTilt, IconPlaneOff, IconPropeller, IconAperture } from '@tabler/icons-react';
 import { Tooltip } from 'react-tooltip';
-import { displayModelName } from './Util';
+import { displayClearedForTakeoff, displayModelName } from './Util';
 
 function classNames (...classes: string[]) {
     return classes.filter(Boolean).join(' ')
@@ -165,27 +165,6 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
         if (startingInference) {
         }
     }, [startingInference]);
-
-    const displayClearedForTakeoff = (model: AIModel) => {
-        if (Vendors[model.vendor].isDownloadable) {
-            if (model.isInferable) {
-                return <div className="ml-auto text-sky-400">
-                    <IconPlaneTilt size={iconSize} data-tooltip-id="is-inferable" data-tooltip-content="Cleared for takeoff" />
-                    <Tooltip id="is-inferable" />
-               </div>;
-            } else {
-                return <div className="ml-auto text-gray-400">
-                    <IconPlaneOff size={iconSize} data-tooltip-id="is-not-inferable" data-tooltip-content="Not cleared for takeoff" />
-                    <Tooltip id="is-not-inferable" />
-                </div>;
-            }
-        } else {
-            return <div className="ml-auto text-green-800">
-                <IconApi size={iconSize} data-tooltip-id="is-api-inferred" data-tooltip-content="Always cleared for takeoff" />
-                <Tooltip id="is-api-inferred" />
-            </div>;
-        }
-    };
 
     const isGlobalModelItem = (model: AIModel | undefined, item: DownloadableItem | undefined) =>
     {

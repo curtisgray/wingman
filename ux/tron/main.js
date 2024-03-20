@@ -2,7 +2,10 @@ const { app, BrowserWindow } = require("electron");
 
 // run this as early in the main process as possible
 if (require("electron-squirrel-startup")) app.quit();
-// const { updateElectronApp } = require('update-electron-app');
+const { updateElectronApp } = require('update-electron-app');
+
+updateElectronApp(); // additional configuration options available
+
 const child_process = require("node:child_process");
 const path = require("path");
 const fs = require("fs");
@@ -103,7 +106,6 @@ const findOpenPortWithProgressAndCancel = () =>
 
 let wingmanProcessController = null;
 let nextJsServerProcessController = null;
-// let mainWindow;
 
 logger.log("info", "Starting Wingman Electron");
 const tell = (data) =>
@@ -238,30 +240,6 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                         terminate: () =>
                         {
                             if (hasShutdown) return;
-                            // try
-                            // {
-                            //     tell('Terminating Wingman...');
-                            //     // send a get request to http://localhost:6568/api/shutdown and wait
-                            //     //   for `All services stopped.` response from `output` before returning
-                            //     const options = {
-                            //         hostname: 'localhost',
-                            //         port: 6568,
-                            //         path: '/api/shutdown',
-                            //         method: 'GET',
-                            //     };
-                            //     const req = http.request(options, (res) =>
-                            //     {
-                            //         res.on('data', (d) =>
-                            //         {
-                            //             tell(`Wingman shutdown response: ${d}`);
-                            //         });
-                            //     });
-                            //     req.end();
-                            //     subprocess.kill('SIGINT');
-                            // } catch (error)
-                            // {
-                            //     etell(`Error terminating Wingman: ${error}`);
-                            // }
                         }
                     });
                 }
@@ -296,10 +274,8 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
             subprocess.stderr.on('data', (data) =>
             {
                 handleAIModelLoadingError(data.toString());
-                // etell(`Wingman stderr: ${data.toString()}`);
                 if (data.toString() === ".")
                 {   // this should be written directly to stderr
-                    // tell(`${data.toString()}`);
                     process.stderr.write(data.toString());
                 }
                 else
@@ -320,7 +296,6 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                 if (code !== 0)
                 {
                     etell(`Wingman process exited with code ${code}`);
-                    // reject(new Error(`Wingman process exited with code ${code}`));
                 }
                 else
                 {
@@ -460,22 +435,7 @@ const createWindow = () =>
 
             try
             {
-                // wingmanProcessController = await launchWingmanExecutable(wingmanDir);
-                // if (!wingmanProcessController)
-                //     throw new Error("Failed to launch Wingman executable");
                 ipcMain.emit('start-wingman', wingmanDir, nextDir);
-                // nextJsServerProcessController = await startNextJsStandaloneServer(port, path.join(nextDir, 'server.js'));
-                // if (!nextJsServerProcessController)
-                //     throw new Error("Failed to start Next.js server");
-                // win.loadURL(url.format({
-                //     pathname: `localhost:${port}`,
-                //     protocol: 'http:',
-                //     slashes: true
-                // })).catch((error) =>
-                // {
-                //     etell(`Error loading URL: ${error}`);
-                //     ipcMain.emit('report-error', null, `Failed to load the app page: ${error}`);
-                // });
             } catch (error)
             {
                 etell(`Error launching Wingman and Next.js ${error}`);
@@ -483,11 +443,6 @@ const createWindow = () =>
         })
         .catch((error) =>
         {
-            // etell(`Error finding open port: ${error}`);
-            // display error message
-            // win.webContents.executeJavaScript(
-            //     `electronAPI.sendError("${error.message}")`
-            // );
             ipcMain.emit('report-error', null, error.toString());
         });
 
@@ -502,8 +457,6 @@ const createWindow = () =>
         }
     });
 };
-
-// updateElectronApp(); // additional configuration options available
 
 ipcMain.on("report-error", (event, error) =>
 {
@@ -608,8 +561,6 @@ const shutdownApp = async () =>
 
     if (process.platform !== "darwin") app.quit();
 
-    // TODO: the processes are not being killed when the app is closed. perhaps
-    //    the abort controller is not being triggered. need to investigate.
     if (nextJsServerProcessController)
     {
         try

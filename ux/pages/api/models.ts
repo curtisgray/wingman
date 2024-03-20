@@ -27,6 +27,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
     } catch (error) {
         throw new Error(`${error}`);
     }
+    
+    function isNumber(value?: string | number | null | undefined): boolean
+    {
+        if (value === null || value === undefined) return false;
+        return ((value != null) &&
+            (value !== '') &&
+            !isNaN(Number(value.toString())));
+    }
+
+    function toNumber(value?: string | number | null | undefined): number
+    {
+        if (isNumber(value)) {
+            return Number(value);
+        }
+        return -1;
+    }
 
     const isInferable = (model: AIModel) =>
     {
@@ -35,22 +51,35 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         // check if the model can be run on the current gpu and memory
         //   by comparing the model size to the amount of gpu, or memory if
         //   there is no gpu
-        let noVram = false;
         let availableMemory = -1;
-        if (controllers.length === 0) {
+        // if there is no gpu, or this is an Apple arm64 device, use the system memory
+        if (controllers.length === 0 || (os.platform() === 'darwin' && os.arch() === 'arm64')) {
             availableMemory = os.freemem();
         } else {
-            // changed from using 'memoryFree' to 'vram' because the inference
-            //    engine could be using vram and skew the results
-            // TODO: move this entire function to the server and calculate
-            //   the available memory based on whether inference is running
-            // if ('memoryFree' in controllers[0]) availableMemory =
-            //     controllers[0].memoryFree ? controllers[0].memoryFree : -1;
-            // else availableMemory = controllers[0].vram ? controllers[0].vram : -1;
-            let index = 0;
-            if (controllers.length > 1)
-                index = 1;
-            availableMemory = controllers[index].vram || -1;
+            // Search the list of controllers for the first one that:
+            //  - Has nvidia or amd in the name
+            //  - Has a non-zero amount of VRAM
+            // Pick the one with the most VRAM
+            let bestController = controllers[0];
+            for (let i = 1; i < controllers.length; i++) {
+                let controller = controllers[i];
+                let vram = toNumber(controller.vram);
+                if (vram > 0
+                        && (controller.vendor.toLowerCase().includes('nvidia')
+                            || controller.vendor.toLowerCase().includes('amd')
+                            || controller.vendor.toLowerCase().includes('advanced micro devices'))
+                    )
+                {
+                    if (vram > toNumber(bestController.vram)) {
+                        bestController = controller;
+                    }
+                }
+            }
+            availableMemory = toNumber(bestController.vram);
+            // if we couldn't find a controller with non-zero VRAM, use the system memory
+            if (availableMemory <= 0) {
+                availableMemory = os.freemem();
+            }
         }
         if (availableMemory === -1) return false;
 

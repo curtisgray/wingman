@@ -1,11 +1,12 @@
 {
     "name": "wingman",
+    "description": "Wingman is the best way to run Llama AI locally.",
+    "version": "0.9.0",
     "author": {
         "name": "Electric Curtis",
         "url": "https://x.com/electric_curtis"
     },
-    "description": "Wingman is the best way to run Llama AI locally.",
-    "version": "0.8.8",
+    "repository": "github:curtisgray/wingman",
     "private": true,
     "main": "tron/main.js",
     "scripts": {

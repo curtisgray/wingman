@@ -13,7 +13,7 @@ import { Tooltip } from "react-tooltip";
 import { getSettings, saveSettings } from "@/utils/app/settings";
 import { Settings } from "@/types/settings";
 import WingmanContext from "@/pages/api/home/wingman.context";
-import { displayModelVendor } from "./Util";
+import { displayClearedForTakeoff, displayModelVendor } from "./Util";
 
 export type ModelOption = {
     value: string;
@@ -216,25 +216,6 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
         }
     };
 
-    const displayClearedForTakeoff = (model: AIModel) =>
-    {
-        if (Vendors[model.vendor].isDownloadable) {
-            if (model.isInferable) {
-                return <div className="text-sky-400">
-                    <IconPlaneTilt size={iconSize} />
-                </div>;
-            } else {
-                return <div className="text-gray-500">
-                    <IconPlaneOff size={iconSize} />
-                </div>;
-            }
-        }
-        return <div className="text-green-800">
-            <IconApi size={iconSize} data-tooltip-id="is-api-inferred" data-tooltip-content="Always cleared for takeoff" />
-            <Tooltip id="is-api-inferred" />
-        </div>;
-    };
-
     const displayModelName = (model: AIModel | undefined) => {
         if (!model) return <></>;
         const vendor = Vendors[model.vendor];
@@ -435,7 +416,6 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
 
     useEffect(() => {
         handleRefreshModels();
-        // setIsInferables();
     }, [models, showDownloadedItemsOnly, showReadyForTakeoffOnly]);
 
     useEffect(() => {

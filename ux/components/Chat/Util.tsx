@@ -1,5 +1,6 @@
 import { AIModel, AIModelID, VendorInfo, Vendors } from "@/types/ai";
-import { IconBrandOpenai, IconBrandMeta, IconRobot, IconUnlink } from "@tabler/icons-react";
+import { IconBrandOpenai, IconBrandMeta, IconRobot, IconUnlink, IconApi, IconPlaneOff, IconPlaneTilt } from "@tabler/icons-react";
+import { Tooltip } from "react-tooltip";
 
 export const WINGMAN_DEFAULT_ICON_SIZE = 18;
 
@@ -38,5 +39,27 @@ export const displayModelName = (model: AIModel) =>
         return <div className="flex space-x-1"><span>{cleanName}</span></div>;
     } else {
         return <div className="flex space-x-1"><span>{model.name}</span></div>;
+    }
+};
+
+export const displayClearedForTakeoff = (model: AIModel) =>
+{
+    if (Vendors[model.vendor].isDownloadable) {
+        if (model.isInferable) {
+            return <div className="ml-auto text-sky-400">
+                <IconPlaneTilt size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-inferable" data-tooltip-content="Cleared for takeoff" />
+                <Tooltip id="is-inferable" />
+            </div>;
+        } else {
+            return <div className="ml-auto text-gray-400">
+                <IconPlaneOff size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-not-inferable" data-tooltip-content="Not cleared for takeoff" />
+                <Tooltip id="is-not-inferable" />
+            </div>;
+        }
+    } else {
+        return <div className="ml-auto text-green-800">
+            <IconApi size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-api-inferred" data-tooltip-content="Always cleared for takeoff" />
+            <Tooltip id="is-api-inferred" />
+        </div>;
     }
 };
