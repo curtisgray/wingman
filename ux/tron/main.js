@@ -145,6 +145,7 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
         try
         {
             let hasShutdown = false;
+            let forceShutdown = false;
             let executableName = 'wingman';
             let useCublas = false;
 
@@ -208,7 +209,7 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
 
             const handleAIModelLoadingError = (output) =>
             {
-                // Loading an AI model failed:
+                // Loading an AI model failed on Windows:
                 // - `cudaMalloc failed: out of memory`
                 // - `::startInference run_inference returned 1024.`
                 let hasModelLoadingError = false;
@@ -220,8 +221,39 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                 {
                     hasModelLoadingError = true;
                 }
+                // Loading an AI model failed on Apple Silicon:
+                // - `ggml_metal_graph_compute: command buffer 0 failed with status 5` (buffer could be any number and status could be any number)
+                // - `ggml_backend_metal_log_allocated_size: warning: current allocated size is greater than the recommended max working set size`
+
+                // check for buffer followed by any number and status followed by any number
+                const bufferStatusRegex = /ggml_metal_graph_compute: command buffer \d+ failed with status \d+/;
+                if (bufferStatusRegex.test(output))
+                {
+                    hasModelLoadingError = true;
+                    forceShutdown = true;
+                }
+
+                if (output.includes("ggml_metal_graph_compute: command buffer 0 failed with status 5"))
+                {
+                    hasModelLoadingError = true;
+                    forceShutdown = true;
+                }
+
+                if (output.includes("ggml_backend_metal_log_allocated_size: warning: current allocated size is greater than the recommended max working set size"))
+                {
+                    hasModelLoadingError = true;
+                    forceShutdown = true;
+                }
+
+                if (forceShutdown)
+                {
+                    // exit the subprocess
+                    subprocess.kill('SIGINT');
+                }
+
                 if (hasModelLoadingError)
                 {
+                    etell(`Model loading error: ${output}`);
                     hasShutdown = true;
                     ipcMain.emit("start-wingman", wingmanDir, nextDir);
                 }
