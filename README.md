@@ -6,26 +6,13 @@ Wingman is an open-source, cross-platform AI chatbot with an easy-to-use interfa
 ---
 Wingman - Rooster is the first release of Wingman. Future releases will be named after characters from the Top Gun franchise.
 <p align="center">
-  <img width="64" src="assets/images/rooster-flight-suit.webp">
+  <img width="128" src="assets/images/rooster-flight-suit.webp">
 </p>
 
-## Download Wingman
+<div id="download-table">
 
-### MacOS Downloads
+<div>
 
-| Architecture    | Format | Download Link                                                                                       | Size    |
-|-----------------|--------|-----------------------------------------------------------------------------------------------------|---------|
-| Apple Silicon   | dmg    | [Download](https://github.com/curtisgray/wingman/releases/download/v0.8.6/wingman-0.8.6-arm64.dmg)  | 243 MB  |
-| Apple Silicon   | zip    | [Download](https://github.com/curtisgray/wingman/releases/download/v0.8.6/wingman-darwin-arm64-0.8.6.zip) | 251 MB  |
-| Intel x64       | dmg    | [Download](https://github.com/curtisgray/wingman/releases/download/v0.8.6/wingman-0.8.6-x64.dmg)    | 254 MB  |
-| Intel x64       | zip    | [Download](https://github.com/curtisgray/wingman/releases/download/v0.8.6/wingman-darwin-x64-0.8.6.zip) | 262 MB  |
-
-### Windows Downloads
-
-| Architecture    | Format | Download Link                                                                                       | Size    |
-|-----------------|--------|-----------------------------------------------------------------------------------------------------|---------|
-| x64             | exe    | [Download](https://github.com/curtisgray/wingman/releases/download/v0.8.6/wingman-0.8.6-Setup.exe)  | 441 MB  |
-| x64             | zip    | [Download](https://github.com/curtisgray/wingman/releases/download/v0.8.6/wingman-win32-x64-0.8.6.zip) | 452 MB  |
 ## Requirements for Hardware and OS
 
 - Windows 10+ or Mac OS X
@@ -36,17 +23,13 @@ Wingman - Rooster is the first release of Wingman. Future releases will be named
 - 100GB free disk space (for AI models)
 - 1GB free disk space (for app)
 
+
 ---
 <p align="center">
   <a href="https://youtu.be/BTFclfbUDso">
     <img src="https://img.youtube.com/vi/BTFclfbUDso/0.jpg" alt="Watch the video">
   </a>
 </p>
-
-<!-- ![1](https://github.com/SaltyLightning/bee_scraper/assets/23483154/3888e991-1943-4d6d-bf79-cb7783896c27)
-![2](https://github.com/SaltyLightning/bee_scraper/assets/23483154/d0f174e9-0425-42e2-bdb1-0c7a21c7cd0f)
-![3](https://github.com/SaltyLightning/bee_scraper/assets/23483154/9fddf12c-d723-407f-824a-0f4d4d9ac805)
-![4](https://github.com/SaltyLightning/bee_scraper/assets/23483154/4d5d9edf-acb9-478c-95f6-19c93347dc3e) -->
 
 ---
 
@@ -82,6 +65,7 @@ Wingman is more than just an application; it's a gateway to a more accessible an
 ## Progress Updates
 
 - ✅ Add All GPT Models
+- ✉️ Internationalization
 - ✅ Duplicate existing conversations
 - ✅ Add local Llama support (in progress)
 - ✅ Download Llama models locally

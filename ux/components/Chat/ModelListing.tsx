@@ -187,14 +187,6 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
         }
     };
 
-    const isGlobalModel = (model: AIModel | undefined) =>
-    {
-        if (model === undefined || globalModel === undefined) return false;
-        if (model.id === AIModelID.NO_MODEL_SELECTED) return false;
-        if (model.id === globalModel?.id) return true;
-        return false;
-    };
-
     const isGlobalModelItem = (model: AIModel | undefined, item: DownloadableItem | undefined) =>
     {
         if (model === undefined || item === undefined || globalModel === undefined || globalModel.item === undefined) return false;
@@ -348,7 +340,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                         filePath={latestItem.filePath}
                         showFileName={false}
                         showRepoName={false}
-                        showProgressText={true}
+                        showProgressText={false}
                         onComplete={handleDownloadComplete}
                         onStarted={handleDownloadStart}
                         onInitialized={handleDownloadInitialized} />

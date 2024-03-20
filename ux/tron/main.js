@@ -149,10 +149,20 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
             const graphics = await si.graphics();
             const gpus = graphics.controllers;
             const hasNvidiaGpu = gpus.some(gpu => gpu.vendor.toLowerCase().includes('nvidia'));
+            const hasAmdGpu = gpus.some(gpu => gpu.vendor.toLowerCase().includes('amd'));
+            const hasIntelGpu = gpus.some(gpu => gpu.vendor.toLowerCase().includes('intel'));
 
             if (hasNvidiaGpu)
             {
                 useCublas = true;
+            }
+
+            if (hasAmdGpu)
+            {
+            }
+
+            if (hasIntelGpu)
+            {
             }
 
             tell(`Wingman Base directory: ${wingmanDir}`);
@@ -228,24 +238,30 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                         terminate: () =>
                         {
                             if (hasShutdown) return;
-                            tell('Terminating Wingman...');
-                            // send a get request to http://localhost:6568/api/shutdown and wait
-                            //   for `All services stopped.` response from `output` before returning
-                            const options = {
-                                hostname: 'localhost',
-                                port: 6568,
-                                path: '/api/shutdown',
-                                method: 'GET',
-                            };
-                            const req = http.request(options, (res) =>
-                            {
-                                res.on('data', (d) =>
-                                {
-                                    tell(`Wingman shutdown response: ${d}`);
-                                });
-                            });
-                            req.end();
-                            subprocess.kill('SIGINT');
+                            // try
+                            // {
+                            //     tell('Terminating Wingman...');
+                            //     // send a get request to http://localhost:6568/api/shutdown and wait
+                            //     //   for `All services stopped.` response from `output` before returning
+                            //     const options = {
+                            //         hostname: 'localhost',
+                            //         port: 6568,
+                            //         path: '/api/shutdown',
+                            //         method: 'GET',
+                            //     };
+                            //     const req = http.request(options, (res) =>
+                            //     {
+                            //         res.on('data', (d) =>
+                            //         {
+                            //             tell(`Wingman shutdown response: ${d}`);
+                            //         });
+                            //     });
+                            //     req.end();
+                            //     subprocess.kill('SIGINT');
+                            // } catch (error)
+                            // {
+                            //     etell(`Error terminating Wingman: ${error}`);
+                            // }
                         }
                     });
                 }

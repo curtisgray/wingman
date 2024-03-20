@@ -7,6 +7,8 @@ out
 wingman_history*.json
 .backup
 *.db
+build
+llama.log
 
 ux/server/wingman/Windows
 ux/server/wingman/Linux

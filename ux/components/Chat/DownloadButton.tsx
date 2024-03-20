@@ -5,6 +5,7 @@ import { HF_MODEL_ENDS_WITH } from "@/utils/app/const";
 import { useRequestDownloadAction } from "@/hooks/useRequestDownloadAction";
 import WingmanContext from "@/pages/api/home/wingman.context";
 import HomeContext from "@/pages/api/home/home.context";
+import { Tooltip } from "react-tooltip";
 
 const DownloadButton = ({ modelRepo, filePath,
     showRepoName = true, showFileName = true, showProgress = true, showProgressText = true,
@@ -30,7 +31,8 @@ const DownloadButton = ({ modelRepo, filePath,
     const [disabled, setDisabled] = useState<boolean>(true);
     const [isInitialized, setIsInitialized] = useState<boolean>(false);
     const [isInitializing, setIsInitializing] = useState<boolean>(false);
-    
+    const [tooltipString, setTooltipString] = useState<string>("");
+ 
     const handleInitializeButton = () => {
         setDisabled(false);
         setDownloadLabel("Download");
@@ -52,7 +54,7 @@ const DownloadButton = ({ modelRepo, filePath,
     const handleCancelDownload = () => {
         setDisabled(false);
         downloadActions.requestCancelDownload(modelRepo, filePath);
-        setDownloadLabel("Redownload");
+        setDownloadLabel("Reset");
     };
 
     const handleRequestOrCancelDownload = () => {
@@ -116,7 +118,7 @@ const DownloadButton = ({ modelRepo, filePath,
                         break;
                     case "cancelled":
                         if (isDownloading && !downloadCompleted){
-                            setDownloadLabel("Redownload");
+                            setDownloadLabel("Reset");
                             setDownloadStatus("Flight Aborted");
                             setDisabled(false);
                             setProgress(downloadItem.progress);
@@ -147,6 +149,11 @@ const DownloadButton = ({ modelRepo, filePath,
                         break;
                 }
                 setIsDownloading(localIsDownloading);
+                if (localIsDownloading) {
+                    setTooltipString(`${downloadItem.progress.toPrecision(3)}% ${downloadItem.downloadSpeed}`);
+                } else {
+                    setTooltipString("");
+                }
             }
         }
     }, [downloadItems]);
@@ -198,20 +205,23 @@ const DownloadButton = ({ modelRepo, filePath,
     return (
         <button type="button" disabled={disabled}
             onClick={handleRequestOrCancelDownload}
-            className={className == undefined ? "flex flex-col w-24 bg-stone-800 hover:bg-stone-500 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 px-4 rounded" : className}>
+            data-tooltip-id="download-status"
+            data-tooltip-content={`${tooltipString}`}
+            className={className == undefined ? "relative flex flex-col w-24 bg-sky-700 hover:bg-sky-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 px-4 rounded" : `relative ${className}`}>
             {
                 children == undefined ?
                     (
                         <>
-                            <p className="self-center">{downloadLabel}</p>
+                            <p className="self-center z-10">{downloadLabel}</p>
                             {showRepoName && <p>{modelRepo.replace(HF_MODEL_ENDS_WITH, "")}</p>}
                             {showFileName && <p className="text-gray-300">{filePath}</p>}
+                            <span className="text-xs self-center z-10">{showProgressText && isDownloading && ` ${progressText}`}</span>
                             {showProgress && isDownloading && <progress
                                 value={progress}
                                 max="100"
-                                className="mt-2 w-full"
+                                className="w-24 h-full absolute top-0 left-0 [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-amber-500 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500"
                             ></progress>}
-                            <span className="text-xs self-center">{showProgressText && isDownloading && ` ${progressText}`}</span>
+                            <Tooltip id="download-status" />
                         </>
                     ) : children
             }

@@ -82,7 +82,7 @@ const RedownloadButton = ({ modelRepo, filePath, className = undefined, children
             {
                 children == undefined ? (
                     <>
-                        <p>Redownload</p>
+                        <p>Reset</p>
                         <p>{modelRepo.replace(HF_MODEL_ENDS_WITH, "")}</p>
                         <p className="text-sm text-gray-300">({filePath})</p>
                     </>) :

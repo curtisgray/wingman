@@ -205,7 +205,7 @@ const WingmanDownloadStatus = ({
                     <progress
                         value={progress}
                         max="100"
-                        className="w-40 h-full absolute rounded-l"
+                        className="w-40 h-full absolute rounded-l [&::-webkit-progress-bar]:rounded-l [&::-webkit-progress-value]:rounded-l [&::-webkit-progress-value]:bg-amber-700 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500"
                     ></progress>
                 )}
             </div>
