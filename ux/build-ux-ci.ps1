@@ -60,7 +60,7 @@ try {
     # set environment variable DEBUG=* to see verbose output
     $oldDebug = $env:DEBUG
     # $env:DEBUG="*"
-    $env:DEBUG="electron-packager,squirrel"
+    # $env:DEBUG="electron-packager,squirrel"
     if ($BuildPlatform -eq "macos") {
         ./node_modules/.bin/electron-forge publish --platform=darwin --arch=x64
     } elseif ($BuildPlatform -eq "macos-metal") {
