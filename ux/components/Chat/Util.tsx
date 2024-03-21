@@ -42,22 +42,22 @@ export const displayModelName = (model: AIModel) =>
     }
 };
 
-export const displayClearedForTakeoff = (model: AIModel) =>
+export const displayClearedForTakeoff = (model: AIModel, className = "") =>
 {
     if (Vendors[model.vendor].isDownloadable) {
         if (model.isInferable) {
-            return <div className="ml-auto text-sky-400">
+            return <div className={`${className} text-sky-400`}>
                 <IconPlaneTilt size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-inferable" data-tooltip-content="Cleared for takeoff" />
                 <Tooltip id="is-inferable" />
             </div>;
         } else {
-            return <div className="ml-auto text-gray-400">
+            return <div className={`${className} text-gray-400`}>
                 <IconPlaneOff size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-not-inferable" data-tooltip-content="Not cleared for takeoff" />
                 <Tooltip id="is-not-inferable" />
             </div>;
         }
     } else {
-        return <div className="ml-auto text-green-800">
+        return <div className={`${className} text-green-800`}>
             <IconApi size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-api-inferred" data-tooltip-content="Always cleared for takeoff" />
             <Tooltip id="is-api-inferred" />
         </div>;

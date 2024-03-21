@@ -344,7 +344,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
 
                                                 {displayModelMetrics(item)}
                                             </div>
-                                            {displayClearedForTakeoff(item)}
+                                            {displayClearedForTakeoff(item, "ml-auto")}
                                             {displayDownloadInference(item)}
                                         </li>
                                     ))}

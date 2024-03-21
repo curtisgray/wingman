@@ -285,7 +285,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                         filePath={model.item.filePath}
                         showFileName={false}
                         showRepoName={false}
-                        showProgressText={true}
+                        showProgressText={false}
                         onComplete={handleDownloadComplete}
                         onStarted={handleDownloadStart}
                         onInitialized={handleDownloadInitialized}
