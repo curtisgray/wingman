@@ -156,25 +156,33 @@
             if (renderer.toLowerCase().includes("NVIDIA".toLowerCase())){
                 output_platform = "Windows Nvidia";
                 document.getElementById("left-button").innerHTML = "Download for Windows!";
-                document.getElementById("left-button").parentElement.href = "https://github.com/curtisgray/wingman/releases/download/untagged-40137c17dd305de95a65/wingman-0.8.2-x64.dmg";
+                document.getElementById("left-button").parentElement.href = "https://github.com/curtisgray/wingman/releases/download/v0.9.2/wingman-0.9.2-Setup.exe";
+		document.getElementById("bottom-button").innerHTML = "Download for Windows!";
+                document.getElementById("bottom-button").parentElement.href = "https://github.com/curtisgray/wingman/releases/download/v0.9.2/wingman-0.9.2-Setup.exe";
             }
             else{
                 output_platform = "Windows CPU";
-                document.getElementById("left-button").innerHTML = "Download for Windows!";
-            }
+		document.getElementById("left-button").innerHTML = "Download for Windows!";
+		document.getElementById("left-button").parentElement.href = "https://github.com/curtisgray/wingman/releases/download/v0.9.2/wingman-0.9.2-Setup.exe";
+		document.getElementById("bottom-button").innerHTML = "Download for Windows!";
+                document.getElementById("bottom-button").parentElement.href = "https://github.com/curtisgray/wingman/releases/download/v0.9.2/wingman-0.9.2-Setup.exe";            }
         }
         else if (os == 'Mac OS')
         {
             if (renderer.toLowerCase().includes("Intel".toLowerCase())){
                 output_platform = "Intel Mac";
                 document.getElementById("left-button").innerHTML = "Download for Mac!";
-                document.getElementById("left-button").parentElement.href = "https://github.com/curtisgray/wingman/releases/download/untagged-40137c17dd305de95a65/wingman-darwin-x64-0.8.2.zip";
+                document.getElementById("left-button").parentElement.href = "https://github.com/curtisgray/wingman/releases/download/v0.9.2/wingman-0.9.2-x64.dmg";
+		document.getElementById("bottom-button").innerHTML = "Download for Mac!";
+                document.getElementById("bottom-button").parentElement.href = "https://github.com/curtisgray/wingman/releases/download/v0.9.2/wingman-0.9.2-x64.dmg";
 
             }
             else{
                 output_platform = "Mac Metal";
                 document.getElementById("left-button").innerHTML = "Download for Mac!";
-                document.getElementById("left-button").parentElement.href = "https://github.com/curtisgray/wingman/releases/download/untagged-40137c17dd305de95a65/wingman-darwin-arm64-0.8.2.zip";
+                document.getElementById("left-button").parentElement.href = "https://github.com/curtisgray/wingman/releases/download/v0.9.2/wingman-0.9.2-arm64.dmg";
+		document.getElementById("bottom-button").innerHTML = "Download for Mac!";
+                document.getElementById("bottom-button").parentElement.href = "https://github.com/curtisgray/wingman/releases/download/v0.9.2/wingman-0.9.2-arm64.dmg";
             }
     
         }
