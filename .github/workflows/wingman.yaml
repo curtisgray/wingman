@@ -20,7 +20,7 @@ jobs:
       matrix:
         # os: [windows-latest, ubuntu-latest, macos-latest]
         # os: [windows-latest, macos-11, macos-14]
-        os: [macos-11, macos-14]
+        os: [macos-11, macos-14, code-signer]
         include:
           # - os: windows-latest
           #   platform: windows
@@ -30,6 +30,8 @@ jobs:
             platform: macos
           - os: macos-14
             platform: macos-metal
+          - os: code-signer
+            platform: windows
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3

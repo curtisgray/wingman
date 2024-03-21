@@ -4,14 +4,34 @@
 Wingman is an open-source, cross-platform AI chatbot with an easy-to-use interface for running AI models locally. You can download models like Meta’s Llama 2, Mistral and phi 2 from Hugging Face directly in the app. It runs on Windows (Nvidia GPUs or CPU-based) and MacOS (Intel and Apple Silicon). 
 
 ---
+
 Wingman - Rooster is the first release of Wingman. Future releases will be named after characters from the Top Gun franchise.
+
 <p align="center">
   <img width="128" src="assets/images/rooster-flight-suit.webp">
 </p>
 
+---
 <div id="download-table">
 
+## Download Wingman v0.9.2
+
+### Windows Downloads
+
+| Architecture | Format | Download Link | Size |
+|--------------|--------|---------------|------|
+| Intel | Installer (.exe) | [Download](https://github.com/curtisgray/wingman/releases/download/v0.9.2/wingman-0.9.2-Setup.exe) | 670.74 MB |
+
+### MacOS Downloads
+
+| Architecture | Format | Download Link | Size |
+|--------------|--------|---------------|------|
+| Apple Silicon | Disk Image (.dmg) | [Download](https://github.com/curtisgray/wingman/releases/download/v0.9.2/wingman-0.9.2-arm64.dmg) | 211.07 MB |
+| Intel | Disk Image (.dmg) | [Download](https://github.com/curtisgray/wingman/releases/download/v0.9.2/wingman-0.9.2-x64.dmg) | 220.93 MB |
+
 <div>
+
+---
 
 ## Requirements for Hardware and OS
 
@@ -23,11 +43,11 @@ Wingman - Rooster is the first release of Wingman. Future releases will be named
 - 100GB free disk space (for AI models)
 - 1GB free disk space (for app)
 
-
 ---
+
 <p align="center">
   <a href="https://youtu.be/BTFclfbUDso">
-    <img src="https://img.youtube.com/vi/BTFclfbUDso/0.jpg" alt="Watch the video">
+    <img src="./assets/images/announcement-shot.png" alt="Watch the video">
   </a>
 </p>
 
