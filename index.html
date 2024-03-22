@@ -203,10 +203,11 @@ https://www.googletagmanager.com/gtag/js?id=G-FBZDQDL7F4"></script>
 						const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/tags`);
 						const data = await response.json();
 						const tags = data.map(tag => tag.name);
-						const latestTag = tags.sort().reverse()[0]; // Sorting alphabetically assuming version tags are formatted consistently
+						let latestTag = tags.sort().reverse()[0]; // Sorting alphabetically assuming version tags are formatted consistently
 						// console.log(tags);
 						// console.log(latestTag);
-						return latestTag;
+						let cutTag = latestTag.slice(1);
+						return cutTag;
 					} catch (error) {
 						console.error('Error fetching latest tag:', error);
 						return null;
