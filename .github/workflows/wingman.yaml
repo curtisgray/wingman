@@ -41,9 +41,10 @@ jobs:
 
       - name: Set self-hosted Windows to use Git Bash
         if: matrix.os == 'self-hosted'
+        shell: pwsh
         run: |
           echo "Setting up Git Bash as default shell"
-          echo "C:/Program Files/Git/bin/bash.exe" >> $GITHUB_PATH
+          echo "C:/Program Files/Git/bin" >> $env:GITHUB_PATH
 
       # test bash shell
       - name: Extract Package Version
