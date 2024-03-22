@@ -15,7 +15,6 @@ const winston = require("winston");
 const net = require("net");
 const si = require('systeminformation');
 const url = require('url');
-const http = require('http');
 const { createMenu } = require('./menu');
 
 const APP_DIR = path.join(os.homedir(), ".wingman");
@@ -110,11 +109,15 @@ let nextJsServerProcessController = null;
 logger.log("info", "Starting Wingman Electron");
 const tell = (data) =>
 {
+    // strip trailing newline
+    data = data.replace(/\n$/, "");
     logger.log("info", data);
 };
 
 const etell = (data) =>
 {
+    // strip trailing newline
+    data = data.replace(/\n$/, "");
     logger.log("error", data);
 };
 
@@ -201,18 +204,16 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
             tell(`Launching Wingman executable: ${executablePath}`);
             const subprocess = child_process.spawn(executablePath, [], {
                 stdio: ['inherit', 'pipe', 'pipe'],
-                // shell: true,
-                cwd: path.join(wingmanDir, 'wingman', wingman_runtime, 'bin'),
+                cwd: cwd,
                 windowsHide: true,
-                // }, { signal });
             });
 
+            let hasModelLoadingError = false;
             const handleAIModelLoadingError = (output) =>
             {
                 // Loading an AI model failed on Windows:
                 // - `cudaMalloc failed: out of memory`
                 // - `::startInference run_inference returned 1024.`
-                let hasModelLoadingError = false;
                 if (output.includes("cudaMalloc failed: out of memory"))
                 {
                     hasModelLoadingError = true;
@@ -239,23 +240,59 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                     forceShutdown = true;
                 }
 
-                if (output.includes("ggml_backend_metal_log_allocated_size: warning: current allocated size is greater than the recommended max working set size"))
-                {
-                    hasModelLoadingError = true;
-                    forceShutdown = true;
-                }
+                // if (output.includes("ggml_backend_metal_log_allocated_size: warning: current allocated size is greater than the recommended max working set size"))
+                // {
+                //     hasModelLoadingError = true;
+                //     forceShutdown = true;
+                // }
+
+                // if (output.includes("Model loading error:"))
+                // {
+                //     hasModelLoadingError = true;
+                //     forceShutdown = true;
+                // }
 
                 if (forceShutdown)
                 {
-                    // exit the subprocess
+                    // Exit the subprocess
                     subprocess.kill('SIGINT');
-                }
+                    hasShutdown = true;
 
-                if (hasModelLoadingError)
+                    // Determine the wingman_reset executable name based on platform
+                    let resetExecutableName = 'wingman_reset';
+                    if (process.platform === 'win32')
+                    {
+                        resetExecutableName += '.exe';
+                    }
+
+                    // Construct the path to the wingman_reset executable
+                    const resetExecutablePath = path.join(cwd, resetExecutableName);
+
+                    // Launch wingman_reset executable
+                    tell(`Launching Wingman Reset executable: ${resetExecutablePath}`);
+                    const resetSubprocess = child_process.spawn(resetExecutablePath, [], {
+                        stdio: ['inherit', 'inherit', 'inherit'],
+                        cwd: cwd,
+                        windowsHide: true,
+                    });
+
+                    resetSubprocess.on('close', (code) =>
+                    {
+                        if (code !== 0)
+                        {
+                            etell(`Wingman Reset process exited with code ${code}`);
+                        } else
+                        {
+                            tell(`Wingman Reset process exited successfully`);
+                        }
+                        // Now it's safe to emit the 'start-wingman' event
+                        ipcMain.emit("start-wingman", wingmanDir, nextDir);
+                    });
+                } else if (hasModelLoadingError)
                 {
                     etell(`Model loading error: ${output}`);
                     hasShutdown = true;
-                    ipcMain.emit("start-wingman", wingmanDir, nextDir);
+                    // ipcMain.emit("start-wingman", wingmanDir, nextDir);
                 }
             };
 
@@ -333,6 +370,11 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                 {
                     tell(`Wingman process exited with code ${code}`);
                 }
+                if (hasModelLoadingError)
+                {
+                    tell(`Model loading error occurred. Restarting Wingman...`);
+                    ipcMain.emit("start-wingman", wingmanDir, nextDir);
+                }
             });
 
         } catch (error)
@@ -342,7 +384,6 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
         }
     });
 };
-
 
 /**
  * Starts the NextJS app in a separate process with specified port and hostname,
@@ -618,7 +659,7 @@ const shutdownApp = async () =>
 };
 
 app.on("will-quit", () =>
-{
+{   // This event is emitted when Electron receives the signal to exit (Cmd+Q on MacOS) and wants to start closing windows
     shutdownApp();
 });
 

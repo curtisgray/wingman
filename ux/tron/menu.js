@@ -60,8 +60,8 @@ exports.createMenu = (onShowLogViewer) =>
             label: 'View',
             submenu: [
                 { role: 'reload' },
-                { role: 'forceReload' },
-                { role: 'toggleDevTools' },
+                // { role: 'forceReload' },
+                // { role: 'toggleDevTools' },
                 { type: 'separator' },
                 { role: 'resetZoom' },
                 { role: 'zoomIn' },
@@ -106,7 +106,7 @@ exports.createMenu = (onShowLogViewer) =>
                     label: 'Learn More',
                     click: async () =>
                     {
-                        await shell.openExternal('https://electronjs.org');
+                        await shell.openExternal('https://github.com/curtisgray/wingman');
                     }
                 }
             ]
