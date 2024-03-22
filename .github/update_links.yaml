@@ -1,0 +1,42 @@
+name: Update Download Links
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-download-links:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: npm install @octokit/rest
+
+      - name: Fetch latest release information
+        id: get_release
+        run: |
+          latest_release=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest)
+          windows_url=$(echo "$latest_release" | jq -r '.assets[] | select(.name | endswith("Setup.exe")) | .browser_download_url')
+          mac_intel_url=$(echo "$latest_release" | jq -r '.assets[] | select(.name | endswith("x64.dmg")) | .browser_download_url')
+          mac_metal_url=$(echo "$latest_release" | jq -r '.assets[] | select(.name | endswith("arm64.dmg")) | .browser_download_url')
+          echo "::set-output name=windows_url::$windows_url"
+          echo "::set-output name=mac_intel_url::$mac_intel_url"
+          echo "::set-output name=mac_metal_url::$mac_metal_url"
+
+      - name: Print download URLs
+        run: |
+          echo "Windows URL: ${{ steps.get_release.outputs.windows_url }}"
+          echo "Mac OS Intel URL: ${{ steps.get_release.outputs.mac_intel_url }}"
+          echo "Mac OS Metal URL: ${{ steps.get_release.outputs.mac_metal_url }}"
+
+      # - name: Substitute String
+      #   uses: bluwy/substitute-string-action@v3.0.0
+      #   id: sub
+      #   with:
+      #     _input-text: 'WINDOWS_LINK'
+      #     _format-key: '%%key%%'
+      #     version: ${{ github.ref }}
+            
