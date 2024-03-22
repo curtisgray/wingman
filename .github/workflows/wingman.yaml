@@ -134,10 +134,18 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.MACOS_APP_NOTARIZATION_TEAMID }}
         run: .\build.ps1 -BuildPlatform ${{ matrix.platform }}
 
-      - name: Extract package.json Version
+      - name: Extract package.json Version (Linux and macOS)
+        if: matrix.platform != 'windows'
         run: |
           package_version=$(jq -r '.version' ./ux/package.json)
           echo "PACKAGE_VERSION=$package_version" >> $GITHUB_ENV
+
+      - name: Extract package.json Version (Windows)
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          $package_version = jq -r '.version' ./ux/package.json
+          Add-Content $env:GITHUB_ENV "PACKAGE_VERSION=$package_version"
 
       - name: Check if Git Tag Exists
         id: check_tag
