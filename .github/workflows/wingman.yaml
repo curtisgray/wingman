@@ -39,6 +39,34 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: Set self-hosted Windows to use Git Bash
+        if: matrix.os == 'self-hosted'
+        run: |
+          echo "Setting up Git Bash as default shell"
+          echo "C:/Program Files/Git/bin/bash.exe" >> $GITHUB_PATH
+
+      # test bash shell
+      - name: Extract Package Version
+        run: |
+          package_version=$(jq -r '.version' ./ux/package.json)
+          echo "PACKAGE_VERSION=$package_version" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Temporary test of getting package version (via bash env)
+        run: |
+          echo "Package version: $PACKAGE_VERSION"
+        shell: bash
+
+      - name: Temporary test of getting package version (via GITHUB env)
+        run: |
+          echo "Package version: ${{ env.PACKAGE_VERSION }}"
+        shell: bash
+
+      - name: Temporary test of getting package version (via pwsh env)
+        run: |
+          echo "Package version: $env:PACKAGE_VERSION"
+        shell: pwsh
+
       - name: Install the Apple developer certificates
         if: matrix.platform == 'macos' || matrix.platform == 'macos-metal'
         env:
