@@ -38,11 +38,6 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
-  
-      - name: Extract Package Version
-        run: |
-          echo "PACKAGE_VERSION=$(python -c "import json; print(json.load(open('./ux/package.json'))['version'])")" >> $GITHUB_ENV
-        shell: python # This uses the Python runner which is cross-platform
 
       - name: Install the Apple developer certificates
         if: matrix.platform == 'macos' || matrix.platform == 'macos-metal'
@@ -127,7 +122,7 @@ jobs:
           $version = (Get-Content ./ux/package.json | ConvertFrom-Json).version
           echo "PACKAGE_VERSION=$version" >> $GITHUB_ENV
         shell: pwsh
-        
+
       - name: Temporary test of getting package version
         run: |
           echo "Package version: ${{ env.PACKAGE_VERSION }}"
