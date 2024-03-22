@@ -126,6 +126,7 @@ jobs:
       - name: Temporary test of getting package version
         run: |
           echo "Package version: ${{ env.PACKAGE_VERSION }}"
+        shell: pwsh
 
       - name: Cache npm dependencies
         uses: actions/cache@v2
