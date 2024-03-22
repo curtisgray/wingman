@@ -165,3 +165,12 @@ jobs:
             git push origin "v$PACKAGE_VERSION"
             echo "Tag v$PACKAGE_VERSION created and pushed."
           fi
+
+      - name: Save Tag Name
+        run: echo ${{ env.PACKAGE_VERSION }} > tag.txt
+
+      - name: Upload Tag Name as Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: tag-name
+          path: tag.txt

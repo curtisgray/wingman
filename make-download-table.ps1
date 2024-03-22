@@ -27,13 +27,13 @@ if (-not $json) {
 $assets = $json | ConvertFrom-Json
 
 # Initialize markdown sections
-$markdownWindows = "### Windows Downloads`n`n| Architecture | Format | Download Link | Size |`n|--------------|--------|---------------|------|"
-$markdownMacOS = "### MacOS Downloads`n`n| Architecture | Format | Download Link | Size |`n|--------------|--------|---------------|------|"
+$markdownWindows = "### Download for Windows 7+`n`n| Architecture | Format | Download Link | Size |`n|--------------|--------|---------------|------|"
+$markdownMacOS = "### Download for MacOS (Apple Silicon and Intel)`n`n| Architecture | Format | Download Link | Size |`n|--------------|--------|---------------|------|"
 
 # Process Windows downloads
 foreach ($asset in $assets.assets | Where-Object { $_.contentType -match "application/x-msdos-program" }) {
     $format = "Installer (.exe)"
-    $architecture = "Intel" # Simplified assumption for Windows
+    $architecture = "Intel x64" # Simplified assumption for Windows
     $size = [math]::Round($asset.size / 1MB, 2)
     $downloadUrl = $asset.url
     $markdownWindows += "`n| $architecture | $format | [Download]($downloadUrl) | ${size} MB |"
@@ -54,9 +54,14 @@ foreach ($asset in $assets.assets | Where-Object { $_.contentType -match "applic
 }
 
 # Combine the markdown sections
-$markdown = @"
-## Download Wingman $tag
+# $markdown = @"
+# ## Download Wingman $tag
 
+# $markdownWindows
+
+# $markdownMacOS
+# "@
+$markdown = @"
 $markdownWindows
 
 $markdownMacOS

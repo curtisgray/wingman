@@ -1,0 +1,50 @@
+name: Update Wingman Release Notes
+
+on:
+  workflow_run:
+    workflows: ['Wingman App Build and Release']
+    types:
+      - completed
+
+jobs:
+  update-release-notes:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup PowerShell
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Download Artifact with Tag Name
+        uses: actions/download-artifact@v2
+        with:
+          name: tag-name
+          path: artifact
+
+      - name: Read Tag Name
+        id: tag
+        run: |
+          tag=$(cat artifact/tag.txt)
+          echo "The tag is $tag"
+          echo "::set-output name=tag::$tag"
+
+      - name: Update Release Notes with Download Table
+        shell: pwsh
+        run: |
+          # $tag = git describe --tags $(git rev-list --tags --max-count=1)
+          $tag=${{ steps.tag.outputs.tag }}
+          Write-Output "Updating release notes for tag $tag"
+
+          gh release edit "$tag" --prerelease=true --draft=false
+          $markdownTable = ./make-download-table.ps1 -tag "$tag"
+          if (-not $markdownTable) {
+            Write-Error "Failed to generate markdown table."
+            exit 1
+          }
+          gh release edit "$tag" --title "Get Wingman $tag" --notes "$markdownTable" --draft=false --prerelease=false --latest=true
