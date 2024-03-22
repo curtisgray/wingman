@@ -39,10 +39,14 @@ jobs:
           fetch-depth: 0
           submodules: recursive
   
+      - name: Extract Package Version
+        run: |
+          echo "PACKAGE_VERSION=$(python -c "import json; print(json.load(open('./ux/package.json'))['version'])")" >> $GITHUB_ENV
+        shell: python # This uses the Python runner which is cross-platform
+
       - name: Temporary test of getting package version
         run: |
-          PACKAGE_VERSION=$(jq -r '.version' ./ux/package.json)
-          echo "Package version: $PACKAGE_VERSION"
+          echo "Package version: ${{ env.PACKAGE_VERSION }}"
 
       - name: Install the Apple developer certificates
         if: matrix.platform == 'macos' || matrix.platform == 'macos-metal'
@@ -140,10 +144,8 @@ jobs:
         run: .\build.ps1 -BuildPlatform ${{ matrix.platform }}
 
       - name: Create and Push Git Tag if Not Exists
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PACKAGE_VERSION=$(jq -r '.version' ./ux/package.json)
+          PACKAGE_VERSION=${{ env.PACKAGE_VERSION }}
           echo "Checking for existing tag for version $PACKAGE_VERSION..."
 
           # Fetch tags to ensure we have the latest tags in the local git history
@@ -160,3 +162,4 @@ jobs:
             git push origin "v$PACKAGE_VERSION"
             echo "Tag v$PACKAGE_VERSION created and pushed."
           fi
+        shell: bash
