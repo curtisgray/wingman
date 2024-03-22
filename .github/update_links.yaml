@@ -1,9 +1,10 @@
 name: Update Download Links
 
 on:
-  release:
-    types: push
-
+   push:
+    branches:
+      - develop
+      - pages
 jobs:
   update-download-links:
     runs-on: ubuntu-latest
@@ -11,6 +12,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      
 
       - name: Fetch latest release information
         id: get_release
