@@ -5,9 +5,7 @@ import { AIModel, AIModelID, DownloadableItem, Vendors } from '@/types/ai';
 import DownloadButton from './DownloadButton';
 import WingmanContext from '@/pages/api/home/wingman.context';
 import { timeAgo } from '@/types/download';
-import { IconApi, IconPlaneTilt, IconPlaneOff, IconPropeller, IconAperture } from '@tabler/icons-react';
-import { Tooltip } from 'react-tooltip';
-import { displayClearedForTakeoff, displayModelName } from './Util';
+import { displayClearedForTakeoff, displayDownloadInferringButton, displayErrorButton, displayModelName, displayWaitButton } from './Util';
 
 function classNames (...classes: string[]) {
     return classes.filter(Boolean).join(' ')
@@ -31,7 +29,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
     const [aliasBeingReset, setAliasBeingReset] = useState<string | undefined>(undefined)
 
     const {
-        state: { models, globalModel, selectedConversation },
+        state: { models, globalModel, selectedConversation, isSwitchingModel },
         handleChangeModel,
         handleRefreshModels,
         handleResetInferenceError,
@@ -102,14 +100,6 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
         setCategories(createCategories(models));
     }, [models, createCategories]);
 
-    const isGlobalModelItem = (model: AIModel | undefined, item: DownloadableItem | undefined) =>
-    {
-        if (model === undefined || item === undefined || globalModel === undefined || globalModel.item === undefined) return false;
-        if (model.id === AIModelID.NO_MODEL_SELECTED) return false;
-        if (item.filePath === globalModel.item?.filePath) return true;
-        return false;
-    };
-
     const isSelectedModelItem = (model: AIModel | undefined, item: DownloadableItem | undefined) =>
     {
         if (model === undefined || item === undefined || selectedConversation === undefined || selectedConversation.model === undefined) return false;
@@ -136,39 +126,26 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
         return true;
     };
 
-    const displayError = (label: string) =>
+    useEffect(() =>
     {
-        return <div className="self-center m-4">
-            <button type="button"
-                className="w-24 bg-yellow-500 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
-                disabled
-            >
-                label
-            </button>
-        </div>;
-    };
-
-    const displayWait = () =>
-    {
-        return <div className="self-center m-4">
-            <div className="w-24 bg-yellow-950 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
-                <div className="flex space-x-1 items-center justify-center">
-                    <IconAperture className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />
-                    <span>Wait</span>
-                </div>
-            </div>
-        </div>;
-    };
+        if (!startingInference) return;
+        const waiting = isSwitchingModel || !inferringAlias || globalModel?.item?.filePath !== inferringAlias;
+        if (!waiting) {
+            setStartingInference(false);
+        }
+    }, [isSwitchingModel, inferringAlias, currentWingmanInferenceItem, startingInference]);
 
     const displayDownloadInference = (model: AIModel) =>
     {
         // get the latest copy of the model from the models list
         const latestModel = models.find((m) => m.id === model.id);
         if (!latestModel)
-            return displayError("No model");
+            return displayErrorButton("No model");
         if (Vendors[latestModel.vendor].isDownloadable) {
             if (!latestModel.items)
-                return displayError("No items");
+                return displayErrorButton("No items");
+
+            if (startingInference) return displayWaitButton();
 
             // TODO: handle the case where the user has downloaded multiple items
             let index = -1;
@@ -182,25 +159,22 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                 );
             const quantization = latestModel.items[index]?.quantization as string;
             const latestItem = latestModel.items.find((item) => item.quantization === quantization);
-            if (!latestItem) return displayError("No item");
-            if (isAliasBeingReset(latestItem.filePath)) return displayWait();
+            if (!latestItem) return displayErrorButton("No item");
+            if (isAliasBeingReset(latestItem.filePath)) return displayWaitButton();
             if (latestItem.isDownloaded) {
                 // a model can be inferring on the server, but not engaged. another model, say from an API, can be engaged
                 //   even while the server is inferring a different model. thus we need to check for both cases
                 // check if the model is currently engaged
                 // check if the model is currently inferring on the server, but not engaged
-                if (isGlobalModelItem(latestModel, latestItem)) {
-                    // check if the currently selected conversation is this model, if not, then the model is not engaged
+                // check if the currently selected conversation is this model, if not, then the model is not engaged
+                if (isItemInferring(latestItem)) {
                     if (isSelectedModelItem(latestModel, latestItem)) {
                         return <div className="self-center m-4">
                             <button type="button"
                                 className="w-24 bg-orange-800 disabled:shadow-none disabled:cursor-default text-white py-2 rounded"
                                 disabled
                             >
-                                <div className="flex space-x-1 items-center justify-center">
-                                    <IconPropeller className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />
-                                    <span>Engaged</span>
-                                </div>
+                                {displayDownloadInferringButton("Engaged")}
                             </button>
                         </div>;
                     } else {
@@ -209,45 +183,28 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                                 className="w-24 bg-emerald-800 hover:bg-emerald-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                                 onClick={() => handleStartInference(latestModel, latestItem)}
                             >
-                                <div className="flex space-x-1 items-center justify-center">
-                                    <IconPropeller className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />
-                                    <span>Engage</span>
-                                </div>
+                                {displayDownloadInferringButton("Engage")}
                             </button>
                         </div>;
                     }
+                } else if (latestItem.hasError) {
+                    return <div className="self-center m-4">
+                        <button type="button"
+                            className="w-24 bg-rose-800 hover:bg-rose-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                            onClick={() => handleReset(latestItem.filePath)}
+                        >
+                            Reset
+                        </button>
+                    </div>;
                 } else {
-                    if (isItemInferring(latestItem)) {
-                        return <div className="self-center m-4">
-                            <button type="button"
-                                className="w-24 bg-emerald-800 hover:bg-emerald-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
-                                onClick={() => handleStartInference(latestModel, latestItem)}
-                            >
-                                <div className="flex space-x-1 items-center justify-center">
-                                    <IconPropeller className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />
-                                    <span>Engage</span>
-                                </div>
-                            </button>
-                        </div>;
-                    } else if (latestItem.hasError) {
-                        return <div className="self-center m-4">
-                            <button type="button"
-                                className="w-24 bg-rose-800 hover:bg-rose-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
-                                onClick={() => handleReset(latestItem.filePath)}
-                            >
-                                Reset
-                            </button>
-                        </div>;
-                    } else {
-                        return <div className="self-center m-4">
-                            <button type="button"
-                                className="w-24 bg-gray-800 hover:bg-sky-800 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
-                                onClick={() => handleStartInference(latestModel, latestItem)}
-                            >
-                                Engage
-                            </button>
-                        </div>;
-                    }
+                    return <div className="self-center m-4">
+                        <button type="button"
+                            className="w-24 bg-gray-800 hover:bg-sky-800 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                            onClick={() => handleStartInference(latestModel, latestItem)}
+                        >
+                            Engage
+                        </button>
+                    </div>;
                 }
             } else {
                 return <div className="self-center m-4" style={disabled ? { pointerEvents: "none", opacity: "0.4" } : {}}>

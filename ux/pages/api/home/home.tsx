@@ -266,6 +266,7 @@ const Home = ({
     const changeConversationModel = (model: AIModel | undefined) =>
     {
         if (selectedConversation) {
+            homeDispatch({ field: "isSwitchingModel", value: true });
             let m = model;
             if (m === undefined) {
                 m = AIModels[fallbackModelID];
@@ -279,7 +280,6 @@ const Home = ({
 
     const changeGlobalModel = (model: AIModel | undefined) =>
     {
-        homeDispatch({ field: "isSwitchingModel", value: true });
         homeDispatch({ field: "globalModel", value: model });
     };
 
@@ -490,20 +490,6 @@ const Home = ({
 
     // ON LOAD --------------------------------------------
 
-    const isReady = () =>
-    {
-        if (globalModel && isOnline) {
-            if (!Vendors[globalModel.vendor].isDownloadable) {
-                return true;
-            } else if (globalModel.id === currentWingmanInferenceItem?.modelRepo) {
-                if (currentWingmanInferenceItem?.status === "inferring") {
-                    return true;
-                }
-            }
-        }
-        return false;
-    };
-
     useEffect(() =>
     {
         const settings = getSettings();
@@ -647,41 +633,6 @@ const Home = ({
         homeDispatch({ field: "isSwitchingModel", value: false });
     }, [globalModel]);
 
-    // useEffect(() =>
-    // {
-    //     let selectedModel = undefined;
-    //     if (currentConversationModel === undefined) {
-    //         selectedModel = AIModels[defaultModelId];
-    //     } else {
-    //         selectedModel = currentConversationModel;
-    //     }
-    //     changeGlobalModel(selectedModel);
-    // }, [currentConversationModel]);
-
-    // useEffect(() =>
-    // {   // this effect is for notifying the user on the status of the currentWingmanInferenceItem when the globalModel changes
-    //     if (currentWingmanInferenceItem) {
-    //         if (isSwitchingModel) {
-    //             if (globalModel && globalModel.item && globalModel.item.filePath === currentWingmanInferenceItem.filePath) {
-    //                 // this can be called several times while the currentWingmanInferenceItem's status is changing,
-    //                 //  so, we need to wait until the status is 'inferring' before notifying the user
-    //                 if (currentWingmanInferenceItem.status === "inferring") {
-    //                     toast.success(`Engaging Target: ${globalModel.name}`);
-    //                 } else if (currentWingmanInferenceItem.status === "error") {
-    //                     toast.error(`Target Acquisition Failed: ${globalModel.name}`);
-    //                     // switch the globalModel and selectedConversation.model to undefined
-    //                     // TODO: set the globalModel and selectedConversation.model to defaultModel
-    //                     setCurrentConversationModel(undefined);
-    //                 }
-    //             }
-    //         }
-    //     } else if (globalModel && globalModel.id !== AIModelID.NO_MODEL_SELECTED
-    //          && Vendors[globalModel.vendor].isDownloadable) {
-    //         // toast.error(`Target Acquisition Failed: ${globalModel.name}`);
-    //         setCurrentConversationModel(undefined);
-    //     }
-    // }, [currentWingmanInferenceItem, models]);
-
     useEffect(() =>
     {
         if (isSwitchingModel) {
@@ -693,8 +644,21 @@ const Home = ({
 
     useEffect(() =>
     {
+        const isReady = () =>
+        {
+            if (globalModel && isOnline) {
+                if (!Vendors[globalModel.vendor].isDownloadable) {
+                    return true;
+                } else if (globalModel.id === currentWingmanInferenceItem?.modelRepo) {
+                    if (currentWingmanInferenceItem?.status === "inferring") {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
         homeDispatch({ field: "isReady", value: isReady() });
-    });
+    }, [globalModel, currentWingmanInferenceItem, isOnline]);
 
     return (
         <WingmanContext.Provider

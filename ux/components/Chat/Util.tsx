@@ -1,5 +1,5 @@
 import { AIModel, AIModelID, VendorInfo, Vendors } from "@/types/ai";
-import { IconBrandOpenai, IconBrandMeta, IconRobot, IconUnlink, IconApi, IconPlaneOff, IconPlaneTilt } from "@tabler/icons-react";
+import { IconBrandOpenai, IconBrandMeta, IconUnlink, IconApi, IconPlaneOff, IconPlaneTilt, IconPropeller, IconAperture } from "@tabler/icons-react";
 import { Tooltip } from "react-tooltip";
 
 export const WINGMAN_DEFAULT_ICON_SIZE = 18;
@@ -10,7 +10,7 @@ export const displayVendorIcon = (vendor: VendorInfo, iconSize: number = WINGMAN
         case "openai":
             return <div className="dark:text-gray-50 text-gray-800"><IconBrandOpenai size={iconSize} /></div>;
         case "meta":
-            return <div className="text-blue-600"><IconBrandMeta size={iconSize} /></div>
+            return <div className="text-blue-600"><IconBrandMeta size={iconSize} /></div>;
         default:
             return <IconUnlink size={iconSize} />;
     }
@@ -35,7 +35,6 @@ export const displayModelName = (model: AIModel) =>
         // split the repo owner and name and return 'name (repo owner)'
         const [owner, repo] = model.name.split('/');
         const cleanName = repo.replace(/-/g, ' ');
-        // return <div className="flex space-x-1"><span>{repo}</span><span className="text-xs">{owner}</span></div>;
         return <div className="flex space-x-1"><span>{cleanName}</span></div>;
     } else {
         return <div className="flex space-x-1"><span>{model.name}</span></div>;
@@ -62,4 +61,36 @@ export const displayClearedForTakeoff = (model: AIModel, className = "") =>
             <Tooltip id="is-api-inferred" />
         </div>;
     }
+};
+
+export const displayDownloadInferringButton = (label: string) =>
+{
+    return <div className="flex space-x-1 items-center justify-center">
+        <IconPropeller className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />
+        <span>{label}</span>
+    </div>;
+};
+
+export const displayWaitButton = () =>
+{
+    return <div className="self-center m-4">
+        <div className="w-24 bg-yellow-950 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
+            <div className="flex space-x-1 items-center justify-center">
+                <IconAperture className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />
+                <span>Wait</span>
+            </div>
+        </div>
+    </div>;
+};
+
+export const displayErrorButton = (label: string) =>
+{
+    return <div className="self-center m-4">
+        <button type="button"
+            className="w-24 bg-yellow-500 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+            disabled
+        >
+            {label}
+        </button>
+    </div>;
 };

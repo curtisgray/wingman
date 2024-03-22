@@ -489,7 +489,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                             isLoading={isLoadingModelList || isChangingModel}
                             // placeholder={(t("Search for an AI model").length > 0) || ""}
                             placeholder="Search ..."
-                            options={getGroupedModelList()}
+                            options={optionsGroupedModels}
                             value={{
                                 label: displayModel(model),
                                 value: model?.id,

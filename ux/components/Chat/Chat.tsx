@@ -338,14 +338,14 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         }
     };
 
-    const scrollDown = () => {
-        if (autoScrollEnabled) {
-            messagesEndRef.current?.scrollIntoView(true);
-        }
-    };
-    const throttledScrollDown = throttle(scrollDown, 250);
-
     useEffect(() => {
+        const scrollDown = () =>
+        {
+            if (autoScrollEnabled) {
+                messagesEndRef.current?.scrollIntoView(true);
+            }
+        };
+        const throttledScrollDown = throttle(scrollDown, 250);
         throttledScrollDown();
         selectedConversation &&
             setCurrentMessage(
@@ -353,7 +353,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                     selectedConversation.messages.length - 2
                 ]
             );
-    }, [selectedConversation, throttledScrollDown]);
+    }, [selectedConversation]);
 
     useEffect(() => {
         if (messageIsStreaming || !isOnline) {
