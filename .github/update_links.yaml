@@ -2,7 +2,7 @@ name: Update Download Links
 
 on:
   release:
-    types: [published]
+    types: page_build
 
 jobs:
   update-download-links:
