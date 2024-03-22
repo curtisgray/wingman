@@ -119,11 +119,16 @@ jobs:
 
       - name: Extract Package Version and Set as Env Var
         run: |
-          $version = (Get-Content ./ux/package.json | ConvertFrom-Json).version
-          echo "PACKAGE_VERSION=$version" >> $GITHUB_ENV
+          $version = (Get-Content ./ux/package.json -Raw | ConvertFrom-Json).version
+          echo "PACKAGE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
         shell: pwsh
 
-      - name: Temporary test of getting package version
+      - name: Temporary test of getting package version (via pwsh env)
+        run: |
+          echo "Package version: $env:PACKAGE_VERSION"
+        shell: pwsh
+
+      - name: Temporary test of getting package version (via GITHUB env)
         run: |
           echo "Package version: ${{ env.PACKAGE_VERSION }}"
         shell: pwsh
