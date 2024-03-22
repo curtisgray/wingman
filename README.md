@@ -14,21 +14,6 @@ Wingman - Rooster is the first release of Wingman. Future releases will be named
 ---
 <div id="download-table">
 
-## Download Wingman v0.9.2
-
-### Windows Downloads
-
-| Architecture | Format | Download Link | Size |
-|--------------|--------|---------------|------|
-| Intel | Installer (.exe) | [Download](https://github.com/curtisgray/wingman/releases/download/v0.9.2/wingman-0.9.2-Setup.exe) | 670.74 MB |
-
-### MacOS Downloads
-
-| Architecture | Format | Download Link | Size |
-|--------------|--------|---------------|------|
-| Apple Silicon | Disk Image (.dmg) | [Download](https://github.com/curtisgray/wingman/releases/download/v0.9.2/wingman-0.9.2-arm64.dmg) | 211.07 MB |
-| Intel | Disk Image (.dmg) | [Download](https://github.com/curtisgray/wingman/releases/download/v0.9.2/wingman-0.9.2-x64.dmg) | 220.93 MB |
-
 <div>
 
 ---
