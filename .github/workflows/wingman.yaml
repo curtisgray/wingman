@@ -46,27 +46,10 @@ jobs:
           echo "Setting up Git Bash as default shell"
           echo "C:/Program Files/Git/bin" >> $env:GITHUB_PATH
 
-      # test bash shell
       - name: Extract Package Version
         run: |
           package_version=$(jq -r '.version' ./ux/package.json)
           echo "PACKAGE_VERSION=$package_version" >> $GITHUB_ENV
-        shell: bash
-
-      - name: Temporary test of getting package version (via bash env)
-        run: |
-          echo "Package version: $PACKAGE_VERSION"
-        shell: bash
-
-      - name: Temporary test of getting package version (via GITHUB env)
-        run: |
-          echo "Package version: ${{ env.PACKAGE_VERSION }}"
-        shell: bash
-
-      - name: Temporary test of getting package version (via pwsh env)
-        run: |
-          echo "Package version: $env:PACKAGE_VERSION"
-        shell: pwsh
 
       - name: Install the Apple developer certificates
         if: matrix.platform == 'macos' || matrix.platform == 'macos-metal'
@@ -146,22 +129,6 @@ jobs:
           # Create the symbolic link that points to pwsh
           sudo ln -sf /usr/local/microsoft/powershell/7/pwsh /usr/local/bin/pwsh
 
-      - name: Extract Package Version and Set as Env Var
-        run: |
-          $version = (Get-Content ./ux/package.json -Raw | ConvertFrom-Json).version
-          echo "PACKAGE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
-        shell: pwsh
-
-      - name: Temporary test of getting package version (via pwsh env)
-        run: |
-          echo "Package version: $env:PACKAGE_VERSION"
-        shell: pwsh
-
-      - name: Temporary test of getting package version (via GITHUB env)
-        run: |
-          echo "Package version: ${{ env.PACKAGE_VERSION }}"
-        shell: pwsh
-
       - name: Cache npm dependencies
         uses: actions/cache@v2
         with:
@@ -198,4 +165,3 @@ jobs:
             git push origin "v$PACKAGE_VERSION"
             echo "Tag v$PACKAGE_VERSION created and pushed."
           fi
-        shell: bash
