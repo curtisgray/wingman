@@ -147,22 +147,22 @@ jobs:
           $package_version = jq -r '.version' ./ux/package.json
           Add-Content $env:GITHUB_ENV "PACKAGE_VERSION=$package_version"
 
-      - name: Check if Git Tag Exists (Linux and macOS)
-        id: check_tag
-        if: github.ref == 'refs/heads/develop' && matrix.platform != 'windows'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if git fetch --tags && git tag -l 'v*' | grep -q "v${{ env.PACKAGE_VERSION }}"; then
-            echo "Tag v${{ env.PACKAGE_VERSION }} already exists. Skipping tag creation."
-            echo "::set-output name=tag_exists::true"
-          else
-            echo "::set-output name=tag_exists::false"
-          fi
+      # - name: Check if Git Tag Exists (Linux and macOS)
+      #   id: check_tag
+      #   if: github.ref == 'refs/heads/develop' && matrix.platform != 'windows'
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     if git fetch --tags && git tag -l 'v*' | grep -q "v${{ env.PACKAGE_VERSION }}"; then
+      #       echo "Tag v${{ env.PACKAGE_VERSION }} already exists. Skipping tag creation."
+      #       echo "::set-output name=tag_exists::true"
+      #     else
+      #       echo "::set-output name=tag_exists::false"
+      #     fi
       
-      - name: Check if Git Tag Exists (Windows)
+      - name: Check if Git Tag Exists
         id: check_tag
-        if: github.ref == 'refs/heads/develop' && matrix.platform == 'windows'
+        if: github.ref == 'refs/heads/develop'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: pwsh
