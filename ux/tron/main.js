@@ -147,7 +147,7 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
     {
         try
         {
-            let hasShutdown = false;
+            let shuttingDown = false;
             let forceShutdown = false;
             let executableName = 'wingman';
             let useCublas = false;
@@ -211,6 +211,7 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
             let hasModelLoadingError = false;
             const handleAIModelLoadingError = (output) =>
             {
+                if (shuttingDown) { etell(`shutting down ignoring output: ${output}`); return; }
                 // Loading an AI model failed on Windows:
                 // - `cudaMalloc failed: out of memory`
                 // - `::startInference run_inference returned 1024.`
@@ -240,23 +241,11 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                     forceShutdown = true;
                 }
 
-                // if (output.includes("ggml_backend_metal_log_allocated_size: warning: current allocated size is greater than the recommended max working set size"))
-                // {
-                //     hasModelLoadingError = true;
-                //     forceShutdown = true;
-                // }
-
-                // if (output.includes("Model loading error:"))
-                // {
-                //     hasModelLoadingError = true;
-                //     forceShutdown = true;
-                // }
-
                 if (forceShutdown)
                 {
                     // Exit the subprocess
                     subprocess.kill('SIGINT');
-                    hasShutdown = true;
+                    shuttingDown = true;
 
                     // Determine the wingman_reset executable name based on platform
                     let resetExecutableName = 'wingman_reset';
@@ -276,6 +265,16 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                         windowsHide: true,
                     });
 
+                    resetSubprocess.stdout.on('data', (data) =>
+                    {
+                        tell(`Wingman Reset stdout: ${data.toString()}`);
+                    });
+
+                    resetSubprocess.stderr.on('data', (data) =>
+                    {
+                        etell(`Wingman Reset stderr: ${data.toString()}`);
+                    });
+
                     resetSubprocess.on('close', (code) =>
                     {
                         if (code !== 0)
@@ -291,7 +290,7 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                 } else if (hasModelLoadingError)
                 {
                     etell(`Model loading error: ${output}`);
-                    hasShutdown = true;
+                    shuttingDown = true;
                     // ipcMain.emit("start-wingman", wingmanDir, nextDir);
                 }
             };
@@ -308,7 +307,7 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                     resolve({
                         terminate: () =>
                         {
-                            if (hasShutdown) return;
+                            if (shuttingDown) return;
                         }
                     });
                 }
@@ -361,7 +360,7 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
 
             subprocess.on('close', (code) =>
             {
-                hasShutdown = true;
+                shuttingDown = true;
                 if (code !== 0)
                 {
                     etell(`Wingman process exited with code ${code}`);
@@ -542,7 +541,7 @@ ipcMain.on("start-wingman", async (wingmanDir, nextDir) =>
 {
     if (wingmanProcessController)
     {
-        etell('Wingman is already running');
+        etell('Wingman is already running... terminating existing process...');
         wingmanProcessController.terminate();
     }
     await launchWingmanExecutable(wingmanDir, nextDir)
