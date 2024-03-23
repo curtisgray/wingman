@@ -170,7 +170,7 @@ jobs:
         run: echo ${{ env.PACKAGE_VERSION }} > tag.txt
 
       - name: Upload Tag Name as Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: tag-name
           path: tag.txt
