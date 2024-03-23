@@ -30,13 +30,17 @@ jobs:
         run: |
           tag=$(cat ${{ steps.tag-artifact.outputs.download-path }}/tag.txt)
           echo "The tag is $tag"
-          echo "::set-output name=tag::$tag"
+          # set an environment variable to pass to the next step
+          echo "TAG=$tag" >> $GITHUB_ENV
 
       - name: Update Release Notes with Download Table
         shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # $tag = git describe --tags $(git rev-list --tags --max-count=1)
-          $tag=${{ steps.tag.outputs.tag }}
+          # $tag=${{ env.TAG }}
+          $tag = $env:TAG
           Write-Output "Updating release notes for tag $tag"
 
           gh release edit "$tag" --prerelease=true --draft=false
