@@ -19,6 +19,7 @@ jobs:
 
       - name: Download Artifact with Tag Name
         uses: actions/download-artifact@v4
+        id: tag-artifact
         with:
           name: tag-name
           run-id: ${{ github.event.workflow_run.id }}
@@ -27,7 +28,7 @@ jobs:
       - name: Read Tag Name
         id: tag
         run: |
-          tag=$(cat tagname/tag.txt)
+          tag=$(cat ${{ steps.tag-artifact.outputs.download-path }})
           echo "The tag is $tag"
           echo "::set-output name=tag::$tag"
 

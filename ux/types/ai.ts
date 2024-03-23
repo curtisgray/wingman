@@ -44,6 +44,8 @@ export interface AIModel
     created: string;
     updated: string;
     size: string;
+    iqScore: number;
+    eqScore: number;
     isInferable?: boolean;
 }
 
@@ -115,6 +117,8 @@ export const AIModels: Record<AIModelID, AIModel> = {
         created: "",
         updated: "",
         size: "",
+        iqScore: 0,
+        eqScore: 0,
     },
     [AIModelID.GPT_4_PREVIEW]: {
         isa: "AIModel",
@@ -128,7 +132,9 @@ export const AIModels: Record<AIModelID, AIModel> = {
         created: "",
         updated: "",
         size: "128K",
-    },
+        iqScore: 0,
+        eqScore: 0,
+   },
     [AIModelID.GPT_4_VISION_PREVIEW]: {
         isa: "AIModel",
         id: AIModelID.GPT_4_VISION_PREVIEW,
@@ -141,6 +147,8 @@ export const AIModels: Record<AIModelID, AIModel> = {
         created: "",
         updated: "",
         size: "128K",
+        iqScore: 0,
+        eqScore: 0,
     },
     [AIModelID.GPT_4]: {
         isa: "AIModel",
@@ -154,6 +162,8 @@ export const AIModels: Record<AIModelID, AIModel> = {
         created: "",
         updated: "",
         size: "8K",
+        iqScore: 0,
+        eqScore: 0,
     },
     [AIModelID.GPT_4_32K]: {
         isa: "AIModel",
@@ -167,6 +177,8 @@ export const AIModels: Record<AIModelID, AIModel> = {
         created: "",
         updated: "",
         size: "32K",
+        iqScore: 0,
+        eqScore: 0,
     },
     [AIModelID.GPT_3_5_TURBO_PREVIEW]: {
         isa: "AIModel",
@@ -180,6 +192,8 @@ export const AIModels: Record<AIModelID, AIModel> = {
         created: "",
         updated: "",
         size: "16K",
+        iqScore: 0,
+        eqScore: 0,
     },
     [AIModelID.GPT_3_5_TURBO]: {
         isa: "AIModel",
@@ -193,6 +207,8 @@ export const AIModels: Record<AIModelID, AIModel> = {
         created: "",
         updated: "",
         size: "4K",
+        iqScore: 0,
+        eqScore: 0,
     },
     [AIModelID.GPT_3_5_TURBO_16K]: {
         isa: "AIModel",
@@ -206,6 +222,8 @@ export const AIModels: Record<AIModelID, AIModel> = {
         created: "",
         updated: "",
         size: "16K",
+        iqScore: 0,
+        eqScore: 0,
     },
     // [AIModelID.GPT_3_5_TURBO_INSTRUCT]: {
     //     isa: "AIModel",
