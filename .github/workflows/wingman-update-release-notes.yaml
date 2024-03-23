@@ -25,12 +25,12 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: tag-name
-          path: artifact
+          path: tag.txt
 
       - name: Read Tag Name
         id: tag
         run: |
-          tag=$(cat artifact/tag.txt)
+          tag=$(cat tag.txt)
           echo "The tag is $tag"
           echo "::set-output name=tag::$tag"
 
