@@ -36,7 +36,7 @@ jobs:
       - name: Update Release Notes with Download Table
         shell: pwsh
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # $tag = git describe --tags $(git rev-list --tags --max-count=1)
           # $tag=${{ env.TAG }}

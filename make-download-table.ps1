@@ -2,8 +2,8 @@ param(
     [string]$tag
 )
 
-function IsValidSemanticVersion($tag) {
-    return $tag -match '^v?\d+\.\d+\.\d+(-[a-zA-Z0-9]+)?$'
+function IsValidSemanticVersion($checkTag) {
+    return $checkTag -match '^v?\d+\.\d+\.\d+(-[a-zA-Z0-9]+)?$'
 }
 
 # Fetch the latest tag if not provided or if the provided tag is not valid
