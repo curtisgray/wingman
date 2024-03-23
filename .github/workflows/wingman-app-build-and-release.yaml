@@ -174,3 +174,4 @@ jobs:
         with:
           name: tag-name
           path: tag.txt
+          overwrite: true
