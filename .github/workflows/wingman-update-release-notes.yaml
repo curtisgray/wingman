@@ -23,7 +23,7 @@ jobs:
           name: tag-name
           path: tag.txt
           run-id: ${{ github.event.workflow_run.id }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Read Tag Name
         id: tag
