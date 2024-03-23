@@ -167,7 +167,7 @@ jobs:
           fi
 
       - name: Save Tag Name
-        run: echo ${{ env.PACKAGE_VERSION }} > tag.txt
+        run: echo "v${{ env.PACKAGE_VERSION }}" > tag.txt
 
       - name: Upload Tag Name as Artifact
         uses: actions/upload-artifact@v4
