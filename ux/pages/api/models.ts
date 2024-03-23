@@ -21,6 +21,7 @@ export const config = {
 const handler = async (req: NextApiRequest, res: NextApiResponse) =>
 {
     let controllers: si.Systeminformation.GraphicsControllerData[] = [];
+    const memoryAdjustment = 1024 * 1024;
     try {
         const gpuInfo = await si.graphics();
         controllers = gpuInfo.controllers;
@@ -28,8 +29,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         logger.debug(`OS Platform: ${JSON.stringify(os.platform())}`);
         logger.debug(`OS Arch: ${JSON.stringify(os.arch())}`);
         logger.debug(`Free Memory: ${JSON.stringify(os.freemem())}`);
-        logger.debug(`Adjusted Free Memory: ${JSON.stringify(os.freemem() / (1024 * 1024))}`)
-
+        logger.debug(`Total Memory: ${JSON.stringify(os.totalmem())}`);
+        logger.debug(`Adjusted Free Memory: ${JSON.stringify(os.freemem() / memoryAdjustment)}`);
+        logger.debug(`Adjusted Total Memory: ${JSON.stringify(os.totalmem() / memoryAdjustment)}`);
     } catch (error) {
         logger.error(`Error getting GPU info: ${error}`);
         throw new Error(`${error}`);
@@ -61,8 +63,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         let availableMemory = -1;
         // if there is no gpu, or this is an Apple arm64 device, use the system memory
         if (controllers.length === 0 || (os.platform() === 'darwin' && os.arch() === 'arm64')) {
-            availableMemory = os.freemem() / (1024 * 1024);
-            // availableMemory = os.freemem() / (1024);
+            // availableMemory = os.freemem() / memoryAdjustment;
+            availableMemory = os.totalmem() / memoryAdjustment;
         } else {
             // Search the list of controllers for the first one that:
             //  - Has nvidia or amd in the name
@@ -85,7 +87,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
             availableMemory = toNumber(bestController.vram);
             // if we couldn't find a controller with non-zero VRAM, use the system memory
             if (availableMemory <= 0) {
-                availableMemory = os.freemem() / (1024 * 1024);
+                availableMemory = os.totalmem() / memoryAdjustment;
             }
         }
         if (availableMemory === -1) return false;
