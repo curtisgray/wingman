@@ -28,7 +28,7 @@ jobs:
       - name: Read Tag Name
         id: tag
         run: |
-          tag=$(cat ${{ steps.tag-artifact.outputs.download-path }})
+          tag=$(cat ${{ steps.tag-artifact.outputs.download-path }}/tag.txt)
           echo "The tag is $tag"
           echo "::set-output name=tag::$tag"
 
