@@ -4,8 +4,8 @@ import HomeContext from '@/pages/api/home/home.context'
 import { AIModel, AIModelID, DownloadableItem, Vendors } from '@/types/ai';
 import DownloadButton from './DownloadButton';
 import WingmanContext from '@/pages/api/home/wingman.context';
-import { timeAgo } from '@/types/download';
-import { displayClearedForTakeoff, displayDownloadInferringButton, displayErrorButton, displayModelName, displayWaitButton } from './Util';
+import { displayClearedForTakeoff, displayDownloadInferringButton, displayErrorButton, displayModelMetrics, displayModelName, displayWaitButton } from './Util';
+import { Tooltip } from 'react-tooltip';
 
 function classNames (...classes: string[]) {
     return classes.filter(Boolean).join(' ')
@@ -20,13 +20,25 @@ interface Props {
 interface ModelCategories {
     'My Models': AIModel[];
     'Recently Added': AIModel[];
-    Popular: AIModel[];
+    // Popular: AIModel[];
     Trending: AIModel[];
+    IQ: AIModel[];
+    'Emotion IQ': AIModel[];
 }
 
 export default function ModelListing({ onSelect = () => { }, isDisabled: disabled = false, iconSize = 20 }: Props) {
     const listSize = 10;
-    const [categories, setCategories] = useState<ModelCategories>({ 'My Models': [], 'Recently Added': [], Popular: [], Trending: [] });
+    // const [categories, setCategories] = useState<ModelCategories>({ 'My Models': [], 'Recently Added': [], Popular: [], Trending: [] });
+    const [categories, setCategories] = useState<ModelCategories>(
+        {
+            'My Models': [],
+            'Recently Added': [],
+            // Popular: [],
+            Trending: [],
+            IQ: [],
+            'Emotion IQ': []
+        }
+    );
     const [selectedTabIndex, setSelectedTabIndex] = useState(0);
     const [aliasBeingReset, setAliasBeingReset] = useState<string | undefined>(undefined);
     const [startingInference, setStartingInference] = useState<boolean>(false);
@@ -41,10 +53,6 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
     const {
         state: { currentWingmanInferenceItem, isOnline, downloadItems, inferringAlias, wingmanItems },
     } = useContext(WingmanContext);
-
-    const isDownloadable = (model: AIModel) => {
-        return Vendors[model.vendor].isDownloadable;
-    };
 
     const handleDownloadComplete = () => {};
     const handleDownloadStart = () => {};
@@ -74,7 +82,14 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
     useEffect(() => {
         const createCategories = (models: AIModel[]): ModelCategories =>
         {
-            if (!isOnline) return { 'My Models': [], 'Recently Added': [], Popular: [], Trending: [] };
+            if (!isOnline) return { 
+                'My Models': [],
+                'Recently Added': [],
+                // Popular: [],
+                Trending: [],
+                IQ: [],
+                'Emotion IQ': []
+            };
 
             // filter the models to get the downloaded and OpenAI models
             let downloadedModels = models.filter((model) =>
@@ -148,11 +163,29 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
             // get the first listSize models
             const trendingModels = sortedModelsByLikes.slice(0, listSize);
 
+            // sort models by IQ score descending, and remove models with a score less than or equal to 0
+            const sortedModelsByIQ = models.filter((model) => model.iQScore > 0).sort((a, b) =>
+            {
+                return b.iQScore - a.iQScore;
+            });
+
+            const modelsByIQ = sortedModelsByIQ.slice(0, listSize);
+
+            // sort models by 'Emotion IQ' score descending, and remove models with a score less than or equal to 0
+            const sortedModelsByEQ = models.filter((model) => model.eQScore > 0).sort((a, b) =>
+            {
+                return b.eQScore - a.eQScore;
+            });
+
+            const modelsByEQ = sortedModelsByEQ.slice(0, listSize);
+
             return {
                 'My Models': downloadedModels,
                 'Recently Added': recentModels,
-                Popular: popularModels,
+                // Popular: popularModels,
                 Trending: trendingModels,
+                IQ: modelsByIQ,
+                'Emotion IQ': modelsByEQ,
             };
         };
         setCategories(createCategories(models));
@@ -297,50 +330,55 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
         }
     };
 
-    const displayModelMetrics = (item: AIModel) => {
-        const vendor = Vendors[item.vendor];
-        if (isDownloadable(item)) {
-            return <>
-                <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-gray-400'>
-                    {/* <li>{new Date(item.updated).toLocaleDateString()}</li> */}
-                    <li>{timeAgo(new Date(item.updated))}</li>
-                    <li>&middot;</li>
-                    <li>{item.downloads} downloads</li>
-                    <li>&middot;</li>
-                    <li>{item.likes} likes</li>
-                </ul>
-            </>
-        } else {
-            const tokenInKb = Math.round(item.tokenLimit / 1024);
-            return <>
-                <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-gray-400'>
-                    <li>{vendor.displayName}</li>
-                    <li>&middot;</li>
-                    <li>context size {`${tokenInKb}K`}</li>
-                </ul>
-            </>
-        }
+    const categoryTooltipId = (category: string) =>
+    {
+        return `category-${category}`;
     };
 
+    const categoryTooltipContent = (category: string) =>
+    {
+        switch (category) {
+            case 'My Models':
+                return "Models that are available for inference";
+            case 'Recently Added':
+                return "Models that have been recently added";
+            case 'Popular':
+                return "Models with the most downloads recently";
+            case 'Trending':
+                return "Models with the most likes and downloads";
+            case 'IQ':
+                return "Models with high LLM Benchmark scores";
+            case 'Emotion IQ':
+                return "Models with high Emotion Intelligence scores";
+            default:
+                return "";
+        }
+    };
+    
     return (
         <div className='w-full px-2 py-4 sm:px-0 mt-4 mb-4'>
             <Tab.Group selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
                 <Tab.List className='flex space-x-1 rounded bg-gray-900 dark:bg-blue-900/20 p-1'>
                     {Object.keys(categories).map(category => (
-                        <Tab
-                            key={category}
-                            className={({ selected }) =>
-                                classNames(
-                                    'w-full rounded py-2.5 text-sm font-medium leading-5',
-                                    'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
-                                    selected
-                                        ? 'bg-white text-blue-700 shadow'
-                                        : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
-                                )
-                            }
-                        >
-                            {category}
-                        </Tab>
+                        <>
+                            <Tab
+                                key={category}
+                                className={({ selected }) =>
+                                    classNames(
+                                        'w-full rounded py-2.5 text-sm font-medium leading-5',
+                                        'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2',
+                                        selected
+                                            ? 'bg-white text-blue-700 shadow'
+                                            : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
+                                    )
+                                }
+                                data-tooltip-id={categoryTooltipId(category)}
+                                data-tooltip-content={categoryTooltipContent(category)}
+                            >
+                                {category}
+                            </Tab>
+                            <Tooltip id={categoryTooltipId(category)} />
+                        </>
                     ))}
                 </Tab.List>
                 <Tab.Panels className='mt-2'>

@@ -1,8 +1,15 @@
 import { AIModel, AIModelID, VendorInfo, Vendors } from "@/types/ai";
+import { timeAgo } from "@/types/download";
+import { precisionRound } from "@/types/wingman";
 import { IconBrandOpenai, IconBrandMeta, IconUnlink, IconApi, IconPlaneOff, IconPlaneTilt, IconPropeller, IconAperture } from "@tabler/icons-react";
 import { Tooltip } from "react-tooltip";
 
 export const WINGMAN_DEFAULT_ICON_SIZE = 18;
+
+export const isModelDownloadable = (model: AIModel) =>
+{
+    return Vendors[model.vendor].isDownloadable;
+};
 
 export const displayVendorIcon = (vendor: VendorInfo, iconSize: number = WINGMAN_DEFAULT_ICON_SIZE) =>
 {
@@ -93,4 +100,32 @@ export const displayErrorButton = (label: string) =>
             {label}
         </button>
     </div>;
+};
+
+export const displayModelMetrics = (item: AIModel) =>
+{
+    const vendor = Vendors[item.vendor];
+    if (isModelDownloadable(item)) {
+        return <>
+            <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-gray-400'>
+                {/* <li>{new Date(item.updated).toLocaleDateString()}</li> */}
+                <li>{timeAgo(new Date(item.updated))}</li>
+                <li>&middot;</li>
+                <li>{item.downloads} downloads</li>
+                <li>&middot;</li>
+                <li>{item.likes} likes</li>
+                {item.iQScore > 0 && <><li>&middot;</li><li><span className="">{precisionRound(item.iQScore, 1)}</span> <span className="">IQ</span></li></>}
+                {item.eQScore > 0 && <><li>&middot;</li><li><span className="">{precisionRound(item.eQScore, 1)}</span> <span className="">EQ</span></li></>}
+            </ul>
+        </>;
+    } else {
+        const tokenInKb = Math.round(item.tokenLimit / 1024);
+        return <>
+            <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-gray-400'>
+                <li>{vendor.displayName}</li>
+                <li>&middot;</li>
+                <li>context size {`${tokenInKb}K`}</li>
+            </ul>
+        </>;
+    }
 };

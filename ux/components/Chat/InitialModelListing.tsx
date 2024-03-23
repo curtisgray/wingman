@@ -4,8 +4,7 @@ import HomeContext from '@/pages/api/home/home.context'
 import { AIModel, AIModelID, DownloadableItem, Vendors } from '@/types/ai';
 import DownloadButton from './DownloadButton';
 import WingmanContext from '@/pages/api/home/wingman.context';
-import { timeAgo } from '@/types/download';
-import { displayClearedForTakeoff, displayDownloadInferringButton, displayErrorButton, displayModelName, displayWaitButton } from './Util';
+import { displayClearedForTakeoff, displayDownloadInferringButton, displayErrorButton, displayModelMetrics, displayModelName, displayWaitButton } from './Util';
 
 function classNames (...classes: string[]) {
     return classes.filter(Boolean).join(' ')
@@ -38,10 +37,6 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
     const {
         state: { currentWingmanInferenceItem, isOnline, wingmanItems, inferringAlias },
     } = useContext(WingmanContext);
-
-    const isDownloadable = (model: AIModel) => {
-        return Vendors[model.vendor].isDownloadable;
-    };
 
     // wrap createCategories in a useCallback to prevent it from being recreated on every render
     const createCategories = useCallback((models: AIModel[]) => {
@@ -236,32 +231,6 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                     </button>
                 </div>;
             }
-        }
-    };
-
-    const displayModelMetrics = (item: AIModel) =>
-    {
-        const vendor = Vendors[item.vendor];
-        if (isDownloadable(item)) {
-            return <>
-                <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-gray-400'>
-                    {/* <li>{new Date(item.updated).toLocaleDateString()}</li> */}
-                    <li>{timeAgo(new Date(item.updated))}</li>
-                    <li>&middot;</li>
-                    <li>{item.downloads} downloads</li>
-                    <li>&middot;</li>
-                    <li>{item.likes} likes</li>
-                </ul>
-            </>;
-        } else {
-            const tokenInKb = Math.round(item.tokenLimit / 1024);
-            return <>
-                <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-gray-400'>
-                    <li>{vendor.displayName}</li>
-                    <li>&middot;</li>
-                    <li>context size {`${tokenInKb}K`}</li>
-                </ul>
-            </>;
         }
     };
 

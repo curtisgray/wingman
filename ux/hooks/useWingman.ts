@@ -1,17 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { ConnectionStatus, DownloadItem, DownloadItemStatus, DownloadServerAppItem } from "@/types/download";
 import { LlamaStats, LlamaStatsTimings, newLlamaStatsTimings, LlamaStatsSystem, newLlamaStatsSystem, LlamaStatsMeta, newLlamaStatsMeta, LlamaStatsTensors, newLlamaStatsTensors } from "@/types/llama_stats";
-import { WINGMAN_CONTROL_PORT, WINGMAN_SERVER_DEFAULT_HOST, WingmanItem, WingmanItemStatus, WingmanServiceAppItem, WingmanStateProps, getWingmanItemStatusLabel, getWingmanItemStatusMessage, hasActiveStatus } from "@/types/wingman";
+import { WINGMAN_CONTROL_PORT, WINGMAN_SERVER_DEFAULT_HOST, WingmanItem, WingmanItemStatus, WingmanServiceAppItem, WingmanStateProps, getWingmanItemStatusLabel, getWingmanItemStatusMessage, hasActiveStatus, precisionRound } from "@/types/wingman";
 import { useEffect, useState } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 import { isEqual } from "lodash";
-
-
-function precisionRound(value: number, precision: number)
-{
-    const factor = Math.pow(10, precision);
-    return Math.round(value * factor) / factor;
-}
 
 export function useWingman():
     {

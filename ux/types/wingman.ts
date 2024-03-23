@@ -181,6 +181,12 @@ export const getWingmanItemStatusLabel = (wi: WingmanItem | undefined) =>
     }
 };
 
+export function precisionRound(value: number, precision: number)
+{
+    const factor = Math.pow(10, precision);
+    return Math.round(value * factor) / factor;
+}
+
 export const isValidWingmanItem = (item: WingmanItem) => item.alias !== undefined && item.alias.trim() !== "";
 export const WINGMAN_TABLE = "wingman";
 

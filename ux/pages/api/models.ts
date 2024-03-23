@@ -54,8 +54,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         let availableMemory = -1;
         // if there is no gpu, or this is an Apple arm64 device, use the system memory
         if (controllers.length === 0 || (os.platform() === 'darwin' && os.arch() === 'arm64')) {
-            // availableMemory = os.freemem() / (1024 * 1024);
-            availableMemory = os.freemem() / (1024);
+            availableMemory = os.freemem() / (1024 * 1024);
+            // availableMemory = os.freemem() / (1024);
         } else {
             // Search the list of controllers for the first one that:
             //  - Has nvidia or amd in the name
