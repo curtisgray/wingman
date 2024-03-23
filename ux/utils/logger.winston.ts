@@ -1,4 +1,4 @@
-import { DATA_DIR } from "@/types/download";
+import { BASE_DIR, DATA_DIR } from "@/types/download";
 import path from "path";
 import winston from "winston";
 import DailyRotateFile from "winston-daily-rotate-file";
@@ -17,6 +17,17 @@ const logger = winston.createLogger({
             level: process.env.LOG_LEVEL ?? "verbose",
             format: winston.format.combine(
                 winston.format.colorize(),
+                winston.format.printf(({ timestamp, level, message }) =>
+                {
+                    return `[${timestamp}] [${level}] ${message}`;
+                }),
+            ),
+        }),
+        new winston.transports.File({
+            level: "debug",
+            filename: path.join(BASE_DIR, "wingman.log"),
+            format: winston.format.combine(
+                winston.format.uncolorize(),
                 winston.format.printf(({ timestamp, level, message }) =>
                 {
                     return `[${timestamp}] [${level}] ${message}`;

@@ -281,7 +281,8 @@ export const DIST_LEAF_DIR = "dist";
 export const DATA_LEAF_DIR = "data";
 export const MODELS_LEAF_DIR = "models";
 
-export const DATA_DIR = path.join(os.homedir(), ".wingman", DATA_LEAF_DIR);
+export const BASE_DIR = path.join(os.homedir(), ".wingman");
+export const DATA_DIR = path.join(BASE_DIR, DATA_LEAF_DIR);
 export const MODELS_DIR = path.join(DATA_DIR, MODELS_LEAF_DIR);
 
 export const DATABASE_FILENAME = "wingman.db";

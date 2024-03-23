@@ -8,8 +8,9 @@ import
     OPENAI_ORGANIZATION,
 } from "@/utils/app/const";
 import * as si from 'systeminformation';
-import os from 'os'
+import os from 'os';
 import { NextApiRequest, NextApiResponse } from "next";
+import { default as logger } from "@/utils/logger.winston";
 
 export const config = {
     api: {
@@ -23,11 +24,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
     try {
         const gpuInfo = await si.graphics();
         controllers = gpuInfo.controllers;
+        logger.debug(`GPU Info: ${JSON.stringify(controllers)}`);
+        logger.debug(`OS Platform: ${JSON.stringify(os.platform())}`);
+        logger.debug(`OS Arch: ${JSON.stringify(os.arch())}`);
+        logger.debug(`Free Memory: ${JSON.stringify(os.freemem())}`);
+        logger.debug(`Adjusted Free Memory: ${JSON.stringify(os.freemem() / (1024 * 1024))}`)
 
     } catch (error) {
+        logger.error(`Error getting GPU info: ${error}`);
         throw new Error(`${error}`);
     }
-    
+
     function isNumber(value?: string | number | null | undefined): boolean
     {
         if (value === null || value === undefined) return false;
@@ -66,11 +73,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
                 let controller = controllers[i];
                 let vram = toNumber(controller.vram);
                 if (vram > 0
-                        && (controller.vendor.toLowerCase().includes('nvidia')
-                            || controller.vendor.toLowerCase().includes('amd')
-                            || controller.vendor.toLowerCase().includes('advanced micro devices'))
-                    )
-                {
+                    && (controller.vendor.toLowerCase().includes('nvidia')
+                        || controller.vendor.toLowerCase().includes('amd')
+                        || controller.vendor.toLowerCase().includes('advanced micro devices'))
+                ) {
                     if (vram > toNumber(bestController.vram)) {
                         bestController = controller;
                     }
@@ -79,7 +85,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
             availableMemory = toNumber(bestController.vram);
             // if we couldn't find a controller with non-zero VRAM, use the system memory
             if (availableMemory <= 0) {
-                availableMemory = os.freemem();
+                availableMemory = os.freemem() / (1024 * 1024);
             }
         }
         if (availableMemory === -1) return false;
@@ -145,6 +151,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
                 }
                 return response; // Return the successful response
             } catch (error: unknown) {
+                logger.error(`Attempt ${i + 1} failed with error: ${error}`);
                 if (error instanceof Error) {
                     console.error(`Attempt ${i + 1} failed with error: ${error.message}`);
                     throw error;
@@ -254,7 +261,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         setIsInferables(models);
         res.status(200).json(models);
     } catch (error: unknown) {
-    if (error instanceof Error) {
+        logger.error(`Error: ${error}`);
+        if (error instanceof Error) {
             console.log(error.message); // Safe to access `message` because we've checked the type
         } else {
             console.log("An unknown error occurred");

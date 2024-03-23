@@ -31,6 +31,7 @@ Wingman - Rooster is the first release of Wingman. Future releases will be named
 ---
 
 <p align="center">
+<h4 align="center">Click below to watch the video</h4>
   <a href="https://youtu.be/BTFclfbUDso">
     <img src="./assets/images/announcement-shot.png" alt="Watch the video">
   </a>
