@@ -488,12 +488,20 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                         <Select
                             isLoading={isLoadingModelList || isChangingModel}
                             // placeholder={(t("Search for an AI model").length > 0) || ""}
+                            // classNames={{
+                            //     control: (state) =>
+                            //         state.isFocused ? 'border-red-600' : 'border-grey-300',
+                            // }}
                             placeholder="Search ..."
                             options={optionsGroupedModels}
                             value={{
                                 label: displayModel(model),
                                 value: model?.id,
                             } as ModelOption}
+                            // defaultValue={{
+                            //     label: displayModel(model),
+                            //     value: model?.id,
+                            // } as ModelOption}
                             isSearchable={true}
                             // hideSelectedOptions={true}
                             onChange={handleChangeSelectedModel}

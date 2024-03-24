@@ -21,6 +21,11 @@ const APP_DIR = path.join(os.homedir(), ".wingman");
 let LOGGER_WINDOW = null;
 // set WINGMAN_UI_PORT to -1 to use a random port
 let WINGMAN_UI_PORT = 49152;
+const WINGMAN_KILL_FILE_NAME = "wingman.die";
+const WINGMAN_EXIT_MESSAGES = [
+    "***Wingman Exit***",
+    "***Wingman Error Exit***"
+];
 
 const logger = winston.createLogger({
     level: "silly",
@@ -121,6 +126,14 @@ const etell = (data) =>
     logger.log("error", data);
 };
 
+const createKillFile = () =>
+{
+    const killFilePath = path.join(APP_DIR, WINGMAN_KILL_FILE_NAME);
+    tell(`Creating kill file: ${killFilePath}`);
+    fs.writeFileSync(killFilePath, `[${Date.now}] This file is used to signal the Wingman process to terminate.`, { encoding: "utf-8" });
+    return killFilePath;
+};
+
 // check if `app.asar` is in the __dirname
 const isPackaged = __dirname.includes('app.asar');
 
@@ -147,7 +160,7 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
     {
         try
         {
-            let shuttingDown = false;
+            let isServerShuttingDown = false;
             let forceShutdown = false;
             let executableName = 'wingman';
             let useCublas = false;
@@ -188,7 +201,8 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                     if (process.arch === 'arm64')
                     {
                         wingman_runtime = 'macos-metal';
-                    } else
+                    }
+                    else
                     {
                         wingman_runtime = 'macos';
                     }
@@ -211,16 +225,17 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
             let hasModelLoadingError = false;
             const handleAIModelLoadingError = (output) =>
             {
-                if (shuttingDown) { etell(`shutting down ignoring output: ${output}`); return; }
+                if (!output) { etell(`output is empty`); return; }
+                if (isServerShuttingDown) { etell(`shutting down ignoring output: ${output}`); return; }
                 // Loading an AI model failed on Windows:
                 // - `cudaMalloc failed: out of memory`
                 // - `::startInference run_inference returned 1024.`
                 if (output.includes("cudaMalloc failed: out of memory"))
-                {
+                {   // this is a fatal error. Wingman will shutdown at once
                     hasModelLoadingError = true;
                 }
                 if (output.includes("::startInference run_inference returned 1024."))
-                {
+                {   // this is a fatal error. Wingman will shutdown at once
                     hasModelLoadingError = true;
                 }
                 // Loading an AI model failed on Apple Silicon:
@@ -230,13 +245,13 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                 // check for buffer followed by any number and status followed by any number
                 const bufferStatusRegex = /ggml_metal_graph_compute: command buffer \d+ failed with status \d+/;
                 if (bufferStatusRegex.test(output))
-                {
+                {   // this is a fatal error. Wingman will have to be forcefully shutdown
                     hasModelLoadingError = true;
                     forceShutdown = true;
                 }
 
                 if (output.includes("ggml_metal_graph_compute: command buffer 0 failed with status 5"))
-                {
+                {  // this is a fatal error. Wingman will have to be forcefully shutdown
                     hasModelLoadingError = true;
                     forceShutdown = true;
                 }
@@ -244,8 +259,10 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                 if (forceShutdown)
                 {
                     // Exit the subprocess
-                    subprocess.kill('SIGINT');
-                    shuttingDown = true;
+                    // subprocess.kill('SIGINT');
+                    createKillFile();
+
+                    isServerShuttingDown = true;
 
                     // Determine the wingman_reset executable name based on platform
                     let resetExecutableName = 'wingman_reset';
@@ -285,70 +302,81 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                             tell(`Wingman Reset process exited successfully`);
                         }
                         // Now it's safe to emit the 'start-wingman' event
-                        ipcMain.emit("start-wingman", wingmanDir, nextDir);
+                        // ipcMain.emit("start-wingman", wingmanDir, nextDir);
                     });
-                } else if (hasModelLoadingError)
+                }
+                else if (hasModelLoadingError)
                 {
                     etell(`Model loading error: ${output}`);
-                    shuttingDown = true;
-                    // ipcMain.emit("start-wingman", wingmanDir, nextDir);
+                    isServerShuttingDown = true;
                 }
             };
 
-            let serverReady = false;
+            let isServerReady = false;
             subprocess.stdout.on('data', (data) =>
             {
+                if (!data) { etell(`data is empty`); return; }
                 const output = data.toString();
                 tell(`Wingman stdout: ${output}`);
-                // Server is ready: `96ad0fad-82da-43a9-a313-25f51ef90e7c`
-                if (output.includes("96ad0fad-82da-43a9-a313-25f51ef90e7c"))
-                {
-                    // resolve(controller);
-                    resolve({
-                        terminate: () =>
-                        {
-                            if (shuttingDown) return;
-                        }
-                    });
-                }
 
-                if (!serverReady)
+                // check for exit messages
+                if (WINGMAN_EXIT_MESSAGES.some(msg => output.includes(msg)))
                 {
-                    // dyld error: `dyld: Symbol not found`
-                    if (output.includes("dyld: Symbol not found"))
-                    {
-                        etell(`Server stdout: ${output}`);
-                        reject(new Error('dyld: Symbol not found'));
-                    }
-                    // bad image error: `illegal hardware instruction`
-                    if (output.includes("illegal hardware instruction"))
-                    {
-                        etell(`Server stdout: ${output}`);
-                        reject(new Error('illegal hardware instruction'));
-                    }
-                    // `Wingman Launcher Exception: `
-                    if (output.includes("Wingman Launcher Exception: "))
-                    {
-                        etell(`Server stdout: ${output}`);
-                        reject(new Error('Wingman Launcher Exception'));
-                    }
+                    tell(`Wingman exit detected with message: ${output}`);
                 }
                 else
                 {
-                    handleAIModelLoadingError(output);
+                    // Server is ready: `96ad0fad-82da-43a9-a313-25f51ef90e7c`
+                    if (output.includes("96ad0fad-82da-43a9-a313-25f51ef90e7c"))
+                    {
+                        isServerReady = true;
+                        resolve({
+                            terminate: () => {}
+                        });
+                    }
+
+                    if (!isServerReady)
+                    {
+                        // dyld error: `dyld: Symbol not found`
+                        if (output.includes("dyld: Symbol not found"))
+                        {
+                            etell(`Server stdout: ${output}`);
+                            reject(new Error('dyld: Symbol not found'));
+                        }
+                        // bad image error: `illegal hardware instruction`
+                        if (output.includes("illegal hardware instruction"))
+                        {
+                            etell(`Server stdout: ${output}`);
+                            reject(new Error('illegal hardware instruction'));
+                        }
+                    }
+                    else
+                    {
+                        handleAIModelLoadingError(output);
+                    }
                 }
             });
 
             subprocess.stderr.on('data', (data) =>
             {
-                handleAIModelLoadingError(data.toString());
-                if (data.toString() === ".")
-                {   // this should be written directly to stderr
-                    process.stderr.write(data.toString());
+                if (!data) { etell(`data is empty`); return; }
+                const output = data.toString();
+                // check for exit messages
+                if (WINGMAN_EXIT_MESSAGES.some(msg => output.includes(msg)))
+                {
+                    tell(`Wingman exit detected with message: ${output}`);
                 }
                 else
                 {
-                    etell(`Wingman stderr: ${data.toString()}`);
+                    handleAIModelLoadingError(output);
+                    if (output === ".")
+                    {   // this should be written directly to stderr
+                        process.stderr.write(output);
+                    }
+                    else
+                    {
+                        etell(`Wingman stderr: ${output}`);
+                    }
                 }
             });
 
@@ -358,9 +386,9 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                 reject(err);
             });
 
+            // 'close' event is emitted after 'exit' event
             subprocess.on('close', (code) =>
             {
-                shuttingDown = true;
                 if (code !== 0)
                 {
                     etell(`Wingman process exited with code ${code}`);
@@ -419,7 +447,7 @@ const startNextJsStandaloneServer = (port, scriptPath, hostName = 'localhost') =
             reject(err);
         });
 
-        let serverReady = false;
+        let isServerReady = false;
         child.stdout.on("data", (data) =>
         {
             const output = data.toString();
@@ -427,7 +455,7 @@ const startNextJsStandaloneServer = (port, scriptPath, hostName = 'localhost') =
             // Server is ready: `✓ Ready in`
             if (output.includes("✓ Ready in"))
             {
-                serverReady = true;
+                isServerReady = true;
                 resolve({
                     terminate: () =>
                     {
@@ -437,7 +465,7 @@ const startNextJsStandaloneServer = (port, scriptPath, hostName = 'localhost') =
                 });
             }
 
-            if (!serverReady)
+            if (!isServerReady)
             {
                 // dyld error: `dyld: Symbol not found`
                 if (output.includes("dyld: Symbol not found"))
@@ -482,7 +510,8 @@ const createWindow = () =>
         slashes: true
     }));
 
-    // win.webContents.openDevTools();
+    if (!isPackaged)
+        win.webContents.openDevTools();
 
     const { findPort, cancel } = findOpenPortWithProgressAndCancel();
 

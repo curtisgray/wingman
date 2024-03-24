@@ -128,7 +128,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
         if (!waiting) {
             setStartingInference(false);
         }
-    }, [isSwitchingModel, inferringAlias, currentWingmanInferenceItem, startingInference]);
+    }, [isSwitchingModel, inferringAlias, currentWingmanInferenceItem, startingInference, globalModel?.item?.filePath]);
 
     const displayDownloadInference = (model: AIModel) =>
     {

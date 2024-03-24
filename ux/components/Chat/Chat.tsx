@@ -7,22 +7,24 @@ import WingmanContext from "@/pages/api/home/wingman.context";
 import { ChatBody, Conversation, Message } from "@/types/chat";
 import { Plugin } from "@/types/plugin";
 import { getEndpoint } from "@/utils/app/api";
-import {
-    saveConversation,
-    saveConversations,
-    updateConversation,
-} from "@/utils/app/conversation";
+import
+    {
+        saveConversation,
+        saveConversations,
+        updateConversation,
+    } from "@/utils/app/conversation";
 import { throttle } from "@/utils/data/throttle";
 import { useTranslation } from "next-i18next";
-import {
-    MutableRefObject,
-    memo,
-    useCallback,
-    useContext,
-    useEffect,
-    useRef,
-    useState,
-} from "react";
+import
+    {
+        MutableRefObject,
+        memo,
+        useCallback,
+        useContext,
+        useEffect,
+        useRef,
+        useState,
+    } from "react";
 import toast from "react-hot-toast";
 import { DownloadProps } from "@/types/download";
 import ChatStatus from "./ChatStatus";
@@ -35,11 +37,13 @@ import { ChatAlert } from "./ChatAlert";
 
 export const runtime = 'edge'; // 'nodejs' (default) | 'edge'
 
-interface Props {
+interface Props
+{
     stopConversationRef: MutableRefObject<boolean>;
 }
 
-export const Chat = memo(({ stopConversationRef }: Props) => {
+export const Chat = memo(({ stopConversationRef }: Props) =>
+{
     const { t } = useTranslation("chat");
 
     const {
@@ -62,7 +66,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     const {
         state: { downloadItems, isOnline, currentWingmanInferenceItem },
     } = useContext(WingmanContext);
-    
+
     const settings: Settings = getSettings();
 
     const [currentMessage, setCurrentMessage] = useState<Message>();
@@ -79,7 +83,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             message: Message,
             deleteCount = 0,
             plugin: Plugin | null = null
-        ) => {
+        ) =>
+        {
             if (globalModel?.id === AIModelID.NO_MODEL_SELECTED) {
                 toast.error(t("No model selected"));
                 return;
@@ -206,21 +211,22 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                         } else {
                             const updatedMessages: Message[] =
                                 updatedConversation.messages.map(
-                                (message, index) => {
+                                    (message, index) =>
+                                    {
                                         if (
                                             index ===
                                             updatedConversation.messages
                                                 .length -
-                                                1
+                                            1
                                         ) {
-                                        return {
-                                            ...message,
-                                            content: text,
-                                        };
+                                            return {
+                                                ...message,
+                                                content: text,
+                                            };
+                                        }
+                                        return message;
                                     }
-                                    return message;
-                                }
-                            );
+                                );
                             updatedConversation = {
                                 ...updatedConversation,
                                 messages: updatedMessages,
@@ -233,12 +239,13 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                     }
                     saveConversation(updatedConversation);
                     const updatedConversations: Conversation[] =
-                        conversations.map((conversation) => {
-                        if (conversation.id === selectedConversation.id) {
-                            return updatedConversation;
-                        }
-                        return conversation;
-                    });
+                        conversations.map((conversation) =>
+                        {
+                            if (conversation.id === selectedConversation.id) {
+                                return updatedConversation;
+                            }
+                            return conversation;
+                        });
                     if (updatedConversations.length === 0) {
                         updatedConversations.push(updatedConversation);
                     }
@@ -264,7 +271,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                     });
                     saveConversation(updatedConversation);
                     const updatedConversations: Conversation[] =
-                        conversations.map((conversation) => {
+                        conversations.map((conversation) =>
+                        {
                             if (conversation.id === selectedConversation.id) {
                                 return updatedConversation;
                             }
@@ -283,10 +291,11 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                 }
             }
         },
-        [apiKey, conversations, homeDispatch, pluginKeys, selectedConversation, stopConversationRef, globalModel]
+        [apiKey, conversations, homeDispatch, pluginKeys, selectedConversation, stopConversationRef, globalModel, t]
     );
 
-    const handleScroll = () => {
+    const handleScroll = () =>
+    {
         if (chatContainerRef.current) {
             const { scrollTop, scrollHeight, clientHeight } =
                 chatContainerRef.current;
@@ -302,21 +311,24 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         }
     };
 
-    const handleScrollTop = () => {
+    const handleScrollTop = () =>
+    {
         chatContainerRef.current?.scrollTo({
             top: 0,
             behavior: "smooth",
         });
     };
 
-    const handleScrollBottom = () => {
+    const handleScrollBottom = () =>
+    {
         chatContainerRef.current?.scrollTo({
             top: chatContainerRef.current.scrollHeight,
             behavior: "smooth",
         });
     };
 
-    const handleSettings = () => {
+    const handleSettings = () =>
+    {
         setShowSettings(!showSettings);
         if (!showSettings)
             handleScrollTop();
@@ -324,7 +336,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             handleScrollBottom();
     };
 
-    const onClearAll = () => {
+    const onClearAll = () =>
+    {
         if (
             confirm(
                 t<string>("Are you sure you want to clear all messages?")
@@ -338,7 +351,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         }
     };
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         const scrollDown = () =>
         {
             if (autoScrollEnabled) {
@@ -350,21 +364,24 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         selectedConversation &&
             setCurrentMessage(
                 selectedConversation.messages[
-                    selectedConversation.messages.length - 2
+                selectedConversation.messages.length - 2
                 ]
             );
-    }, [selectedConversation]);
+    }, [selectedConversation, autoScrollEnabled]);
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         if (messageIsStreaming || !isOnline) {
             // if the message is streaming ensure the settings are closed
             setShowSettings(false);
         }
     }, [messageIsStreaming, isOnline]);
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         const observer = new IntersectionObserver(
-            ([entry]) => {
+            ([entry]) =>
+            {
                 setAutoScrollEnabled(entry.isIntersecting);
                 if (entry.isIntersecting) {
                     textareaRef.current?.focus();
@@ -379,18 +396,21 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         if (messagesEndElement) {
             observer.observe(messagesEndElement);
         }
-        return () => {
+        return () =>
+        {
             if (messagesEndElement) {
                 observer.unobserve(messagesEndElement);
             }
         };
     }, []);
 
-    const handleOnboardingDownloadStart = () => {
+    const handleOnboardingDownloadStart = () =>
+    {
         // handleSwitchingModel(true);
     };
 
-    const handleOnboardingDownloadComplete = () => {
+    const handleOnboardingDownloadComplete = () =>
+    {
         // handleSwitchingModel(false);
     };
 
@@ -406,7 +426,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         return false;
     };
 
-    const hasDownloadItems = () => {
+    const hasDownloadItems = () =>
+    {
         const completedItems = downloadItems?.filter((item) => item.status === "complete");
         if (completedItems && completedItems.length > 0) {
             return true;
@@ -414,7 +435,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         return false;
     };
 
-    const hasModelBeenSelected = () => {
+    const hasModelBeenSelected = () =>
+    {
         if (selectedConversation?.model) {
             if (selectedConversation.model.id === AIModelID.NO_MODEL_SELECTED) {
                 return false;
@@ -424,23 +446,22 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         return false;
     };
 
-    const showOnboarding = () => {
+    const showOnboarding = () =>
+    {
         if (!settings.needsOnboarding) return false;
-        const needsOnboarding = !(apiKey && serverSideApiKeyIsSet)
-            && (!hasDownloadItems() || !hasModelBeenSelected() || !isModelInferring(selectedConversation?.model));
-        if (!needsOnboarding)
-        {
-            let savedSettings = getSettings();
-            savedSettings.needsOnboarding = needsOnboarding;
-            saveSettings(savedSettings);
-            settings.needsOnboarding = needsOnboarding;
-        }
-        return needsOnboarding;
+        const userHasModels = (hasDownloadItems() || hasModelBeenSelected() || isModelInferring(selectedConversation?.model));
+        if (!userHasModels && !apiKey && !serverSideApiKeyIsSet) return true;
+
+        let savedSettings = getSettings();
+        savedSettings.needsOnboarding = false;
+        saveSettings(savedSettings);
+        settings.needsOnboarding = false;
+        return false;
     };
 
     return (
         <div className="relative flex-1 overflow-hidden bg-gray-100 dark:bg-gray-800">
-            {( showOnboarding() ) ? ( // no models available so display startup ui
+            {(showOnboarding()) ? ( // no models available so display startup ui
                 // TODO: Besides api key, we should also check if the user has selected a model
                 <div className="mx-auto flex h-full w-[300px] flex-col justify-center space-y-6 sm:w-[600px]">
                     <div className="text-center text-4xl font-bold">
@@ -450,33 +471,33 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                         <div className="mb-8">{`The easiest way to launch AI locally.`}</div>
                     </div>
                     <div className="text-gray-500 dark:text-gray-400">
-                            <>
-                                <div className="mb-2">
-                                    {t(
-                                        "To get started using Wingman, we have pre-selected a small, highly-capable Meta Llama AI model that can run on most PC's. Download and engage the Meta compatible AI model below. To download, select the 'Download' button. Once the model download is completed, select 'Engage' to begin using the model."
-                                    )}
-                                </div>
-                                <div className="w-full">
-                                    <InitialModelListing initialModelId="TheBloke/phi-2-dpo-GGUF" />
-                                </div>
-                                <div className='mb-4'>
-                                    {t(
-                                        "To engage any available AI model, use the search box below."
-                                    )}
-                                </div>
-                                <div className="w-full">
-                                    {!isOnline && (
+                        <>
+                            <div className="mb-2">
+                                {t(
+                                    "To get started using Wingman, we have pre-selected a small, highly-capable Meta Llama AI model that can run on most PC's. Download and engage the Meta compatible AI model below. To download, select the 'Download' button. Once the model download is completed, select 'Engage' to begin using the model."
+                                )}
+                            </div>
+                            <div className="w-full">
+                                <InitialModelListing initialModelId="TheBloke/phi-2-dpo-GGUF" />
+                            </div>
+                            <div className='mb-4'>
+                                {t(
+                                    "To engage any available AI model, use the search box below."
+                                )}
+                            </div>
+                            <div className="w-full">
+                                {!isOnline && (
                                     <div className="mb-2 p-3 rounded-lg w-full text-center text-gray-100 bg-gray-800 dark:text-gray-800 dark:bg-white">
-                                            {t("Search not available while offline.")}
-                                        </div>
-                                    )}
-                                    {isOnline && 
-                                        <SelectModel autoDownload={true} miniMode
-                                            onDownloadStart={handleOnboardingDownloadStart}
-                                            onDownloadComplete={handleOnboardingDownloadComplete} />
-                                    }
-                                </div>
-                            </>
+                                        {t("Search not available while offline.")}
+                                    </div>
+                                )}
+                                {isOnline &&
+                                    <SelectModel autoDownload={true} miniMode
+                                        onDownloadStart={handleOnboardingDownloadStart}
+                                        onDownloadComplete={handleOnboardingDownloadComplete} />
+                                }
+                            </div>
+                        </>
                         {!(apiKey && serverSideApiKeyIsSet) && (
                             <>
                                 <hr className="my-2 mb-6 mt-6" />
@@ -516,7 +537,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                                     key={index}
                                     message={message}
                                     messageIndex={index}
-                                    onEdit={(editedMessage) => {
+                                    onEdit={(editedMessage) =>
+                                    {
                                         setCurrentMessage(editedMessage);
                                         // discard edited message and the ones that come after then resend
                                         handleSend(
@@ -538,12 +560,14 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                     <ChatInput
                         stopConversationRef={stopConversationRef}
                         textareaRef={textareaRef}
-                        onSend={(message, plugin) => {
+                        onSend={(message, plugin) =>
+                        {
                             setCurrentMessage(message);
                             handleSend(message, 0, plugin);
                         }}
                         onScrollDownClick={handleScrollBottom}
-                        onRegenerate={() => {
+                        onRegenerate={() =>
+                        {
                             if (currentMessage) {
                                 handleSend(currentMessage, 2, null);
                             }

@@ -22,16 +22,22 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
 {
     let controllers: si.Systeminformation.GraphicsControllerData[] = [];
     const memoryAdjustment = 1024 * 1024;
+    const memoryPressure = 0.8;
     try {
         const gpuInfo = await si.graphics();
         controllers = gpuInfo.controllers;
-        logger.debug(`GPU Info: ${JSON.stringify(controllers)}`);
-        logger.debug(`OS Platform: ${JSON.stringify(os.platform())}`);
-        logger.debug(`OS Arch: ${JSON.stringify(os.arch())}`);
-        logger.debug(`Free Memory: ${JSON.stringify(os.freemem())}`);
-        logger.debug(`Total Memory: ${JSON.stringify(os.totalmem())}`);
-        logger.debug(`Adjusted Free Memory: ${JSON.stringify(os.freemem() / memoryAdjustment)}`);
-        logger.debug(`Adjusted Total Memory: ${JSON.stringify(os.totalmem() / memoryAdjustment)}`);
+        try {
+            logger.debug(`OS Platform: ${JSON.stringify(os.platform())}`);
+            logger.debug(`OS Arch: ${JSON.stringify(os.arch())}`);
+            logger.debug(`Free Memory: ${JSON.stringify(os.freemem())}`);
+            logger.debug(`Total Memory: ${JSON.stringify(os.totalmem())}`);
+            logger.debug(`Adjusted Free Memory: ${JSON.stringify(os.freemem() / memoryAdjustment)}`);
+            logger.debug(`Adjusted Total Memory: ${JSON.stringify(os.totalmem() / memoryAdjustment)}`);
+            logger.debug(`GPU Info: ${JSON.stringify(controllers)}`);
+            logger.debug(`GPU VRAM: ${JSON.stringify(controllers.map((controller) => controller.vram))}`);
+        } catch (error) {
+            logger.error(`Error logging GPU info: ${error}`);
+        }
     } catch (error) {
         logger.error(`Error getting GPU info: ${error}`);
         throw new Error(`${error}`);
@@ -57,14 +63,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
     {
         if (!Vendors[model.vendor].isDownloadable) return true;
         if (!model.size) return false;
+        let availableMemory = -1;
         // check if the model can be run on the current gpu and memory
         //   by comparing the model size to the amount of gpu, or memory if
         //   there is no gpu
-        let availableMemory = -1;
         // if there is no gpu, or this is an Apple arm64 device, use the system memory
         if (controllers.length === 0 || (os.platform() === 'darwin' && os.arch() === 'arm64')) {
             // availableMemory = os.freemem() / memoryAdjustment;
-            availableMemory = os.totalmem() / memoryAdjustment;
+            // availableMemory = os.totalmem() / memoryAdjustment;
+            // on M-series Macs, the free memory can change a lot based
+            //    on what the user is doing, so we add a percentage of the
+            //    total memory to the free memory to get a more stable value
+            availableMemory = (os.totalmem() / memoryAdjustment) * (1 - memoryPressure) + os.freemem() / memoryAdjustment;
         } else {
             // Search the list of controllers for the first one that:
             //  - Has nvidia or amd in the name
@@ -90,6 +100,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
                 availableMemory = os.totalmem() / memoryAdjustment;
             }
         }
+        logger.silly(`Available Memory to run ${model.name} (${model.size}): ${availableMemory}`);
         if (availableMemory === -1) return false;
 
         // paramSize is the last character of the model size
@@ -126,9 +137,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
             parameterValue = Number(model.size.substring(0, model.size.length - 1));
         }
         const quantizedBits = 4;
+        logger.silly(`Parameter Value: ${parameterValue}`);
+        logger.silly(`Quantized Bits: ${quantizedBits}`);
         const quantizedSize = parameterValue * quantizedBits * sizeMultiplier / 8;
+        logger.silly(`Quantized Size: ${quantizedSize}`);
         const quantizedMemRequired = quantizedSize / sizeMultiplier;
+        logger.silly(`Quantized Memory Required: ${quantizedMemRequired}`);
         const normalizedQuantizedMemRequired = quantizedMemRequired * 1024;
+        logger.silly(`Normalized Quantized Memory Required: ${normalizedQuantizedMemRequired}`);
+        const memoryDelta = availableMemory - normalizedQuantizedMemRequired;
+        logger.silly(`Memory Delta: ${memoryDelta}`);
+        logger.silly(`Model ${normalizedQuantizedMemRequired <= availableMemory ? 'is' : 'is not'} inferable`);
         if (normalizedQuantizedMemRequired <= availableMemory) return true;
         return false;
     };
@@ -137,9 +156,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
     {
         if (models && models.length > 0) {
             // set isInferable to true for each model that can be run on the current gpu and memory
+            let inferrables = 0;
             for (let i = 0; i < models.length; i++) {
-                models[i].isInferable = isInferable(models[i]);
+                const isInferableModel = isInferable(models[i]);
+                if (isInferableModel)
+                    inferrables++;
+                models[i].isInferable = isInferableModel;
             }
+            logger.debug(`Number of inferable models: ${inferrables}`);
         }
     };
 

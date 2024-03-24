@@ -224,7 +224,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
         if (!waiting) {
             setStartingInference(false);
         }
-    }, [isSwitchingModel, inferringAlias, currentWingmanInferenceItem, startingInference]);
+    }, [isSwitchingModel, inferringAlias, currentWingmanInferenceItem, startingInference, globalModel?.item?.filePath]);
 
     const displayDownloadInference = (model: AIModel) =>
     {
@@ -374,6 +374,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                                 }
                                 data-tooltip-id={categoryTooltipId(category)}
                                 data-tooltip-content={categoryTooltipContent(category)}
+                                data-data-tooltip-place='top'
                             >
                                 {category}
                             </Tab>
