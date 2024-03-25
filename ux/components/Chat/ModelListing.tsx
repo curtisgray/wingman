@@ -349,7 +349,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
             case 'IQ':
                 return "Models with high LLM Benchmark scores";
             case 'Emotion IQ':
-                return "Models with high Emotion Intelligence scores";
+                return "Models with high Emotional Intelligence scores";
             default:
                 return "";
         }
