@@ -74,7 +74,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
             // on M-series Macs, the free memory can change a lot based
             //    on what the user is doing, so we add a percentage of the
             //    total memory to the free memory to get a more stable value
-            availableMemory = (os.totalmem() / memoryAdjustment) * (1 - memoryPressure) + os.freemem() / memoryAdjustment;
+            // availableMemory = (os.totalmem() / memoryAdjustment) * (1 - memoryPressure) + os.freemem() / memoryAdjustment;
+            availableMemory = os.totalmem() / memoryAdjustment;
         } else {
             // Search the list of controllers for the first one that:
             //  - Has nvidia or amd in the name
