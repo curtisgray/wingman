@@ -258,6 +258,7 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
 
                 if (forceShutdown)
                 {
+                    etell(`[W]: Model catastrophic loading error detected: ${output}`);
                     // Exit the subprocess
                     // subprocess.kill('SIGINT');
                     createKillFile();
@@ -277,29 +278,29 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                     // Launch wingman_reset executable
                     tell(`Launching Wingman Reset executable: ${resetExecutablePath}`);
                     const resetSubprocess = child_process.spawn(resetExecutablePath, [], {
-                        stdio: ['inherit', 'inherit', 'inherit'],
+                        // stdio: ['inherit', 'inherit', 'inherit'],
                         cwd: cwd,
                         windowsHide: true,
                     });
 
                     resetSubprocess.stdout.on('data', (data) =>
                     {
-                        tell(`Wingman Reset stdout: ${data.toString()}`);
+                        tell(`[WR] stdout: ${data.toString()}`);
                     });
 
                     resetSubprocess.stderr.on('data', (data) =>
                     {
-                        etell(`Wingman Reset stderr: ${data.toString()}`);
+                        etell(`[WR] stderr: ${data.toString()}`);
                     });
 
                     resetSubprocess.on('close', (code) =>
                     {
                         if (code !== 0)
                         {
-                            etell(`Wingman Reset process exited with code ${code}`);
+                            etell(`[WR] close: process exited with code ${code}`);
                         } else
                         {
-                            tell(`Wingman Reset process exited successfully`);
+                            tell(`[WR] close: process exited successfully`);
                         }
                         // Now it's safe to emit the 'start-wingman' event
                         // ipcMain.emit("start-wingman", wingmanDir, nextDir);
@@ -307,7 +308,7 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                 }
                 else if (hasModelLoadingError)
                 {
-                    etell(`Model loading error: ${output}`);
+                    etell(`[W]: Model loading error detected: ${output}`);
                     isServerShuttingDown = true;
                 }
             };
@@ -315,14 +316,14 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
             let isServerReady = false;
             subprocess.stdout.on('data', (data) =>
             {
-                if (!data) { etell(`data is empty`); return; }
+                if (!data) { etell(`[W] stdout data is empty`); return; }
                 const output = data.toString();
-                tell(`Wingman stdout: ${output}`);
+                tell(`[W] stdout: ${output}`);
 
                 // check for exit messages
                 if (WINGMAN_EXIT_MESSAGES.some(msg => output.includes(msg)))
                 {
-                    tell(`Wingman exit detected with message: ${output}`);
+                    tell(`[W] stdout: Wingman exit detected with message: ${output}`);
                 }
                 else
                 {
@@ -340,13 +341,13 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                         // dyld error: `dyld: Symbol not found`
                         if (output.includes("dyld: Symbol not found"))
                         {
-                            etell(`Server stdout: ${output}`);
+                            etell(`[W] stdout: ${output}`);
                             reject(new Error('dyld: Symbol not found'));
                         }
                         // bad image error: `illegal hardware instruction`
                         if (output.includes("illegal hardware instruction"))
                         {
-                            etell(`Server stdout: ${output}`);
+                            etell(`[W] stdout: ${output}`);
                             reject(new Error('illegal hardware instruction'));
                         }
                     }
@@ -359,12 +360,12 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
 
             subprocess.stderr.on('data', (data) =>
             {
-                if (!data) { etell(`data is empty`); return; }
+                if (!data) { etell(`[W] stderr: data is empty`); return; }
                 const output = data.toString();
                 // check for exit messages
                 if (WINGMAN_EXIT_MESSAGES.some(msg => output.includes(msg)))
                 {
-                    tell(`Wingman exit detected with message: ${output}`);
+                    tell(`[W] stderr: Wingman exit detected with message: ${output}`);
                 }
                 else
                 {
@@ -375,14 +376,14 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                     }
                     else
                     {
-                        etell(`Wingman stderr: ${output}`);
+                        etell(`[W] stderr: ${output}`);
                     }
                 }
             });
 
             subprocess.on('error', (err) =>
             {
-                etell(`Failed to start subprocess: ${err}`);
+                etell(`[W] error:Failed to start subprocess: ${err}`);
                 reject(err);
             });
 
@@ -391,22 +392,22 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
             {
                 if (code !== 0)
                 {
-                    etell(`Wingman process exited with code ${code}`);
+                    etell(`[W] close: process exited with code ${code}`);
                 }
                 else
                 {
-                    tell(`Wingman process exited with code ${code}`);
+                    tell(`[W] close: process exited with code ${code}`);
                 }
                 if (hasModelLoadingError)
                 {
-                    tell(`Model loading error occurred. Restarting Wingman...`);
+                    tell(`[W] close: Model loading error occurred. Restarting Wingman...`);
                     ipcMain.emit("start-wingman", wingmanDir, nextDir);
                 }
             });
 
         } catch (error)
         {
-            etell(`Error launching Wingman executable: ${error}`);
+            etell(`[W] catch: Error launching Wingman executable: ${error}`);
             reject(error);
         }
     });
@@ -451,7 +452,7 @@ const startNextJsStandaloneServer = (port, scriptPath, hostName = 'localhost') =
         child.stdout.on("data", (data) =>
         {
             const output = data.toString();
-            tell(`Server stdout: ${output}`);
+            tell(`[UX] stdout: ${output}`);
             // Server is ready: `✓ Ready in`
             if (output.includes("✓ Ready in"))
             {
@@ -470,13 +471,13 @@ const startNextJsStandaloneServer = (port, scriptPath, hostName = 'localhost') =
                 // dyld error: `dyld: Symbol not found`
                 if (output.includes("dyld: Symbol not found"))
                 {
-                    etell(`Server stdout: ${output}`);
+                    etell(`[UX] stdout: ${output}`);
                     reject(new Error('dyld: Symbol not found'));
                 }
                 // bad image error: `illegal hardware instruction`
                 if (output.includes("illegal hardware instruction"))
                 {
-                    etell(`Server stdout: ${output}`);
+                    etell(`[UX] stdout: ${output}`);
                     reject(new Error('illegal hardware instruction'));
                 }
             }
