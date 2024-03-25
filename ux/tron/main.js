@@ -154,14 +154,98 @@ const getBaseDir = () =>
     return baseDir;
 };
 
+const executeWingmanReset = (exeDir) =>
+{
+    return new Promise((resolve) =>
+    {
+        // Determine the wingman_reset executable name based on platform
+        let resetExecutableName = 'wingman_reset';
+        if (process.platform === 'win32')
+        {
+            resetExecutableName += '.exe';
+        }
+
+        // Construct the path to the wingman_reset executable
+        const resetExecutablePath = path.join(exeDir, resetExecutableName);
+
+        // Launch wingman_reset executable
+        tell(`[W] (handleAIModelLoadingError): Launching Wingman Reset executable: ${resetExecutablePath}`);
+        const resetSubprocess = child_process.spawn(resetExecutablePath, [], {
+            // stdio: ['inherit', 'inherit', 'inherit'],
+            cwd: exeDir,
+            windowsHide: true,
+        });
+
+        resetSubprocess.stdout.on('data', (data) =>
+        {
+            tell(`[WR] stdout: ${data.toString()}`);
+        });
+
+        resetSubprocess.stderr.on('data', (data) =>
+        {
+            etell(`[WR] stderr: ${data.toString()}`);
+        });
+
+        resetSubprocess.on('close', (code) =>
+        {
+            if (code !== 0)
+            {
+                etell(`[WR] close: process exited with code ${code}`);
+            } else
+            {
+                tell(`[WR] close: process exited successfully`);
+            }
+            resolve();
+            // Now it's safe to emit the 'start-wingman' event
+            // ipcMain.emit("start-wingman", wingmanDir, nextDir);
+        });
+
+        // resetProcess.on('exit', (code) =>
+        // {
+        //     if (code === 0)
+        //     {
+        //         tell('[WR] exit: Wingman reset completed successfully');
+        //         resolve();
+        //     } else
+        //     {
+        //         etell(`[WR] exit: Wingman reset failed with exit code ${code}`);
+        //         reject(new Error(`[WR] exit: Wingman reset failed with exit code ${code}`));
+        //     }
+        // });
+    });
+};
+
+const handleWingmanResetAndRestart = async (exeDir, wingmanDir, nextDir) =>
+{
+    let waitForExit = true;
+    // Wait one second to give the wingman process a chance to exit
+    const waitTime = 1000;
+    tell(`Waiting for ${waitTime}ms before terminating Wingman server process...`);
+    await new Promise((resolve) => setTimeout(resolve, waitTime));
+    if (wingmanProcessController)
+    {
+        etell('Terminating Wingman server process...');
+        // Ensure the termination of the wingman process
+        await wingmanProcessController.terminate(waitForExit);
+        // wingmanProcessController = null; // Clear the controller
+    }
+
+    // Wait for the wingman_reset process to complete
+    await executeWingmanReset(exeDir);
+
+    // After reset is complete, attempt to restart wingman
+    ipcMain.emit("start-wingman", wingmanDir, nextDir);
+};
+
 const launchWingmanExecutable = async (wingmanDir, nextDir) =>
 {
     return new Promise(async (resolve, reject) =>
     {
         try
         {
-            let isServerShuttingDown = false;
+            // let isServerShuttingDown = false;
             let forceShutdown = false;
+            let hasModelLoadingError = false;
             let executableName = 'wingman';
             let useCublas = false;
 
@@ -184,7 +268,7 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
             {
             }
 
-            tell(`Wingman Base directory: ${wingmanDir}`);
+            tell(`[W] Wingman Base directory: ${wingmanDir}`);
             let executablePath = "";
             let cwd = "";
             let wingman_runtime = "";
@@ -213,30 +297,39 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
             }
             cwd = path.join(wingmanDir, 'wingman', wingman_runtime, 'bin');
             executablePath = path.resolve(path.join(cwd, executableName));
-            tell(`Wingman Runtime: ${wingman_runtime}`);
+            tell(`[W] Wingman Runtime: ${wingman_runtime}`);
 
-            tell(`Launching Wingman executable: ${executablePath}`);
+            tell(`[W] Launching Wingman executable: ${executablePath}`);
             const subprocess = child_process.spawn(executablePath, [], {
                 stdio: ['inherit', 'pipe', 'pipe'],
                 cwd: cwd,
                 windowsHide: true,
             });
 
-            let hasModelLoadingError = false;
-            const handleAIModelLoadingError = (output) =>
+            /**
+             * Handles AI model loading errors and determines if Wingman should be restarted or shutdown.
+             * @param {string} output - The output from the Wingman subprocess.
+             * @returns true if Wingman should be forcefully shutdown, false otherwise.
+             */
+            const mustShutdownForModelLoadingError = (output) =>
             {
-                if (!output) { etell(`output is empty`); return; }
-                if (isServerShuttingDown) { etell(`shutting down ignoring output: ${output}`); return; }
+                if (!output) { etell(`[W] (mustShutdownForModelLoadingError): output is empty`); return false; }
+                // if (isServerShuttingDown) { etell(`[W] (mustShutdownForModelLoadingError): shutting down ignoring output: ${output}`); return false; }
+                if (hasModelLoadingError || forceShutdown) { etell(`[W] (mustShutdownForModelLoadingError): already has model loading error or force shutdown: ${output}`); return false; }
+                hasModelLoadingError = false;
+                forceShutdown = false;
                 // Loading an AI model failed on Windows:
                 // - `cudaMalloc failed: out of memory`
                 // - `::startInference run_inference returned 1024.`
                 if (output.includes("cudaMalloc failed: out of memory"))
                 {   // this is a fatal error. Wingman will shutdown at once
                     hasModelLoadingError = true;
+                    forceShutdown = true;
                 }
                 if (output.includes("::startInference run_inference returned 1024."))
                 {   // this is a fatal error. Wingman will shutdown at once
                     hasModelLoadingError = true;
+                    forceShutdown = true;
                 }
                 // Loading an AI model failed on Apple Silicon:
                 // - `ggml_metal_graph_compute: command buffer 0 failed with status 5` (buffer could be any number and status could be any number)
@@ -258,63 +351,65 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
 
                 if (forceShutdown)
                 {
-                    etell(`[W]: Model catastrophic loading error detected: ${output}`);
+                    etell(`[W] (mustShutdownForModelLoadingError): Model catastrophic loading error detected: ${output}`);
+                    // await handleWingmanResetAndRestart(wingmanDir, nextDir);
                     // Exit the subprocess
                     // subprocess.kill('SIGINT');
-                    createKillFile();
+                    // createKillFile();
 
-                    isServerShuttingDown = true;
+                    // isServerShuttingDown = true;
 
-                    // Determine the wingman_reset executable name based on platform
-                    let resetExecutableName = 'wingman_reset';
-                    if (process.platform === 'win32')
-                    {
-                        resetExecutableName += '.exe';
-                    }
+                    // // Determine the wingman_reset executable name based on platform
+                    // let resetExecutableName = 'wingman_reset';
+                    // if (process.platform === 'win32')
+                    // {
+                    //     resetExecutableName += '.exe';
+                    // }
 
-                    // Construct the path to the wingman_reset executable
-                    const resetExecutablePath = path.join(cwd, resetExecutableName);
+                    // // Construct the path to the wingman_reset executable
+                    // const resetExecutablePath = path.join(cwd, resetExecutableName);
 
-                    // Launch wingman_reset executable
-                    tell(`Launching Wingman Reset executable: ${resetExecutablePath}`);
-                    const resetSubprocess = child_process.spawn(resetExecutablePath, [], {
-                        // stdio: ['inherit', 'inherit', 'inherit'],
-                        cwd: cwd,
-                        windowsHide: true,
-                    });
+                    // // Launch wingman_reset executable
+                    // tell(`[W] (handleAIModelLoadingError): Launching Wingman Reset executable: ${resetExecutablePath}`);
+                    // const resetSubprocess = child_process.spawn(resetExecutablePath, [], {
+                    //     // stdio: ['inherit', 'inherit', 'inherit'],
+                    //     cwd: cwd,
+                    //     windowsHide: true,
+                    // });
 
-                    resetSubprocess.stdout.on('data', (data) =>
-                    {
-                        tell(`[WR] stdout: ${data.toString()}`);
-                    });
+                    // resetSubprocess.stdout.on('data', (data) =>
+                    // {
+                    //     tell(`[WR] stdout: ${data.toString()}`);
+                    // });
 
-                    resetSubprocess.stderr.on('data', (data) =>
-                    {
-                        etell(`[WR] stderr: ${data.toString()}`);
-                    });
+                    // resetSubprocess.stderr.on('data', (data) =>
+                    // {
+                    //     etell(`[WR] stderr: ${data.toString()}`);
+                    // });
 
-                    resetSubprocess.on('close', (code) =>
-                    {
-                        if (code !== 0)
-                        {
-                            etell(`[WR] close: process exited with code ${code}`);
-                        } else
-                        {
-                            tell(`[WR] close: process exited successfully`);
-                        }
-                        // Now it's safe to emit the 'start-wingman' event
-                        // ipcMain.emit("start-wingman", wingmanDir, nextDir);
-                    });
+                    // resetSubprocess.on('close', (code) =>
+                    // {
+                    //     if (code !== 0)
+                    //     {
+                    //         etell(`[WR] close: process exited with code ${code}`);
+                    //     } else
+                    //     {
+                    //         tell(`[WR] close: process exited successfully`);
+                    //     }
+                    //     // Now it's safe to emit the 'start-wingman' event
+                    //     // ipcMain.emit("start-wingman", wingmanDir, nextDir);
+                    // });
                 }
                 else if (hasModelLoadingError)
                 {
-                    etell(`[W]: Model loading error detected: ${output}`);
-                    isServerShuttingDown = true;
+                    etell(`[W] (mustShutdownForModelLoadingError): Model loading error detected: ${output}`);
+                    // isServerShuttingDown = true;
                 }
+                return forceShutdown;
             };
 
             let isServerReady = false;
-            subprocess.stdout.on('data', (data) =>
+            subprocess.stdout.on('data', async (data) =>
             {
                 if (!data) { etell(`[W] stdout data is empty`); return; }
                 const output = data.toString();
@@ -332,7 +427,26 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                     {
                         isServerReady = true;
                         resolve({
-                            terminate: () => {}
+                            terminate: async (waitForExit = false) =>
+                            {
+                                return new Promise(async (resolve) =>
+                                {
+                                    createKillFile();
+                                    isServerShuttingDown = true;
+                                    if (waitForExit)
+                                    {
+                                        // subprocess.on('exit', () =>
+                                        // {
+                                        //     resolve();
+                                        // });
+                                        subprocess.on('close', () =>
+                                        {
+                                            resolve();
+                                        });
+                                    } else
+                                        resolve();
+                                });
+                            }
                         });
                     }
 
@@ -353,12 +467,15 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                     }
                     else
                     {
-                        handleAIModelLoadingError(output);
+                        if (mustShutdownForModelLoadingError(output) === true)
+                        {
+                            await handleWingmanResetAndRestart(cwd, wingmanDir, nextDir);
+                        }
                     }
                 }
             });
 
-            subprocess.stderr.on('data', (data) =>
+            subprocess.stderr.on('data', async (data) =>
             {
                 if (!data) { etell(`[W] stderr: data is empty`); return; }
                 const output = data.toString();
@@ -369,14 +486,19 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                 }
                 else
                 {
-                    handleAIModelLoadingError(output);
-                    if (output === ".")
-                    {   // this should be written directly to stderr
-                        process.stderr.write(output);
-                    }
-                    else
+                    if (mustShutdownForModelLoadingError(output) === true)
                     {
-                        etell(`[W] stderr: ${output}`);
+                        await handleWingmanResetAndRestart(cwd, wingmanDir, nextDir);
+                    } else
+                    {
+                        if (output === ".")
+                        {   // this should be written directly to stderr
+                            process.stderr.write(output);
+                        }
+                        else
+                        {
+                            etell(`[W] stderr: ${output}`);
+                        }
                     }
                 }
             });
@@ -398,11 +520,12 @@ const launchWingmanExecutable = async (wingmanDir, nextDir) =>
                 {
                     tell(`[W] close: process exited with code ${code}`);
                 }
-                if (hasModelLoadingError)
-                {
-                    tell(`[W] close: Model loading error occurred. Restarting Wingman...`);
-                    ipcMain.emit("start-wingman", wingmanDir, nextDir);
-                }
+                // if (hasModelLoadingError)
+                // {
+                //     tell(`[W] close: Model loading error occurred. Restarting Wingman...`);
+                //     ipcMain.emit("start-wingman", wingmanDir, nextDir);
+                // }
+                wingmanProcessController = null;
             });
 
         } catch (error)
@@ -462,6 +585,7 @@ const startNextJsStandaloneServer = (port, scriptPath, hostName = 'localhost') =
                     {
                         tell('Terminating Next.js server...');
                         child.kill('SIGINT'); // Terminate the child process
+                        resolve();
                     }
                 });
             }
@@ -572,7 +696,7 @@ ipcMain.on("start-wingman", async (wingmanDir, nextDir) =>
     if (wingmanProcessController)
     {
         etell('Wingman is already running... terminating existing process...');
-        wingmanProcessController.terminate();
+        await wingmanProcessController.terminate();
     }
     await launchWingmanExecutable(wingmanDir, nextDir)
         .then(async (controller) =>
@@ -596,7 +720,7 @@ ipcMain.on("start-nextjs", async (port, nextDir) =>
     if (nextJsServerProcessController)
     {
         etell('Next.js server is already running');
-        nextJsServerProcessController.terminate();
+        await nextJsServerProcessController.terminate();
     }
     await startNextJsStandaloneServer(port, path.join(nextDir, 'server.js'))
         .then((controller) =>
@@ -667,7 +791,7 @@ const shutdownApp = async () =>
     {
         try
         {
-            nextJsServerProcessController.terminate();
+            await nextJsServerProcessController.terminate();
         } catch (error)
         {
             etell(`Error terminating Next.js server: ${error}`);
@@ -678,7 +802,7 @@ const shutdownApp = async () =>
     {
         try
         {
-            wingmanProcessController.terminate();
+            await wingmanProcessController.terminate();
         } catch (error)
         {
             etell(`Error terminating Wingman server: ${error}`);
