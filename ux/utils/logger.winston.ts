@@ -1,3 +1,4 @@
+const DISABLE_LOGGING = true;
 import { BASE_DIR, DATA_DIR } from "@/types/download";
 import path from "path";
 import winston from "winston";
@@ -12,6 +13,8 @@ const loggerOutputPath = path.join(DATA_DIR, "logs");
 
 const logger = winston.createLogger({
     // level: process.env.LOG_LEVEL || 'debug',
+    // silent: process.env.NODE_ENV === "test",
+    silent: DISABLE_LOGGING,
     transports: [
         new winston.transports.Console({
             level: process.env.LOG_LEVEL ?? "verbose",
