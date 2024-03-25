@@ -255,10 +255,11 @@ https://www.googletagmanager.com/gtag/js?id=G-FBZDQDL7F4"></script>
 				return null;
 			}
 		}
-		console.log(changeDownloadButtons("0.9.3"));
+		console.log(changeDownloadButtons("0.10.3"));
 		getLatestTag("curtisgray", "wingman").then(latestTag => {
 			console.log(latestTag);
-			changeDownloadButtons(latestTag);
+			if (latestTag != null)
+				changeDownloadButtons(latestTag);
 		});
 	</script>
 </footer>

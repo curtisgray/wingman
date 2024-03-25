@@ -5,6 +5,7 @@ on:
     branches:
       - develop
       - pages
+
 jobs:
   update-download-links:
     runs-on: ubuntu-latest
