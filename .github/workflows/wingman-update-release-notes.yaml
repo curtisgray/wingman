@@ -50,4 +50,4 @@ jobs:
             Write-Error "Failed to generate markdown table."
             exit 1
           }
-          gh release edit "$tag" --title "Get Wingman $tag" --notes "$markdownTable" --draft=false --prerelease=false --latest=true
+          gh release edit "$tag" --title "Wingman $tag" --notes "$markdownTable" --draft=false --prerelease=false --latest=true
