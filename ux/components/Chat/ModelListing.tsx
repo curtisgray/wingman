@@ -58,9 +58,9 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
     const handleDownloadStart = () => {};
     const handleDownloadInitialized = () => {};
     const handleStartInference = (model: AIModel, item: DownloadableItem | undefined) => {
-        setStartingInference(true);
         if (Vendors[model.vendor].isDownloadable) {
             if (item === undefined) throw new Error("item is undefined");
+            setStartingInference(true); // show starting inference button
             const draftModel = { ...model };
             const draftItem = { ...item };
             draftItem.isDownloaded = true;
