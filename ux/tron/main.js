@@ -1,4 +1,4 @@
-const DISABLE_LOGGING = true;
+const DISABLE_LOGGING = false;
 const { app, BrowserWindow } = require("electron");
 let APP_WINDOW = null;
 
@@ -627,7 +627,7 @@ if (!gotTheLock)
             etell(`ipcMain::report-error: Error from renderer: ${error}`);
             return;
         }
-        etell(`Error from renderer: ${error}`);
+        etell(`ipcMain::report-error: ${error}`);
         APP_WINDOW.loadURL(`error.html?error=${encodeURIComponent(error)}`);
     });
 

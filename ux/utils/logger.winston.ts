@@ -1,4 +1,4 @@
-const DISABLE_LOGGING = true;
+const DISABLE_LOGGING = false;
 import { BASE_DIR, DATA_DIR } from "@/types/download";
 import path from "path";
 import winston from "winston";
@@ -37,30 +37,30 @@ const logger = winston.createLogger({
                 }),
             ),
         }),
-        new DailyRotateFile(Object.assign(dailyRotateFileOptions, {
-            level: "silly",
-            dirname: loggerOutputPath,
-            symlinkName: "silly.log",
-            format: winston.format.combine(winston.format.uncolorize(), winston.format.json()),
-        })),
-        new DailyRotateFile(Object.assign(dailyRotateFileOptions, {
-            level: "debug",
-            dirname: loggerOutputPath,
-            symlinkName: "debug.log",
-            format: winston.format.combine(winston.format.uncolorize(), winston.format.json()),
-        })),
-        new DailyRotateFile(Object.assign(dailyRotateFileOptions, {
-            level: "verbose",
-            dirname: loggerOutputPath,
-            symlinkName: "verbose.log",
-            format: winston.format.combine(winston.format.uncolorize(), winston.format.json()),
-        })),
-        new DailyRotateFile(Object.assign(dailyRotateFileOptions, {
-            level: "http",
-            dirname: loggerOutputPath,
-            symlinkName: "http.log",
-            format: winston.format.combine(winston.format.uncolorize(), winston.format.json()),
-        })),
+        // new DailyRotateFile(Object.assign(dailyRotateFileOptions, {
+        //     level: "silly",
+        //     dirname: loggerOutputPath,
+        //     symlinkName: "silly.log",
+        //     format: winston.format.combine(winston.format.uncolorize(), winston.format.json()),
+        // })),
+        // new DailyRotateFile(Object.assign(dailyRotateFileOptions, {
+        //     level: "debug",
+        //     dirname: loggerOutputPath,
+        //     symlinkName: "debug.log",
+        //     format: winston.format.combine(winston.format.uncolorize(), winston.format.json()),
+        // })),
+        // new DailyRotateFile(Object.assign(dailyRotateFileOptions, {
+        //     level: "verbose",
+        //     dirname: loggerOutputPath,
+        //     symlinkName: "verbose.log",
+        //     format: winston.format.combine(winston.format.uncolorize(), winston.format.json()),
+        // })),
+        // new DailyRotateFile(Object.assign(dailyRotateFileOptions, {
+        //     level: "http",
+        //     dirname: loggerOutputPath,
+        //     symlinkName: "http.log",
+        //     format: winston.format.combine(winston.format.uncolorize(), winston.format.json()),
+        // })),
     ],
     format: winston.format.combine(winston.format.metadata(), winston.format.timestamp()),
 });

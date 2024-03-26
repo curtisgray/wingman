@@ -22,39 +22,6 @@ const ChatStatus = ({ onSettings, onClearConversation, iconSize = 18, showStatus
     } = useContext(HomeContext);
     const [isChatSettingsDialogOpen, setIsChatSettingsDialogOpen] = useState<boolean>(false);
 
-    const displayGlobalModel = () =>
-    {
-        if (!globalModel) {
-            console.log("ChatStatus: globalModel is undefined");
-            return <></>;
-        }
-        const vendor = Vendors[globalModel.vendor];
-        if (!vendor) return <></>;
-        if (vendor.isDownloadable) {
-            return (
-                <div className="flex space-x-1">
-                    <button onClick={() => setIsChatSettingsDialogOpen(true)} className="text-left w-full">
-                        {/* <WingmanInferenceStatus showTitle={false} showQuantization={false} /> */}
-                        <SelectedConversationModelStatus showQuantization={false} />
-                    </button>
-                </div>
-            );
-        }
-        if (globalModel && globalModel.id === AIModelID.NO_MODEL_SELECTED)
-            return (
-                <div>
-                    <span>No AI model selected</span>
-                </div>
-            );
-        return (
-            <div className="flex space-x-1">
-                {displayVendorIcon(vendor, iconSize)}
-                <span>{vendor.displayName}</span>
-                <span>{globalModel.name}</span>
-            </div>
-        );
-    };
-
     const displayDownloadStatus = () => {
         return <><WingmanDownloadStatus showProgressText={false} showFileName={false} showProgress={true} /></>;
     };
