@@ -405,10 +405,10 @@ const Home = ({
         };
 
         // if the selectedConversation.model is the same as the already inferring model, then do nothing
-        if (selectedConversation?.model?.item?.filePath !== undefined
-            && selectedConversation.model.item.filePath === inferringAlias) {
-            return;
-        }
+        // if (selectedConversation?.model?.item?.filePath !== undefined
+        //     && selectedConversation.model.item.filePath === inferringAlias) {
+        //     return;
+        // }
 
         if (isOnline && models && models.length > 0
             && selectedConversation

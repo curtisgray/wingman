@@ -73,7 +73,7 @@ export const displayClearedForTakeoff = (model: AIModel, className = "") =>
 export const displayDownloadInferringButton = (label: string, showPropeller: boolean = true) =>
 {
     return <div className="flex space-x-1 items-center justify-center">
-        (showPropeller && <IconPropeller className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />)
+        {showPropeller && <IconPropeller className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />}
         <span>{label}</span>
     </div>;
 };

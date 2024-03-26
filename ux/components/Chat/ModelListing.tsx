@@ -229,7 +229,11 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
     useEffect(() =>
     {
         if (!startingInference) return;
-        const isInferring = !isSwitchingModel && globalModel?.item?.filePath === inferringAlias;
+        // if (selectedConversation?.model?.item?.filePath === undefined) return;
+        if (globalModel?.item?.filePath === undefined || !inferringAlias) return;
+        // const isInferring = selectedConversation?.model?.item?.filePath === inferringAlias;
+        const isInferring = !isSwitchingModel && globalModel.item.filePath === inferringAlias;
+        // const isInferring = !isSwitchingModel && globalModel?.item?.filePath === inferringAlias;
         // const waiting = isSwitchingModel || !inferringAlias || globalModel?.item?.filePath !== inferringAlias;
         // const waiting = isSwitchingModel || globalModel?.item?.filePath !== inferringAlias;
         // if (!waiting) {
