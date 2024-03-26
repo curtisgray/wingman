@@ -352,12 +352,12 @@ if (!gotTheLock)
                     // - `ggml_backend_metal_log_allocated_size: warning: current allocated size is greater than the recommended max working set size`
 
                     // check for buffer followed by any number and status followed by any number
-                    // const bufferStatusRegex = /ggml_metal_graph_compute: command buffer \d+ failed with status \d+/;
-                    // if (bufferStatusRegex.test(output))
-                    // {   // this is a fatal error. Wingman will have to be forcefully shutdown
-                    //     hasModelLoadingError = true;
-                    //     forceShutdown = true;
-                    // }
+                    const bufferStatusRegex = /ggml_metal_graph_compute: command buffer \d+ failed with status \d+/;
+                    if (bufferStatusRegex.test(output))
+                    {   // this could be a non-fatal error, but tends to be fatal after awhile. Wingman will have to be forcefully shutdown
+                        hasModelLoadingError = true;
+                        forceShutdown = true;
+                    }
 
                     if (output.includes("ggml_metal_graph_compute: command buffer 0 failed with status 5"))
                     {  // this is a fatal error. Wingman will have to be forcefully shutdown
