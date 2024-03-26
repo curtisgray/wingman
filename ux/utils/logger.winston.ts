@@ -27,7 +27,7 @@ const logger = winston.createLogger({
             ),
         }),
         new winston.transports.File({
-            level: "debug",
+            level: "verbose",
             filename: path.join(BASE_DIR, "wingman.log"),
             format: winston.format.combine(
                 winston.format.uncolorize(),

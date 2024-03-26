@@ -59,10 +59,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         return -1;
     }
 
-    const isInferable = (model: AIModel) =>
+    const isInferable = (model: AIModel): boolean =>
     {
         if (!Vendors[model.vendor].isDownloadable) return true;
-        if (!model.size) return false;
+        if (!model.size) {
+            logger.error(`Model '${model.name}' has EMPTY size. Will not be analyzed to see if it is inferable.`);
+            return false;
+        }
         let availableMemory = -1;
         // check if the model can be run on the current gpu and memory
         //   by comparing the model size to the amount of gpu, or memory if
@@ -148,7 +151,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         logger.silly(`Normalized Quantized Memory Required to Run '${model.name}': ${normalizedQuantizedMemRequired}`);
         const memoryDelta = availableMemory - normalizedQuantizedMemRequired;
         // logger.info(`Memory Delta to Run '${model.name}': ${memoryDelta}`);
-        logger.verbose(`Model '${model.name}' (${model.size}) ${normalizedQuantizedMemRequired <= availableMemory ? 'is' : 'is not'} inferable. Available Memory: ${availableMemory} Quantized Need: ${normalizedQuantizedMemRequired} Delta: ${memoryDelta}`);
+        logger.debug(`Model '${model.name}' (${model.size}) ${normalizedQuantizedMemRequired <= availableMemory ? 'is' : 'is not'} inferable. Available Memory: ${availableMemory} Quantized Need: ${normalizedQuantizedMemRequired} Delta: ${memoryDelta}`);
         // logger.info(`Model ${normalizedQuantizedMemRequired <= availableMemory ? 'is' : 'is not'} inferable`);
         if (normalizedQuantizedMemRequired <= availableMemory) return true;
         return false;

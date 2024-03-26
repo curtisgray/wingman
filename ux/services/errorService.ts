@@ -17,10 +17,10 @@ const useErrorService = () => {
                               ? [error.statusText]
                               : [
                                     t(
-                                        "Make sure your OpenAI API key is set in the bottom left of the sidebar."
+                                        "Make sure you are connected to the Internet, and check the 'Choose AI model' in the lower sidebar."
                                     ),
                                     t(
-                                        "If you completed this step, OpenAI may be experiencing issues."
+                                        "If you have already done this, system servers be experiencing issues."
                                     ),
                                 ],
                       } as ErrorMessage);
