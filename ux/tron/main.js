@@ -323,6 +323,11 @@ if (!gotTheLock)
                         hasModelLoadingError = true;
                         forceShutdown = true;
                     }
+                    if (output.includes("terminating due to uncaught exception"))
+                    {   // this is a fatal error. from llama.cpp. Wingman will shutdown at once
+                        hasModelLoadingError = true;
+                        forceShutdown = true;
+                    }
                     // Loading an AI model failed on Apple Silicon:
                     // - `ggml_metal_graph_compute: command buffer 0 failed with status 5` (buffer could be any number and status could be any number)
                     // - `ggml_backend_metal_log_allocated_size: warning: current allocated size is greater than the recommended max working set size`
@@ -450,8 +455,19 @@ if (!gotTheLock)
                 });
 
                 // 'close' event is emitted after 'exit' event
-                subprocess.on('close', (code) =>
+                subprocess.on('close', async (code) =>
                 {
+                    // if code is null, it means the process was killed, or did not exit on its own
+                    //   so check if there is a known model error, and otherwise restart the process
+                    if (code === null)
+                    {
+                        if (!forceShutdown && !hasModelLoadingError)
+                        {
+                            // TODO: this is an experimental fix for the issue where the Wingman process is killed
+                            etell(`[W] close: Wingman process was killed. Forcibly restarting...`);
+                            await handleWingmanResetAndRestart(cwd, wingmanDir, nextDir);
+                        }
+                    }
                     if (code !== 0)
                     {
                         etell(`[W] close: process exited with code ${code}`);

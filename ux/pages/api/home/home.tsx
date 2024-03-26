@@ -404,11 +404,13 @@ const Home = ({
             homeDispatch({ field: "isModelSelected", value: model?.id !== AIModelID.NO_MODEL_SELECTED });
         };
 
-        // if (models && models.length > 0
-        //     && selectedConversation
-        //     && selectedConversation.model
-        //     && selectedConversation.model.id !== AIModelID.NO_MODEL_SELECTED) {
-        if (models && models.length > 0
+        // if the selectedConversation.model is the same as the already inferring model, then do nothing
+        if (selectedConversation?.model?.item?.filePath !== undefined
+            && selectedConversation.model.item.filePath === inferringAlias) {
+            return;
+        }
+
+        if (isOnline && models && models.length > 0
             && selectedConversation
             && selectedConversation.model) {
             if (selectedConversation.model.id === AIModelID.NO_MODEL_SELECTED) {
@@ -470,7 +472,7 @@ const Home = ({
                 sccm(selectedConversation.model);
             }
         }
-    }, [selectedConversation?.id, selectedConversation?.model, models]);
+    }, [selectedConversation?.id, selectedConversation?.model, models, wingmanItems, isOnline, inferringAlias]);
 
     useEffect(() =>
     {
