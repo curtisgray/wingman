@@ -11,7 +11,7 @@ import useApiService, { GetModelsRequestProps } from "@/services/useApiService";
 import { Conversation } from "@/types/chat";
 import { KeyValuePair } from "@/types/data";
 import { FolderInterface, FolderType } from "@/types/folder";
-import { AIModel, AIModelID, AIModels, Vendors, fallbackModelID } from "@/types/ai";
+import { AIModel, AIModelID, AIModels, DownloadableItem, Vendors, fallbackModelID } from "@/types/ai";
 import { Prompt } from "@/types/prompt";
 import
 {
@@ -400,8 +400,8 @@ const Home = ({
                 changeConversationModel(model);
             } else {
                 changeGlobalModel(model);
-                homeDispatch({ field: "isModelSelected", value: model.id !== AIModelID.NO_MODEL_SELECTED });
             }
+            homeDispatch({ field: "isModelSelected", value: model?.id !== AIModelID.NO_MODEL_SELECTED });
         };
 
         // if (models && models.length > 0
@@ -430,7 +430,17 @@ const Home = ({
                     return;
                 }
 
-                if (latestItem.hasError) {
+                const itemHasError = (item: DownloadableItem | undefined) =>
+                {
+                    // find item in wingmanItems and check the status
+                    if (item === undefined) return false;
+                    const wingmanItem = wingmanItems.find((wi) => wi.alias === item.filePath);
+                    if (wingmanItem === undefined) return false;
+                    return wingmanItem.status === "error";
+                };
+
+                // if (latestItem.hasError) {
+                if (itemHasError(latestItem)) {
                     let error = "Unknown model loading error. Please refresh the page.";
                     const wi = wingmanItems?.find((wi) => wi.alias === latestItem.filePath);
                     if (wi !== undefined) {

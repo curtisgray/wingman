@@ -217,11 +217,23 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
         return true;
     };
 
+    const itemHasError = (item: DownloadableItem | undefined) =>
+    {
+        // find item in wingmanItems and check the status
+        if (item === undefined) return false;
+        const wingmanItem = wingmanItems.find((wi) => wi.alias === item.filePath);
+        if (wingmanItem === undefined) return false;
+        return wingmanItem.status === "error";
+    };
+
     useEffect(() =>
     {
         if (!startingInference) return;
-        const waiting = isSwitchingModel || !inferringAlias || globalModel?.item?.filePath !== inferringAlias;
-        if (!waiting) {
+        const isInferring = !isSwitchingModel && globalModel?.item?.filePath === inferringAlias;
+        // const waiting = isSwitchingModel || !inferringAlias || globalModel?.item?.filePath !== inferringAlias;
+        // const waiting = isSwitchingModel || globalModel?.item?.filePath !== inferringAlias;
+        // if (!waiting) {
+        if (isInferring) {
             setStartingInference(false);
         }
     }, [isSwitchingModel, inferringAlias, currentWingmanInferenceItem, startingInference, globalModel?.item?.filePath]);
@@ -250,6 +262,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                 );
             const quantization = latestModel.items[index]?.quantization as string;
             const latestItem = latestModel.items.find((item) => item.quantization === quantization);
+            // match latestItem to a wingmanItem to see if it has an error
             if (!latestItem) return displayErrorButton("No item");
             if (isAliasBeingReset(latestItem.filePath)) return displayWaitButton();
             if (latestItem.isDownloaded) {
@@ -278,7 +291,8 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                             </button>
                         </div>;
                     }
-                } else if (latestItem.hasError) {
+                // } else if (latestItem.hasError) {
+                } else if (itemHasError(latestItem)) {
                     return <div className="self-center m-4">
                         <button type="button"
                             className="w-24 bg-rose-800 hover:bg-rose-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
