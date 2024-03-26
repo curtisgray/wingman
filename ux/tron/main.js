@@ -211,23 +211,42 @@ if (!gotTheLock)
 
     const handleWingmanResetAndRestart = async (exeDir, wingmanDir, nextDir) =>
     {
-        let waitForExit = true;
-        // Wait one second to give the wingman process a chance to exit
-        const waitTime = 1000;
-        tell(`Waiting for ${waitTime}ms before terminating Wingman server process...`);
-        await new Promise((resolve) => setTimeout(resolve, waitTime));
-        if (wingmanProcessController)
+        return new Promise(async (resolve) =>
         {
-            etell('Terminating Wingman server process...');
-            // Ensure the termination of the wingman process
-            await wingmanProcessController.terminate(waitForExit);
-        }
+            try
+            {
+                let waitForExit = true;
+                let timeout = 5000;
+                const waitTime = 1000;
 
-        // Wait for the wingman_reset process to complete
-        await executeWingmanReset(exeDir);
+                tell(`[W] (handleAIModelLoadingError): Waiting for ${timeout}ms before forcefully terminating Wingman server process...`);
+                while (wingmanProcessController && timeout > 0)
+                {
+                    // Wait one second to give the wingman process a chance to exit
+                    tell(`Waiting for ${waitTime}ms...`);
+                    await new Promise((resolve) => setTimeout(resolve, waitTime));
+                    timeout -= waitTime;
+                }
 
-        // After reset is complete, attempt to restart wingman
-        ipcMain.emit("start-wingman", wingmanDir, nextDir);
+                if (wingmanProcessController)
+                {
+                    etell('[W] (handleAIModelLoadingError): Terminating Wingman server process...');
+                    // Ensure the termination of the wingman process
+                    await wingmanProcessController.terminate(waitForExit);
+                }
+
+                // Wait for the wingman_reset process to complete
+                await executeWingmanReset(exeDir);
+
+                // After reset is complete, attempt to restart wingman
+                ipcMain.emit("start-wingman", wingmanDir, nextDir);
+                resolve();
+            } catch (error)
+            {
+                etell(`[W] (handleAIModelLoadingError): Error handling Wingman reset and restart: ${error}`);
+                reject(error);
+            }
+        });
     };
 
     const launchWingmanExecutable = async (wingmanDir, nextDir) =>
