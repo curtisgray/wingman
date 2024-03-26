@@ -327,9 +327,12 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
             // if the global model is the same as the current model display 'Engaged', otherwise display 'Engage'
             if (globalModel?.id === model.id) {
                 return <div className="self-center m-4">
-                    <div className="w-24 bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
-                        Engaged
-                    </div>
+                    <button type="button"
+                        className="w-24 bg-orange-800 disabled:shadow-none disabled:cursor-default text-white py-2 rounded"
+                        disabled
+                    >
+                        {displayDownloadInferringButton("Engaged", false)}
+                    </button>
                 </div>;
             } else {
                 return <div className="self-center m-4" style={disabled ? { pointerEvents: "none", opacity: "0.4" } : {}}>
