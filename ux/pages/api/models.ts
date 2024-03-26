@@ -27,14 +27,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         const gpuInfo = await si.graphics();
         controllers = gpuInfo.controllers;
         try {
-            logger.debug(`OS Platform: ${JSON.stringify(os.platform())}`);
-            logger.debug(`OS Arch: ${JSON.stringify(os.arch())}`);
-            logger.debug(`Free Memory: ${JSON.stringify(os.freemem())}`);
-            logger.debug(`Total Memory: ${JSON.stringify(os.totalmem())}`);
-            logger.debug(`Adjusted Free Memory: ${JSON.stringify(os.freemem() / memoryAdjustment)}`);
-            logger.debug(`Adjusted Total Memory: ${JSON.stringify(os.totalmem() / memoryAdjustment)}`);
-            logger.debug(`GPU Info: ${JSON.stringify(controllers)}`);
-            logger.debug(`GPU VRAM: ${JSON.stringify(controllers.map((controller) => controller.vram))}`);
+            logger.info(`OS Platform: ${JSON.stringify(os.platform())}`);
+            logger.info(`OS Arch: ${JSON.stringify(os.arch())}`);
+            logger.info(`Free Memory: ${JSON.stringify(os.freemem())}`);
+            logger.info(`Total Memory: ${JSON.stringify(os.totalmem())}`);
+            logger.info(`Adjusted Free Memory: ${JSON.stringify(os.freemem() / memoryAdjustment)}`);
+            logger.info(`Adjusted Total Memory: ${JSON.stringify(os.totalmem() / memoryAdjustment)}`);
+            logger.info(`GPU Info: ${JSON.stringify(controllers)}`);
+            logger.info(`GPU VRAM: ${JSON.stringify(controllers.map((controller) => controller.vram))}`);
         } catch (error) {
             logger.error(`Error logging GPU info: ${error}`);
         }
@@ -101,7 +101,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
                 availableMemory = os.totalmem() / memoryAdjustment;
             }
         }
-        logger.silly(`Available Memory to run ${model.name} (${model.size}): ${availableMemory}`);
+        logger.info(`Available Memory to run ${model.name} (${model.size}): ${availableMemory}`);
         if (availableMemory === -1) return false;
 
         // paramSize is the last character of the model size
@@ -145,10 +145,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         const quantizedMemRequired = quantizedSize / sizeMultiplier;
         logger.silly(`Quantized Memory Required: ${quantizedMemRequired}`);
         const normalizedQuantizedMemRequired = quantizedMemRequired * 1024;
-        logger.silly(`Normalized Quantized Memory Required: ${normalizedQuantizedMemRequired}`);
+        logger.silly(`Normalized Quantized Memory Required to Run '${model.name}': ${normalizedQuantizedMemRequired}`);
         const memoryDelta = availableMemory - normalizedQuantizedMemRequired;
-        logger.silly(`Memory Delta: ${memoryDelta}`);
-        logger.silly(`Model ${normalizedQuantizedMemRequired <= availableMemory ? 'is' : 'is not'} inferable`);
+        logger.info(`Memory Delta to Run '${model.name}': ${memoryDelta}`);
+        logger.info(`Model ${normalizedQuantizedMemRequired <= availableMemory ? 'is' : 'is not'} inferable`);
         if (normalizedQuantizedMemRequired <= availableMemory) return true;
         return false;
     };
@@ -164,7 +164,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
                     inferrables++;
                 models[i].isInferable = isInferableModel;
             }
-            logger.debug(`Number of inferable models: ${inferrables}`);
+            logger.info(`Number of inferable models: ${inferrables}`);
         }
     };
 
