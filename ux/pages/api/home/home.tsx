@@ -635,11 +635,11 @@ const Home = ({
                             toast.error(`Target Acquisition Failed: ${StripFormatFromModelRepo(globalModel.name)}`);
                         }
                     }
-                    toast.success(`Target Acquired: ${StripFormatFromModelRepo(globalModel.name)}`);
+                    // toast.success(`Target Acquired: ${StripFormatFromModelRepo(globalModel.name)}`);
                 }
             } else {
                 if (globalModel.id !== AIModelID.NO_MODEL_SELECTED) {
-                    toast.success(`Target Acquired: ${StripFormatFromModelRepo(globalModel.name)}`);
+                    // toast.success(`Target Acquired: ${StripFormatFromModelRepo(globalModel.name)}`);
                 }
             }
         }
