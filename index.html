@@ -54,7 +54,8 @@ https://www.googletagmanager.com/gtag/js?id=G-FBZDQDL7F4"></script>
 			<img class="no-border"
 				src="https://electricpipelines.com/wp-content/uploads/sites/5/2024/03/NEWopenai-and-opensource-models-1.png"
 				alt="Wingman's available LLMs" width="30">
-			<figcaption>Stay on top of what's popular and trending, and sort by Emotion IQ. Easily browse, search and access the latest LLMs
+			<figcaption>Stay on top of what's popular and trending, and sort by Emotion IQ. Easily browse, search and
+				access the latest LLMs
 				directly from Hugging Face's model hub without leaving the Wingman app.</figcaption>
 			<h2>See which LLMs are compatible with your machine at a glance</h2>
 			<p>Know which models you can (and can't) realistically run based on your system's specs. Wingman evaluates
@@ -170,7 +171,7 @@ https://www.googletagmanager.com/gtag/js?id=G-FBZDQDL7F4"></script>
 				windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'],
 				iosPlatforms = ['iPhone', 'iPad', 'iPod'],
 				os = null;
-			
+
 			if (macosPlatforms.indexOf(platform) !== -1) {
 				os = 'Mac OS';
 			} else if (iosPlatforms.indexOf(platform) !== -1) {
@@ -237,25 +238,28 @@ https://www.googletagmanager.com/gtag/js?id=G-FBZDQDL7F4"></script>
 		async function getLatestTag(owner, repo) {
 			try {
 				const tagsResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/tags`);
-                const tagsData = await tagsResponse.json();
-                const latestTag = tagsData[0].name;
-
-                const releasesResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases/tags/${latestTag}`);
-                const releaseData = await releasesResponse.json();
-
-                const latestRelease = {
-                    tag_name: releaseData.tag_name,
-                    name: releaseData.name,
-                    body: releaseData.body
-                };
-				let cutTag = latestRelease.tag_name.slice(1);
-				return cutTag;
+				const tagsData = await tagsResponse.json();
+				for (let i = 0; i < tagsData.length; i++) {
+					const latestTag = tagsData[i].name;
+					const releasesResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases/tags/${latestTag}`);
+					const releaseData = await releasesResponse.json();
+					if (releaseData.message != 'Not Found') {
+						const latestRelease = {
+							tag_name: releaseData.tag_name,
+							name: releaseData.name,
+							body: releaseData.body
+						};
+						let cutTag = latestRelease.tag_name.slice(1);
+						return cutTag;
+					}
+				}
+				return null;
 			} catch (error) {
 				console.error('Error fetching latest tag:', error);
 				return null;
 			}
 		}
-		console.log(changeDownloadButtons("0.10.3"));
+		console.log(changeDownloadButtons("0.10.11"));
 		getLatestTag("curtisgray", "wingman").then(latestTag => {
 			console.log(latestTag);
 			if (latestTag != null)
