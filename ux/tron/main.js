@@ -727,11 +727,12 @@ if (!gotTheLock)
             {
                 ipcMain.emit('report-error', null, error.toString());
             });
-        APP_WINDOW.on('page-title-updated', function (e)
-        {   // prevent the window title from changing
-            // TODO: this might be unnecessary after setting the title in NextJs app page
-            e.preventDefault();
-        });
+        // APP_WINDOW.on('page-title-updated', function (e)
+        // {   // prevent the window title from changing
+        //     // TODO: this might be unnecessary after setting the title in NextJs app page
+        //     e.preventDefault();
+        // });
+        APP_WINDOW.on("will-navigate", (e) => e.preventDefault());
         APP_WINDOW.on("closed", () =>
         {
             APP_WINDOW = null;

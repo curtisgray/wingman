@@ -293,7 +293,7 @@ const Home = ({
             messages: [],
             // model: lastConversation?.model || AIModels[defaultModelId],
             model: AIModels[defaultModelId],
-            inferringAlias: "",
+            // inferringAlias: "",
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
             temperature: lastConversation?.temperature ?? DEFAULT_TEMPERATURE,
             folderId: null,
@@ -336,7 +336,7 @@ const Home = ({
             name: `${conversation.name} (copy)`,
             messages: conversation.messages,
             model: conversation.model,
-            inferringAlias: conversation.inferringAlias,
+            // inferringAlias: conversation.inferringAlias,
             systemPrompt: conversation.systemPrompt,
             temperature: conversation.temperature,
             folderId: conversation.folderId,
@@ -394,6 +394,8 @@ const Home = ({
 
     useEffect(() =>
     {
+        if (!isOnline) return;
+
         const sccm = (model: AIModel | undefined) =>
         {
             if (model === undefined) {
@@ -401,23 +403,21 @@ const Home = ({
             } else {
                 changeGlobalModel(model);
             }
-            homeDispatch({ field: "isModelSelected", value: model?.id !== AIModelID.NO_MODEL_SELECTED });
+            homeDispatch({ field: "isModelSelected", value: (model?.id && model?.id !== AIModelID.NO_MODEL_SELECTED) });
         };
 
         // if the selectedConversation.model is the same as the already inferring model, then do nothing
-        // if (selectedConversation?.model?.item?.filePath !== undefined
-        //     && selectedConversation.model.item.filePath === inferringAlias) {
-        //     return;
-        // }
+        if (inferringAlias
+            && selectedConversation?.model?.item?.filePath
+            && selectedConversation.model.item.filePath === inferringAlias) {
+            return;
+        }
 
-        if (isOnline && models && models.length > 0
+        if (models && models.length > 0
             && selectedConversation
             && selectedConversation.model) {
             if (selectedConversation.model.id === AIModelID.NO_MODEL_SELECTED) {
                 sccm(AIModels[AIModelID.NO_MODEL_SELECTED]);
-                return;
-            }
-            if (selectedConversation.model?.item?.filePath === inferringAlias) {
                 return;
             }
             const vendor = Vendors[selectedConversation.model.vendor];
@@ -622,6 +622,8 @@ const Home = ({
 
     useEffect(() =>
     {
+        if (!isOnline) return;
+
         if (globalModel !== undefined) {
             const vendor = Vendors[globalModel.vendor];
             // check if the globalModel is downloadable, e.g., running on the Wingman server
