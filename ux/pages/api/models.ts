@@ -63,7 +63,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
     {
         if (!Vendors[model.vendor].isDownloadable) return true;
         if (!model.size) {
-            logger.error(`Model '${model.name}' has EMPTY size. Will not be analyzed to see if it is inferable.`);
+            logger.debug(`Model '${model.name}' has EMPTY size. Will not be analyzed to see if it is inferable.`);
             return false;
         }
         let availableMemory = -1;
