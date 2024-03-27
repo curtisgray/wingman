@@ -153,7 +153,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                 return b.downloads - a.downloads;
             });
             // get the first listSize models
-            const popularModels = sortedModelsByDownloads.slice(0, listSize);
+            // const popularModels = sortedModelsByDownloads.slice(0, listSize);
             // sort models by date and likes descending to derive trending models
             //  to do that we will take the 100 most recent models and sort them by likes
             const sortedModelsByLikes = sortedModelsByDate.slice(0, 50).sort((a, b) =>

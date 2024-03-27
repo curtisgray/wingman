@@ -657,6 +657,7 @@ if (!gotTheLock)
                 // enableRemoteModule: true,
                 preload: path.join(__dirname, "preload.js"),
             },
+            title: "Wingman",
         });
 
         APP_WINDOW.loadURL(url.format({
@@ -706,6 +707,11 @@ if (!gotTheLock)
                 const onRestartWingmanService = async () =>
                 {
                     await handleWingmanResetAndRestart(exeDir, wingmanDir, nextDir, false, false);
+                    if (APP_WINDOW)
+                    {
+                        // refresh the main window after restarting Wingman
+                        APP_WINDOW.reload();
+                    }
                 };
                 createMenu(onShowLogViewer, onRestartWingmanService);
 
@@ -721,7 +727,11 @@ if (!gotTheLock)
             {
                 ipcMain.emit('report-error', null, error.toString());
             });
-
+        APP_WINDOW.on('page-title-updated', function (e)
+        {   // prevent the window title from changing
+            // TODO: this might be unnecessary after setting the title in NextJs app page
+            e.preventDefault();
+        });
         APP_WINDOW.on("closed", () =>
         {
             APP_WINDOW = null;

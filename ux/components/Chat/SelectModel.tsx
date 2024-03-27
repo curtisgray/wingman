@@ -49,7 +49,6 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
 
     const [model, setSelectedModel] = useImmer<AIModel | undefined>(undefined);
     const [selectedQuantization, setSelectedQuantization] = useImmer<string | undefined>(undefined);
-    const [isLoadingModelList, setIsLoadingModelList] = useState<boolean>(false);
     const [isChangingModel, setIsChangingModel] = useState<boolean>(false);
     const [showDownloadedItemsOnly, setShowDownloadedItemsOnly] = useState<boolean>(false);
     const [showReadyForTakeoffOnly, setShowReadyForTakeoffOnly] = useState<boolean>(false);
@@ -68,16 +67,6 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
     const {
         state: { isOnline },
     } = useContext(WingmanContext);
-
-    const handleSaveSettings = () => {
-        const newSettings: Settings = {
-            ...settings,
-            expertMode: expertMode,
-            showDownloadedItemsOnly: showDownloadedItemsOnly,
-            showReadyForTakeoffOnly: showReadyForTakeoffOnly,
-        };
-        saveSettings(newSettings);
-    };
 
     const handleDownloadInitialized = (success: boolean) => {
         if (expertMode) setIsChangingModel(false);
@@ -183,7 +172,6 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
 
     const handleRefreshModels = async () => {
         try {
-            setIsLoadingModelList(true);
             const downloadsFilter = showDownloadedItemsOnly ? models.filter((model) =>
                 (Vendors[model.vendor].isDownloadable && model.items?.some((item) => item.isDownloaded)) ||
                 (!Vendors[model.vendor].isDownloadable))
@@ -195,11 +183,9 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                 : models;
 
             setSelectableModels(selectable);
-            setIsLoadingModelList(false);
         }
         catch (err) {
             console.log(`handleRefreshModelList exception: ${err}`);
-            setIsLoadingModelList(false);
         }
     };
 
@@ -486,7 +472,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                 <div className="flex rounded-lg space-x-2 items-center">
                     <>
                         <Select
-                            isLoading={isLoadingModelList || isChangingModel}
+                            isLoading={isChangingModel}
                             // placeholder={(t("Search for an AI model").length > 0) || ""}
                             // classNames={{
                             //     control: (state) =>
@@ -518,7 +504,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                     (
                         <>
                             <Select
-                                isLoading={isLoadingModelList || isChangingModel}
+                                isLoading={isChangingModel}
                                 placeholder={(t("Select an optimization").length > 0) || ""}
                                 options={optionsOptimizations}
                                 value={{

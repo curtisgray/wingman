@@ -16,6 +16,7 @@ export default function Document(props: Props) {
                     name="apple-mobile-web-app-title"
                     content="Wingman"
                 ></meta>
+                <title>Wingman</title>
             </Head>
             <body>
                 <Main />
