@@ -1,7 +1,7 @@
 <p align="center">
   <img width="256" height="256" src="ux/assets/logo-color.png">
 </p>
-Wingman is an open-source, cross-platform AI chatbot with an easy-to-use interface for running AI models locally. You can download models like Meta’s Llama 2, Mistral and phi 2 from Hugging Face directly in the app. It runs on Windows (Nvidia GPUs or CPU-based) and MacOS (Intel and Apple Silicon). 
+Wingman is a zero-configuration chatbot for running AI models locally. You can download and use open source models like Meta’s Llama 2, Mistral and phi 2 from Hugging Face directly in the app. Wingman is also compatible with OpenAI AI models. It runs on Windows (Nvidia GPUs or CPU-based) and MacOS (Intel and Apple Silicon).
 
 ---
 
@@ -40,17 +40,20 @@ Wingman - Rooster is the first release of Wingman. Future releases will be named
 ---
 
 ## Features
--	Easy to use UI with no terminals and no code required.
--	Runs on Windows and Mac (Intel or Apple Silicon).
--	It’s a free, open-source app.
--	Run Large Language Models (LLMs) like Meta’s Llama 2, Mistral, Yi, Microsoft’s phi 2, OpenAI, zephyr and more all in the same app with a familiar chatbot interface.
--	Quick access to LLMs from Hugging Face right inside the app. You can even see what’s popular or trending.
--	Swift Switch: Quickly swap between models mid-conversation for the best results. 
--	Private by design: the LLMs all run on your machine, so you can keep your chats private.
--	Wingman will evaluate your machine so you can see at a glance what models may or may not run on your hardware. We won’t stop you from trying any of them, though!
--	Save and organize your chats into folders so you can find them again later. 
--	Set system prompts and prompt templates so you can talk with characters and get the best results from all models.
+
+- Easy to use UI with no terminals and no code required.
+- Runs on Windows and Mac (Intel or Apple Silicon).
+- It’s a free, open-source app.
+- Run Large Language Models (LLMs) like Meta’s Llama 2, Mistral, Yi, Microsoft’s phi 2, OpenAI, zephyr and more all in the same app with a familiar chatbot interface.
+- Quick access to LLMs from Hugging Face right inside the app. You can even see what’s popular or trending.
+- Swift Switch: Quickly swap between models mid-conversation for the best results. 
+- Private by design: the LLMs all run on your machine, so you can keep your chats private.
+- Wingman will evaluate your machine so you can see at a glance what models may or may not run on your hardware. We won’t stop you from trying any of them, though!
+- Save and organize your chats into folders so you can find them again later. 
+- Set system prompts and prompt templates so you can talk with characters and get the best results from all models.
+
 ## Planned Features
+
 **Silk Tuning** – Personalized AI Feedback Loop: At its core, Wingman employs an innovative feature called Silk Tuning. This mechanism enables users to rate AI responses in real-time, directly influencing the AI's learning process. The system then uses this feedback to generate a Learning Rate Adjustment (LoRA), which dynamically tailors the AI’s responses to align more closely with individual user preferences and interaction styles. This process of personalized adjustment occurs during periods of low activity on your PC, ensuring continuous improvement and customization of the AI experience.
 
 **Flight Formation** - Collaborative AI Optimization: Wingman's Flight Formation unlocks the power of community-driven AI model enhancement. Users can rate responses, share optimized prompts and prompt templates, and contribute to a growing repository of knowledge. This collective wisdom improves model outputs, tailoring them to deliver more accurate and relevant results. Flight Formation creates a feedback loop that allows AI models to continuously learn and adapt, ensuring its capabilities soar to new heights through the combined efforts of the Wingman community.
