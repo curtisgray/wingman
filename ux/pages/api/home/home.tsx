@@ -417,6 +417,9 @@ const Home = ({
                 sccm(AIModels[AIModelID.NO_MODEL_SELECTED]);
                 return;
             }
+            if (selectedConversation.model?.item?.filePath === inferringAlias) {
+                return;
+            }
             const vendor = Vendors[selectedConversation.model.vendor];
             if (vendor.isDownloadable) {
                 const latestModel = models.find((m) => m.id === selectedConversation.model.id);
@@ -472,7 +475,7 @@ const Home = ({
                 sccm(selectedConversation.model);
             }
         }
-    }, [selectedConversation?.id, selectedConversation?.model, models, wingmanItems, isOnline, inferringAlias]);
+    }, [selectedConversation?.id, selectedConversation?.model, models, wingmanItems, isOnline, inferringAlias, globalModel]);
 
     useEffect(() =>
     {

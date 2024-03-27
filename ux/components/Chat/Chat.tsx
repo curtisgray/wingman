@@ -449,7 +449,8 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
     const showOnboarding = () =>
     {
         if (!settings.needsOnboarding) return false;
-        const userHasModels = (hasDownloadItems() || hasModelBeenSelected() || isModelInferring(selectedConversation?.model));
+        // const userHasModels = (hasDownloadItems() || hasModelBeenSelected() || isModelInferring(selectedConversation?.model));
+        const userHasModels = (hasModelBeenSelected() || isModelInferring(selectedConversation?.model));
         if (!userHasModels && !apiKey && !serverSideApiKeyIsSet) return true;
 
         let savedSettings = getSettings();

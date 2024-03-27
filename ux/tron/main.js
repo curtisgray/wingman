@@ -248,7 +248,7 @@ if (!gotTheLock)
         });
     };
 
-    const handleWingmanResetAndRestart = async (exeDir, wingmanDir, nextDir, waitForExitFirst = true, resetInference = true) =>
+    const handleWingmanResetAndRestart = async (exeDir, wingmanDir, nextDir, waitForExitFirst = true, resetInference = false) =>
     {
         return new Promise(async (resolve) =>
         {
