@@ -27,14 +27,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         const gpuInfo = await si.graphics();
         controllers = gpuInfo.controllers;
         try {
-            logger.info(`OS Platform: ${JSON.stringify(os.platform())}`);
-            logger.info(`OS Arch: ${JSON.stringify(os.arch())}`);
-            logger.info(`Free Memory: ${JSON.stringify(os.freemem())}`);
-            logger.info(`Total Memory: ${JSON.stringify(os.totalmem())}`);
-            logger.info(`Adjusted Free Memory: ${JSON.stringify(os.freemem() / memoryAdjustment)}`);
-            logger.info(`Adjusted Total Memory: ${JSON.stringify(os.totalmem() / memoryAdjustment)}`);
-            logger.info(`GPU Info: ${JSON.stringify(controllers)}`);
-            logger.info(`GPU VRAM: ${JSON.stringify(controllers.map((controller) => controller.vram))}`);
+            logger.debug(`OS Platform: ${JSON.stringify(os.platform())}`);
+            logger.debug(`OS Arch: ${JSON.stringify(os.arch())}`);
+            logger.debug(`Free Memory: ${JSON.stringify(os.freemem())}`);
+            logger.debug(`Total Memory: ${JSON.stringify(os.totalmem())}`);
+            logger.debug(`Adjusted Free Memory: ${JSON.stringify(os.freemem() / memoryAdjustment)}`);
+            logger.debug(`Adjusted Total Memory: ${JSON.stringify(os.totalmem() / memoryAdjustment)}`);
+            logger.debug(`GPU Info: ${JSON.stringify(controllers)}`);
+            logger.debug(`GPU VRAM: ${JSON.stringify(controllers.map((controller) => controller.vram))}`);
         } catch (error) {
             logger.error(`Error logging GPU info: ${error}`);
         }

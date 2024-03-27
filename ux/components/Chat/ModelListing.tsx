@@ -364,13 +364,13 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
             case 'Recently Added':
                 return "Models that have been recently added";
             case 'Popular':
-                return "Models with the most downloads recently";
+                return "Most downloads recently";
             case 'Trending':
-                return "Models with the most likes and downloads";
+                return "Most likes and downloads";
             case 'IQ':
-                return "Models with high LLM Benchmark scores";
+                return "High LLM Benchmark scores";
             case 'Emotion IQ':
-                return "Models with high Emotional Intelligence scores";
+                return "High Emotional Intelligence scores";
             default:
                 return "";
         }
@@ -395,8 +395,8 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                                 }
                                 data-tooltip-id={categoryTooltipId(category)}
                                 data-tooltip-content={categoryTooltipContent(category)}
-                                data-data-tooltip-place='top'
-                            >
+                                data-tooltip-delay-show={600}
+                                data-tooltip-delay-hide={0}>
                                 {category}
                             </Tab>
                             <Tooltip id={categoryTooltipId(category)} />

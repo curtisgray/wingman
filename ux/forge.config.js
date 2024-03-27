@@ -10,6 +10,7 @@ module.exports = {
         extraResource: [
             "server/wingman",
             ".next/standalone",
+            "assets/iq"
         ],
         icon: "assets/logo-color",
         osxSign: {},

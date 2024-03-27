@@ -164,6 +164,45 @@ if (!gotTheLock)
         return baseDir;
     };
 
+    const waitForTimer = (timeout) =>
+    {
+        return new Promise((resolve) =>
+        {
+            setTimeout(() =>
+            {
+                resolve();
+            }, timeout);
+        });
+    };
+
+    const waitForFunctionResult = async (func, timeout, interval) =>
+    {
+        return new Promise(async (resolve, reject) =>
+        {
+            let timeLeft = timeout;
+            while (timeLeft > 0)
+            {
+                try
+                {
+                    const result = await func();
+                    if (result)
+                    {
+                        resolve(result);
+                        return;
+                    }
+                } catch (error)
+                {
+                    etell(`Error waiting for function result: ${error}`);
+                    reject(error);
+                    return;
+                }
+                await waitForTimer(interval);
+                timeLeft -= interval;
+            }
+            reject(new Error(`Timeout waiting for function result`));
+        });
+    };
+
     const executeWingmanReset = (exeDir) =>
     {
         return new Promise((resolve) =>
@@ -209,18 +248,17 @@ if (!gotTheLock)
         });
     };
 
-    const handleWingmanResetAndRestart = async (exeDir, wingmanDir, nextDir) =>
+    const handleWingmanResetAndRestart = async (exeDir, wingmanDir, nextDir, waitForExitFirst = true, resetInference = true) =>
     {
         return new Promise(async (resolve) =>
         {
             try
             {
-                let waitForExit = true;
                 let timeout = 5000;
                 const waitTime = 1000;
 
                 tell(`[W] (handleAIModelLoadingError): Waiting for ${timeout}ms before forcefully terminating Wingman server process...`);
-                while (wingmanProcessController && timeout > 0)
+                while (waitForExitFirst && wingmanProcessController && timeout > 0)
                 {
                     // Wait one second to give the wingman process a chance to exit
                     tell(`Waiting for ${waitTime}ms...`);
@@ -232,11 +270,12 @@ if (!gotTheLock)
                 {
                     etell('[W] (handleAIModelLoadingError): Terminating Wingman server process...');
                     // Ensure the termination of the wingman process
-                    await wingmanProcessController.terminate(waitForExit);
+                    await wingmanProcessController.terminate(true);
                 }
 
                 // Wait for the wingman_reset process to complete
-                await executeWingmanReset(exeDir);
+                if (resetInference)
+                    await executeWingmanReset(exeDir);
 
                 // After reset is complete, attempt to restart wingman
                 ipcMain.emit("start-wingman", wingmanDir, nextDir);
@@ -249,6 +288,62 @@ if (!gotTheLock)
         });
     };
 
+    const getWingmanExecutableInfo = async (wingmanDir) =>
+    {
+        return new Promise(async (resolve, reject) =>
+        {
+            let useCublas = false;
+            let executableName = 'wingman';
+
+            const graphics = await si.graphics();
+            const gpus = graphics.controllers;
+            const hasNvidiaGpu = gpus.some(gpu => gpu.vendor.toLowerCase().includes('nvidia'));
+            const hasAmdGpu = gpus.some(gpu => gpu.vendor.toLowerCase().includes('amd'));
+            const hasIntelGpu = gpus.some(gpu => gpu.vendor.toLowerCase().includes('intel'));
+
+            if (hasNvidiaGpu)
+            {
+                useCublas = true;
+            }
+
+            if (hasAmdGpu)
+            {
+            }
+
+            if (hasIntelGpu)
+            {
+            }
+
+            let wingman_runtime = "";
+            switch (process.platform)
+            {
+                case 'win32':
+                    wingman_runtime = useCublas ? 'windows-cublas' : 'windows';
+                    executableName += '.exe';
+                    break;
+                case 'linux':
+                    wingman_runtime = useCublas ? 'linux-cublas' : 'linux';
+                    break;
+                case 'darwin':
+                    if (process.arch === 'arm64')
+                    {
+                        wingman_runtime = 'macos-metal';
+                    }
+                    else
+                    {
+                        wingman_runtime = 'macos';
+                    }
+                    break;
+                default:
+                    reject(new Error(`Unsupported platform: ${process.platform}`));
+                    return;
+            }
+            tell(`[W] Wingman Runtime: ${wingman_runtime}`);
+            const exeDir = path.join(wingmanDir, 'wingman', wingman_runtime, 'bin');
+            resolve([exeDir, executableName]);
+        });
+    };
+
     const launchWingmanExecutable = async (wingmanDir, nextDir) =>
     {
         return new Promise(async (resolve, reject) =>
@@ -257,58 +352,12 @@ if (!gotTheLock)
             {
                 let forceShutdown = false;
                 let hasModelLoadingError = false;
-                let executableName = 'wingman';
-                let useCublas = false;
-
-                const graphics = await si.graphics();
-                const gpus = graphics.controllers;
-                const hasNvidiaGpu = gpus.some(gpu => gpu.vendor.toLowerCase().includes('nvidia'));
-                const hasAmdGpu = gpus.some(gpu => gpu.vendor.toLowerCase().includes('amd'));
-                const hasIntelGpu = gpus.some(gpu => gpu.vendor.toLowerCase().includes('intel'));
-
-                if (hasNvidiaGpu)
-                {
-                    useCublas = true;
-                }
-
-                if (hasAmdGpu)
-                {
-                }
-
-                if (hasIntelGpu)
-                {
-                }
+                let executablePath = "";
+                let [cwd = exeDir, executableName] = await getWingmanExecutableInfo(wingmanDir);
 
                 tell(`[W] Wingman Base directory: ${wingmanDir}`);
-                let executablePath = "";
-                let cwd = "";
-                let wingman_runtime = "";
-                switch (process.platform)
-                {
-                    case 'win32':
-                        wingman_runtime = useCublas ? 'windows-cublas' : 'windows';
-                        executableName += '.exe';
-                        break;
-                    case 'linux':
-                        wingman_runtime = useCublas ? 'linux-cublas' : 'linux';
-                        break;
-                    case 'darwin':
-                        if (process.arch === 'arm64')
-                        {
-                            wingman_runtime = 'macos-metal';
-                        }
-                        else
-                        {
-                            wingman_runtime = 'macos';
-                        }
-                        break;
-                    default:
-                        reject(new Error(`Unsupported platform: ${process.platform}`));
-                        return;
-                }
-                cwd = path.join(wingmanDir, 'wingman', wingman_runtime, 'bin');
+                tell(`[W] Wingman Executable directory: ${cwd}`);
                 executablePath = path.resolve(path.join(cwd, executableName));
-                tell(`[W] Wingman Runtime: ${wingman_runtime}`);
 
                 tell(`[W] Launching Wingman executable: ${executablePath}`);
                 const subprocess = child_process.spawn(executablePath, [], {
@@ -405,8 +454,19 @@ if (!gotTheLock)
                                         {
                                             subprocess.on('close', () =>
                                             {
+                                                tell(`[W] (terminate): Wingman process exited.`);
                                                 resolve();
                                             });
+                                            tell(`[W] (terminate): Waiting for Wingman process to exit...`);
+                                            await waitForFunctionResult(() => !wingmanProcessController, 5000, 1000);
+                                            if (wingmanProcessController)
+                                            {
+                                                etell(`[W] (terminate): Wingman process did not exit. Forcibly terminating...`);
+                                                // send SIGINT and SIGKILL to the process
+                                                subprocess.kill('SIGINT');
+                                                subprocess.kill('SIGKILL');
+                                                await waitForFunctionResult(() => !wingmanProcessController, 5000, 1000);
+                                            }
                                         } else
                                             resolve();
                                     });
@@ -628,6 +688,26 @@ if (!gotTheLock)
                     nextDir = path.join(baseDir, "standalone");
                 }
                 tell(`Next.js directory: ${nextDir}`);
+                let [exeDir,] = await getWingmanExecutableInfo(wingmanDir);
+
+                const onShowLogViewer = () =>
+                {
+                    if (LOGGER_WINDOW)
+                    {
+                        LOGGER_WINDOW.focus();
+                        return;
+                    }
+                    LOGGER_WINDOW = require('./logViewer').createLogWindow();
+                    LOGGER_WINDOW.on("closed", () =>
+                    {
+                        LOGGER_WINDOW = null;
+                    });
+                };
+                const onRestartWingmanService = async () =>
+                {
+                    await handleWingmanResetAndRestart(exeDir, wingmanDir, nextDir, false, false);
+                };
+                createMenu(onShowLogViewer, onRestartWingmanService);
 
                 try
                 {
@@ -733,19 +813,6 @@ if (!gotTheLock)
     app.whenReady().then(() =>
     {
         createWindow();
-        createMenu(onShowLogViewer =>
-        {
-            if (LOGGER_WINDOW)
-            {
-                LOGGER_WINDOW.focus();
-                return;
-            }
-            LOGGER_WINDOW = require('./logViewer').createLogWindow();
-            LOGGER_WINDOW.on("closed", () =>
-            {
-                LOGGER_WINDOW = null;
-            });
-        });
 
         app.on("activate", () =>
         {

@@ -1,6 +1,6 @@
 const { app, Menu, shell } = require("electron");
 
-exports.createMenu = (onShowLogViewer) =>
+exports.createMenu = (onShowLogViewer, onRestartService) =>
 {
     const isMac = process.platform === 'darwin';
     const template = [
@@ -23,6 +23,16 @@ exports.createMenu = (onShowLogViewer) =>
         {
             label: 'File',
             submenu: [
+                {
+                    label: 'Restart Wingman Service',
+                    click()
+                    {
+                        if (onRestartService)
+                        {
+                            onRestartService();
+                        }
+                    }
+                },
                 isMac ? { role: 'close' } : { role: 'quit' }
             ]
         },
@@ -115,4 +125,4 @@ exports.createMenu = (onShowLogViewer) =>
 
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
-}
+};
