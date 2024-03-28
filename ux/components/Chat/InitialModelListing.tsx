@@ -178,38 +178,50 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                     if (isSelectedModelItem(latestModel, latestItem)) {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-24 bg-orange-800 disabled:shadow-none disabled:cursor-default text-white py-2 rounded"
+                                className="w-48 bg-orange-800 disabled:shadow-none disabled:cursor-default text-white py-2 rounded"
                                 disabled
                             >
-                                {displayDownloadInferringButton("Engaged")}
+                                {displayDownloadInferringButton(
+                                    <div className="flex flex-col">
+                                        <div>Chosen AI Model</div>
+                                    </div>
+                                )}
                             </button>
                         </div>;
                     } else {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-24 bg-emerald-800 hover:bg-emerald-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                                className="w-48 bg-emerald-800 hover:bg-emerald-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                                 onClick={() => handleStartInference(latestModel, latestItem)}
                             >
-                                {displayDownloadInferringButton("Engage")}
+                                {displayDownloadInferringButton(
+                                    <div className="flex flex-col">
+                                        <div>Choose AI Model</div>
+                                    </div>
+                                )}
                             </button>
                         </div>;
                     }
                 } else if (latestItem.hasError) {
                     return <div className="self-center m-4">
                         <button type="button"
-                            className="w-24 bg-rose-800 hover:bg-rose-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                            className="w-48 bg-rose-800 hover:bg-rose-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                             onClick={() => handleReset(latestItem.filePath)}
                         >
-                            Reset
+                            <div className="flex flex-col">
+                                <div>Clear AI Error</div>
+                            </div>
                         </button>
                     </div>;
                 } else {
                     return <div className="self-center m-4">
                         <button type="button"
-                            className="w-24 bg-gray-800 hover:bg-sky-800 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                            className="w-48 bg-gray-800 hover:bg-sky-800 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                             onClick={() => handleStartInference(latestModel, latestItem)}
                         >
-                            Engage
+                            <div className="flex flex-col">
+                                <div>Activate AI Model</div>
+                            </div>
                         </button>
                     </div>;
                 }
@@ -229,17 +241,23 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
             // if the global model is the same as the current model display 'Engaged', otherwise display 'Engage'
             if (globalModel?.id === model.id) {
                 return <div className="self-center m-4">
-                    <div className="w-24 bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
-                        Engaged
+                    <div className="w-48 bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
+                        {displayDownloadInferringButton(
+                            <div className="flex flex-col">
+                                <div>Activate API</div>
+                            </div>,
+                        false)}
                     </div>
                 </div>;
             } else {
                 return <div className="self-center m-4" style={disabled ? { pointerEvents: "none", opacity: "0.4" } : {}}>
                     <button type="button" disabled={disabled}
-                        className="w-24 bg-stone-800 hover:bg-stone-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                        className="w-48 bg-stone-800 hover:bg-stone-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                         onClick={() => handleStartInference(model, undefined)}
                     >
-                        Engage
+                        <div className="flex flex-col">
+                            <div>Activate API</div>
+                        </div>
                     </button>
                 </div>;
             }

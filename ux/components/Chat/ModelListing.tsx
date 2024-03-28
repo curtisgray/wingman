@@ -323,7 +323,8 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                                 {displayDownloadInferringButton(
                                     <div className="flex flex-col">
                                         <div>Choose AI Model</div>
-                                    </div>)}
+                                    </div>
+                                )}
                             </button>
                         </div>;
                     }

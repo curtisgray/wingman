@@ -82,7 +82,7 @@ export const displayDownloadInferringButton = (label: ReactNode, showPropeller: 
 export const displayWaitButton = () =>
 {
     return <div className="self-center m-4">
-        <div className="w-32 bg-yellow-950 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
+        <div className="w-48 bg-yellow-950 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
             <div className="flex space-x-1 items-center justify-center">
                 <IconAperture className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />
                 <span>Please Wait...</span>

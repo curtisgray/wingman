@@ -49,7 +49,7 @@ const DownloadButton = ({ modelRepo, filePath,
         setDisabled(true);
         downloadActions.requestDownload(modelRepo, filePath);
         setIsDownloading(true);
-        setDownloadLabel("Queued for Download");
+        setDownloadLabel("Waiting to Download");
     };
 
     const handleCancelDownload = () => {
@@ -143,7 +143,7 @@ const DownloadButton = ({ modelRepo, filePath,
                         setDownloadStarted(false);
                         break;
                     case "queued":
-                        setDownloadLabel("Queued for Download");
+                        setDownloadLabel("Waiting to Download");
                         setDownloadStatus("Ready for Takeoff");
                         setDisabled(true);
                         setDownloadStarted(false);
