@@ -2,6 +2,7 @@ import { AIModel, AIModelID, VendorInfo, Vendors } from "@/types/ai";
 import { timeAgo } from "@/types/download";
 import { precisionRound } from "@/types/wingman";
 import { IconBrandOpenai, IconBrandMeta, IconUnlink, IconApi, IconPlaneOff, IconPlaneTilt, IconPropeller, IconAperture } from "@tabler/icons-react";
+import { ReactNode } from "react";
 import { Tooltip } from "react-tooltip";
 
 export const WINGMAN_DEFAULT_ICON_SIZE = 18;
@@ -53,24 +54,24 @@ export const displayClearedForTakeoff = (model: AIModel, className = "") =>
     if (Vendors[model.vendor].isDownloadable) {
         if (model.isInferable) {
             return <div className={`${className} text-sky-400`}>
-                <IconPlaneTilt size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-inferable" data-tooltip-content="Cleared for takeoff" />
+                <IconPlaneTilt size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-inferable" data-tooltip-content="This AI model should run well on your PC" />
                 <Tooltip id="is-inferable" />
             </div>;
         } else {
             return <div className={`${className} text-gray-400`}>
-                <IconPlaneOff size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-not-inferable" data-tooltip-content="Not cleared for takeoff" />
+                <IconPlaneOff size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-not-inferable" data-tooltip-content="This AI model is unlikely to run well on your PC" />
                 <Tooltip id="is-not-inferable" />
             </div>;
         }
     } else {
         return <div className={`${className} text-green-800`}>
-            <IconApi size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-api-inferred" data-tooltip-content="Always cleared for takeoff" />
+            <IconApi size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-api-inferred" data-tooltip-content="API model will run well on your PC" />
             <Tooltip id="is-api-inferred" />
         </div>;
     }
 };
 
-export const displayDownloadInferringButton = (label: string, showPropeller: boolean = true) =>
+export const displayDownloadInferringButton = (label: ReactNode, showPropeller: boolean = true) =>
 {
     return <div className="flex space-x-1 items-center justify-center">
         {showPropeller && <IconPropeller className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />}
@@ -81,10 +82,10 @@ export const displayDownloadInferringButton = (label: string, showPropeller: boo
 export const displayWaitButton = () =>
 {
     return <div className="self-center m-4">
-        <div className="w-24 bg-yellow-950 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
+        <div className="w-32 bg-yellow-950 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
             <div className="flex space-x-1 items-center justify-center">
                 <IconAperture className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />
-                <span>Wait</span>
+                <span>Please Wait...</span>
             </div>
         </div>
     </div>;
@@ -94,7 +95,7 @@ export const displayErrorButton = (label: string) =>
 {
     return <div className="self-center m-4">
         <button type="button"
-            className="w-24 bg-yellow-500 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+            className="w-32 bg-yellow-500 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
             disabled
         >
             {label}

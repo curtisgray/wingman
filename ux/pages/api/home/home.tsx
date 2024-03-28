@@ -424,13 +424,13 @@ const Home = ({
             if (vendor.isDownloadable) {
                 const latestModel = models.find((m) => m.id === selectedConversation.model.id);
                 if (latestModel === undefined) {
-                    toast.error(`'${StripFormatFromModelRepo(selectedConversation.model.name)}' is not available. Please select another model.`);
+                    toast.error(`${StripFormatFromModelRepo(selectedConversation.model.name)} is not available. Please select another model.`);
                     sccm(undefined);
                     return;
                 }
                 const latestItem = latestModel.items?.find((item) => item.quantization === selectedConversation.model.item?.quantization);
                 if (latestItem === undefined) {
-                    toast.error(`Operational Error: Please refresh the page.`);
+                    toast.error(`Operational Error: Please use the View menu to reload.`);
                     sccm(undefined);
                     return;
                 }
@@ -446,13 +446,13 @@ const Home = ({
 
                 // if (latestItem.hasError) {
                 if (itemHasError(latestItem)) {
-                    let error = "Unknown model loading error. Please refresh the page.";
+                    let error = "Unknown model loading error. Please use the View menu to reload.";
                     const wi = wingmanItems?.find((wi) => wi.alias === latestItem.filePath);
                     if (wi !== undefined) {
-                        error = wi.error ? wi.error : "Internal processing error. Please refresh the page.";
+                        error = wi.error ? wi.error : "Internal processing error. Please restart the application.";
                     }
                     toast.error(
-                        `'${StripFormatFromModelRepo(latestModel.name)}' has an error and cannot run. Please choose another model. Error: ${error}`,
+                        `${StripFormatFromModelRepo(latestModel.name)} cannot run. Error: ${error} Please choose another model.`,
                         { duration: 5000 }
                     );
                     sccm(undefined);
@@ -461,7 +461,7 @@ const Home = ({
 
                 if (!latestItem.isDownloaded) {
                     toast.error(
-                        `'${StripFormatFromModelRepo(latestModel.name)}:${latestItem.quantizationName}' is not downloaded. Please download the quantized model to run it.`,
+                        `${StripFormatFromModelRepo(latestModel.name)}:${latestItem.quantizationName} is not downloaded. Please download the quantized model to run it.`,
                         { duration: 5000 }
                     );
                     sccm(undefined);

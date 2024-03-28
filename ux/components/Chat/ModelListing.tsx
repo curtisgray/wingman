@@ -189,7 +189,20 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
             };
         };
         setCategories(createCategories(models));
+    // });
     }, [models, isOnline, downloadItems, globalModel, currentWingmanInferenceItem]);
+
+    useEffect(() =>
+    {
+        // Set up an interval that calls handleRefreshModels every 5 seconds
+        const interval = setInterval(() =>
+        {
+            handleRefreshModels();
+        }, 5000);
+
+        // Return a cleanup function that clears the interval
+        return () => clearInterval(interval);
+    }, [handleRefreshModels]); // Pass handleRefreshModels as a dependency
 
     const isSelectedModelItem = (model: AIModel | undefined, item: DownloadableItem | undefined) =>
     {
@@ -224,6 +237,18 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
         const wingmanItem = wingmanItems.find((wi) => wi.alias === item.filePath);
         if (wingmanItem === undefined) return false;
         return wingmanItem.status === "error";
+    };
+
+    const isItemDownloaded = (item: DownloadableItem | undefined) =>
+    {
+        if (item === undefined) return false;
+        // look for the model in the downloadItems list
+        let index = downloadItems.findIndex((i) => i.modelRepo === item.modelRepo);
+        if (index === -1) return false;
+        // look for the item by filePath in the downloadItems list
+        index = downloadItems.findIndex((i) => i.filePath === item.filePath);
+        if (index === -1) return false;
+        return downloadItems[index].status === "complete";
     };
 
     useEffect(() =>
@@ -269,7 +294,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
             // match latestItem to a wingmanItem to see if it has an error
             if (!latestItem) return displayErrorButton("No item");
             if (isAliasBeingReset(latestItem.filePath)) return displayWaitButton();
-            if (latestItem.isDownloaded) {
+            if (isItemDownloaded(latestItem)) {
                 // a model can be inferring on the server, but not engaged. another model, say from an API, can be engaged
                 //   even while the server is inferring a different model. thus we need to check for both cases
                 // check if the model is currently engaged
@@ -279,19 +304,26 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                     if (isSelectedModelItem(latestModel, latestItem)) {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-24 bg-orange-800 disabled:shadow-none disabled:cursor-default text-white py-2 rounded"
+                                className="w-48 bg-orange-800 disabled:shadow-none disabled:cursor-default text-white py-2 rounded"
                                 disabled
                             >
-                                {displayDownloadInferringButton("Engaged")}
+                                {displayDownloadInferringButton(
+                                    <div className="flex flex-col">
+                                        <div>Chosen AI Model</div>
+                                    </div>
+                                )}
                             </button>
                         </div>;
                     } else {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-24 bg-emerald-800 hover:bg-emerald-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                                className="w-48 bg-emerald-800 hover:bg-emerald-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                                 onClick={() => handleStartInference(latestModel, latestItem)}
                             >
-                                {displayDownloadInferringButton("Engage")}
+                                {displayDownloadInferringButton(
+                                    <div className="flex flex-col">
+                                        <div>Choose AI Model</div>
+                                    </div>)}
                             </button>
                         </div>;
                     }
@@ -299,19 +331,23 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                 } else if (itemHasError(latestItem)) {
                     return <div className="self-center m-4">
                         <button type="button"
-                            className="w-24 bg-rose-800 hover:bg-rose-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                            className="w-48 bg-rose-800 hover:bg-rose-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                             onClick={() => handleReset(latestItem.filePath)}
                         >
-                            Reset
+                            <div className="flex flex-col">
+                                <div>Clear AI Error</div>
+                            </div>
                         </button>
                     </div>;
                 } else {
                     return <div className="self-center m-4">
                         <button type="button"
-                            className="w-24 bg-gray-800 hover:bg-sky-800 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                            className="w-48 bg-gray-800 hover:bg-sky-800 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                             onClick={() => handleStartInference(latestModel, latestItem)}
                         >
-                            Engage
+                            <div className="flex flex-col">
+                                <div>Activate AI Model</div>
+                            </div>
                         </button>
                     </div>;
                 }
@@ -332,19 +368,25 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
             if (globalModel?.id === model.id) {
                 return <div className="self-center m-4">
                     <button type="button"
-                        className="w-24 bg-orange-800 disabled:shadow-none disabled:cursor-default text-white py-2 rounded"
+                        className="w-48 bg-orange-800 disabled:shadow-none disabled:cursor-default text-white py-2 rounded"
                         disabled
                     >
-                        {displayDownloadInferringButton("Engaged", false)}
+                        {displayDownloadInferringButton(
+                            <div className="flex flex-col">
+                                <div>Activate API</div>
+                            </div>,
+                        false)}
                     </button>
                 </div>;
             } else {
                 return <div className="self-center m-4" style={disabled ? { pointerEvents: "none", opacity: "0.4" } : {}}>
                     <button type="button" disabled={disabled}
-                        className="w-24 bg-stone-800 hover:bg-stone-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                        className="w-48 bg-stone-800 hover:bg-stone-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                         onClick={() => handleStartInference(model, undefined)}
                     >
-                        Engage
+                        <div className="flex flex-col">
+                            <div>Activate API</div>
+                        </div>
                     </button>
                 </div>;
             }

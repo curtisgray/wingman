@@ -35,7 +35,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
     } = useContext(HomeContext);
 
     const {
-        state: { currentWingmanInferenceItem, isOnline, wingmanItems, inferringAlias },
+        state: { currentWingmanInferenceItem, isOnline, wingmanItems, inferringAlias, downloadItems },
     } = useContext(WingmanContext);
 
     // wrap createCategories in a useCallback to prevent it from being recreated on every render
@@ -121,6 +121,18 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
         return true;
     };
 
+    const isItemDownloaded = (item: DownloadableItem | undefined) =>
+    {
+        if (item === undefined) return false;
+        // look for the model in the downloadItems list
+        let index = downloadItems.findIndex((i) => i.modelRepo === item.modelRepo);
+        if (index === -1) return false;
+        // look for the item by filePath in the downloadItems list
+        index = downloadItems.findIndex((i) => i.filePath === item.filePath);
+        if (index === -1) return false;
+        return downloadItems[index].status === "complete";
+    };
+
     useEffect(() =>
     {
         if (!startingInference) return;
@@ -156,7 +168,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
             const latestItem = latestModel.items.find((item) => item.quantization === quantization);
             if (!latestItem) return displayErrorButton("No item");
             if (isAliasBeingReset(latestItem.filePath)) return displayWaitButton();
-            if (latestItem.isDownloaded) {
+            if (isItemDownloaded(latestItem)) {
                 // a model can be inferring on the server, but not engaged. another model, say from an API, can be engaged
                 //   even while the server is inferring a different model. thus we need to check for both cases
                 // check if the model is currently engaged

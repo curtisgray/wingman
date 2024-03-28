@@ -26,16 +26,17 @@ const DownloadButton = ({ modelRepo, filePath,
     const [downloadCompleted, setDownloadCompleted] = useState<boolean>(false);
     const [progress, setProgress] = useState<number>(0);
     const [progressText, setProgressText] = useState<string>("");
-    const [downloadLabel, setDownloadLabel] = useState<React.ReactNode>("Download");
+    const [downloadLabel, setDownloadLabel] = useState<React.ReactNode>("Download AI Model");
     const [downloadStatus, setDownloadStatus] = useState<string>("Docked");
     const [disabled, setDisabled] = useState<boolean>(true);
     const [isInitialized, setIsInitialized] = useState<boolean>(false);
     const [isInitializing, setIsInitializing] = useState<boolean>(false);
     const [tooltipString, setTooltipString] = useState<string>("");
+    const [triggerUpdateButton, setTriggerUpdateButton] = useState<boolean>(false);
  
     const handleInitializeButton = () => {
         setDisabled(false);
-        setDownloadLabel("Download");
+        setDownloadLabel("Download AI Model");
         setDownloadStatus("Docked");
         setDownloadStarted(false);
         setDownloadCompleted(false);
@@ -48,13 +49,13 @@ const DownloadButton = ({ modelRepo, filePath,
         setDisabled(true);
         downloadActions.requestDownload(modelRepo, filePath);
         setIsDownloading(true);
-        setDownloadLabel("Queued");
+        setDownloadLabel("Queued for Download");
     };
 
     const handleCancelDownload = () => {
         setDisabled(false);
         downloadActions.requestCancelDownload(modelRepo, filePath);
-        setDownloadLabel("Reset");
+        setDownloadLabel("Download Cancelled");
     };
 
     const handleRequestOrCancelDownload = () => {
@@ -66,7 +67,7 @@ const DownloadButton = ({ modelRepo, filePath,
     };
 
     const handleError = () => {
-        setDownloadLabel("Error");
+        setDownloadLabel("Download Error");
         setDownloadStatus("Failure to Takeoff");
         setDisabled(true);
         setDownloadStarted(false);
@@ -89,7 +90,7 @@ const DownloadButton = ({ modelRepo, filePath,
             if (downloadItem !== undefined) {
                 switch (downloadItem.status) {
                     case "complete":
-                        setDownloadLabel("Downloaded");
+                        setDownloadLabel("AI Model Downloaded");
                         setDownloadStatus("Aircraft Landed");
                         setDisabled(true);
                         if (isDownloading && !downloadCompleted){
@@ -107,7 +108,7 @@ const DownloadButton = ({ modelRepo, filePath,
                             onStarted(downloadItem);
                         }
                         // setDownloadLabel("Cancel Download");
-                        setDownloadLabel("Cancel");
+                        setDownloadLabel("Cancel Download");
                         setDownloadStatus(`Aircraft in Flight - ${downloadItem.progress.toPrecision(3)}%}`);
                         setDisabled(false);
                         setProgress(downloadItem.progress);
@@ -118,7 +119,7 @@ const DownloadButton = ({ modelRepo, filePath,
                         break;
                     case "cancelled":
                         if (isDownloading && !downloadCompleted){
-                            setDownloadLabel("Reset");
+                            setDownloadLabel("Download Cancelled");
                             setDownloadStatus("Flight Aborted");
                             setDisabled(false);
                             setProgress(downloadItem.progress);
@@ -127,20 +128,22 @@ const DownloadButton = ({ modelRepo, filePath,
                             localIsDownloading = false;
                             setDownloadStarted(false);
                             onCancelled(downloadItem);
+                        } else {
+                            downloadActions.requestResetDownload(downloadItem.modelRepo, downloadItem.filePath);
                         }
                         break;
                     case "error":
-                        setDownloadLabel("Error");
+                        setDownloadLabel("Download Error");
                         setDownloadStatus("Failure to Takeoff");
                         break;
                     case "idle":
-                        setDownloadLabel("Download");
+                        setDownloadLabel("AI Model Available");
                         setDownloadStatus("Aircraft Docked");
                         setDisabled(true);
                         setDownloadStarted(false);
                         break;
                     case "queued":
-                        setDownloadLabel("Queued");
+                        setDownloadLabel("Queued for Download");
                         setDownloadStatus("Ready for Takeoff");
                         setDisabled(true);
                         setDownloadStarted(false);
@@ -164,18 +167,23 @@ const DownloadButton = ({ modelRepo, filePath,
             if (downloadItem !== undefined) {
                 if (downloadItem.status === "complete") {
                     setIsDownloading(false);
-                    setDownloadLabel("Downloaded");
+                    setDownloadLabel("AI Model Downloaded");
                     setDownloadStatus("Aircraft Landed");
                     setDisabled(true);
                 }
             } else {
                 if (autoStart)
                     handleRequestDownload();
-                else
+                else {
                     handleInitializeButton();
+                    setTriggerUpdateButton(!triggerUpdateButton);
+                }
             }
         }
     }, [downloadItem, isInitialized, isInitializing]);
+
+    useEffect(() => {
+    }, [triggerUpdateButton]);
 
     useEffect(() => {
         setIsInitializing(true);
@@ -207,7 +215,7 @@ const DownloadButton = ({ modelRepo, filePath,
             onClick={handleRequestOrCancelDownload}
             data-tooltip-id="download-status"
             data-tooltip-content={`${tooltipString}`}
-            className={className == undefined ? "relative flex flex-col w-24 bg-sky-700 hover:bg-sky-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 px-4 rounded" : `relative ${className}`}>
+            className={className == undefined ? "relative flex flex-col w-48 bg-sky-700 hover:bg-sky-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 px-4 rounded" : `relative ${className}`}>
             {
                 children == undefined ?
                     (
@@ -219,7 +227,7 @@ const DownloadButton = ({ modelRepo, filePath,
                             {showProgress && isDownloading && <progress
                                 value={progress}
                                 max="100"
-                                className="w-24 h-full absolute top-0 left-0 [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-amber-500 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500"
+                                className="w-48 h-full absolute top-0 left-0 [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-amber-500 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500"
                             ></progress>}
                             <Tooltip id="download-status" />
                         </>
