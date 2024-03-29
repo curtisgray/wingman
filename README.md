@@ -51,6 +51,12 @@ Wingman - Rooster is the first release of Wingman. Future releases will be named
 - Wingman will evaluate your machine so you can see at a glance what models may or may not run on your hardware. We won’t stop you from trying any of them, though!
 - Save and organize your chats into folders so you can find them again later. 
 - Set system prompts and prompt templates so you can talk with characters and get the best results from all models.
+---
+<p align="center">
+<img src="https://electricpipelines.com/wp-content/uploads/sites/5/2022/05/electric-logo-transparent-300x300-2.png" width=128>
+</p>
+
+### Sponsored by [Electric Pipelines](https://electricpipelines.com/): We offer enhanced software engineering. For custom Wingman modifications or deployments, [contact us today](https://electricpipelines.com/)!
 
 ## Planned Features
 
