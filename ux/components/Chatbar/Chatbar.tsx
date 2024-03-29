@@ -32,6 +32,8 @@ export const Chatbar = () => {
             defaultModelId,
             folders,
             pluginKeys,
+            messageIsStreaming,
+            isSwitchingModel,
         },
         dispatch: homeDispatch,
         handleCreateFolder,
@@ -235,7 +237,8 @@ export const Chatbar = () => {
                 handleApiKeyChange,
             }}
         >
-            <Sidebar
+            <Sidebar<Conversation>
+                disabled={messageIsStreaming || isSwitchingModel}
                 side={"left"}
                 isOpen={showChatbar}
                 addItemButtonTitle={t("New chat")}

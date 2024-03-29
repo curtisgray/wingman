@@ -124,6 +124,7 @@ const Promptbar = ({ isSystem = false}) => {
             }}
         >
             <Sidebar<Prompt>
+                disabled={false}
                 side={"right"}
                 isOpen={showPromptbar}
                 addItemButtonTitle={t("New prompt")}
@@ -146,6 +147,7 @@ const Promptbar = ({ isSystem = false}) => {
                     handleCreateFolder(t("New folder"), "prompt")
                 }
                 handleDrop={handleDrop}
+                footerComponent={<PromptbarSettings />}
             />
         </PromptbarContext.Provider>
     );

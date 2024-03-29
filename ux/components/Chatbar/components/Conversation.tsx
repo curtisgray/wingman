@@ -30,7 +30,7 @@ interface Props {
 
 export const ConversationComponent = ({ conversation}: Props) => {
     const {
-        state: { selectedConversation, messageIsStreaming },
+        state: { selectedConversation, messageIsStreaming, isSwitchingModel },
         handleSelectConversation,
         handleUpdateConversation,
         handleDuplicateConversation,
@@ -137,7 +137,7 @@ export const ConversationComponent = ({ conversation}: Props) => {
     return (
         <div className="relative flex items-center">
             {isRenaming && selectedConversation?.id === conversation.id ? (
-                <div className="flex w-full items-center gap-3 rounded-lg bg-gray-700/90 p-3">
+                <div className="flex w-full items-center gap-3 rounded bg-gray-700/90 p-3">
                     <IconMessage size={18} />
                     <input
                         className="mr-12 flex-1 overflow-hidden overflow-ellipsis border-neutral-400 bg-transparent text-left text-xs leading-3 outline-none focus:border-neutral-100"
@@ -150,14 +150,14 @@ export const ConversationComponent = ({ conversation}: Props) => {
                 </div>
             ) : (
                 <button
-                        className={`flex w-full cursor-pointer items-center gap-3 rounded-lg px-2 py-3 text-sm transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-700
-                         ${messageIsStreaming ? "disabled:cursor-not-allowed" : ""}
+                        className={`flex w-full cursor-pointer items-center gap-3 rounded px-2 py-3 text-sm transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-700
+                         ${(messageIsStreaming || isSwitchingModel) ? "disabled:cursor-not-allowed" : ""}
                          ${selectedConversation?.id === conversation.id
                             ? "bg-gray-300 dark:bg-gray-700"
                             : "bg-gray-100 dark:bg-gray-800"
                     }`}
                     onClick={() => handleSelectConversation(conversation)}
-                    disabled={messageIsStreaming}
+                    disabled={(messageIsStreaming || isSwitchingModel)}
                     draggable="true"
                     onDragStart={(e) => handleDragStart(e, conversation)}
                 >

@@ -6,6 +6,7 @@ import { StripFormatFromModelRepo, quantizationFromFilePath } from "@/types/down
 import HomeContext from "@/pages/api/home/home.context";
 import { AIModelID, VendorInfo, Vendors } from "@/types/ai";
 import { displayModelVendor, displayVendorIcon } from "./Util";
+import { Tooltip } from "react-tooltip";
 
 const WingmanInferenceStatus = ({ title = "Inference Status", showTitle = true, showModel = true, showQuantization = true, showAlias = false, className = "" }) =>
 {
@@ -21,19 +22,15 @@ const WingmanInferenceStatus = ({ title = "Inference Status", showTitle = true, 
     const [wingmanItem, setWingmanItem] = useState<WingmanItem | undefined>(undefined);
     const [wingmanStatusLabel, setWingmanStatusLabel] = useState<string>("unknown");
     const [wingmanStatusTitle, setWingmanStatusTitle] = useState<string>("");
+    const [wingmanError, setWingmanError] = useState<string>("");
     const [model, setModel] = useState<string>("");
     const [modelAlias, setModelAlias] = useState<string>("");
     const [vendor, setVendor] = useState<VendorInfo>(Vendors["unknown"]);
     const [quantizationName, setQuantizationName] = useState<string>("");
-    const [downloadableModelSelected, setDownloadableModelSelected] = useState<boolean>(false);
-    const [isRunningInferenceModel, setIsRunningInferenceModel] = useState<boolean>(false);
-    // const [isChatSettingsDialogOpen, setIsChatSettingsDialogOpen] = useState<boolean>(false);
 
     const reset = () =>
     {
         setWingmanItem(undefined);
-        setDownloadableModelSelected(false);
-        setIsRunningInferenceModel(false);
         setWingmanStatusLabel("unknown");
         setWingmanStatusTitle("");
         setModel("");
@@ -69,12 +66,6 @@ const WingmanInferenceStatus = ({ title = "Inference Status", showTitle = true, 
             const wi = wingmanItems.find((wi) => wi.filePath === currentWingmanInferenceItem?.alias);
             if (wi !== undefined) {
                 setWingmanItem(wi);
-                setDownloadableModelSelected(true);
-                if (wi.modelRepo === globalModel?.id && wi.filePath === globalModel?.item?.filePath) {
-                    setIsRunningInferenceModel(true);
-                } else {
-                    setIsRunningInferenceModel(false);
-                }
                 if (showTitle)
                     setWingmanStatusTitle(title);
                 if (showModel)
@@ -86,6 +77,7 @@ const WingmanInferenceStatus = ({ title = "Inference Status", showTitle = true, 
                     setQuantizationName(quantizationLocal.quantizationName);
                 }
                 updateWingmanStatusLabel(wi);
+                setWingmanError(wi.error || "");
                 // find model vendor for wi
                 const model = models.find((m) => m.id === wi.modelRepo);
                 if (model !== undefined) {
@@ -139,7 +131,8 @@ const WingmanInferenceStatus = ({ title = "Inference Status", showTitle = true, 
     if (currentWingmanInferenceItem && currentWingmanInferenceItem.alias) {
         return (
             <>
-                <div className={`${className} flex px-1 dark:border-none dark:bg-gray-800 dark:text-gray-200 rounded`}>
+                <div className={`${className} flex px-1 dark:border-none dark:bg-gray-800 dark:text-gray-200 rounded`}
+                    data-tooltip-id="wingman-inference-status" data-tooltip-content={wingmanError}>
                     <div className="flex space-x-1">
                         {displayVendorIcon(vendor)}
                         <span>{wingmanStatusTitle} <span>{model} {modelAlias} {(showQuantization) && <span>({quantizationName})</span>}</span>
@@ -147,6 +140,7 @@ const WingmanInferenceStatus = ({ title = "Inference Status", showTitle = true, 
                         </span>
                     </div>
                 </div>
+                <Tooltip id="wingman-inference-status" />
             </>
         );
     } else {

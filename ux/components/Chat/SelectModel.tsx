@@ -60,7 +60,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
     const { requestResetInference } = useRequestInferenceAction();
 
     const {
-        state: { models, globalModel, defaultModelId },
+        state: { models, globalModel, defaultModelId, isSwitchingModel },
         handleChangeModel,
     } = useContext(HomeContext);
 
@@ -177,11 +177,13 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                 (!Vendors[model.vendor].isDownloadable))
                 : models;
 
-            const selectable = showReadyForTakeoffOnly ? downloadsFilter.filter((model) =>
+            const readyForTakeOffFilter = showReadyForTakeoffOnly ? models.filter((model) =>
                 (Vendors[model.vendor].isDownloadable && model.isInferable) ||
                 (!Vendors[model.vendor].isDownloadable))
                 : models;
 
+            // combine the filters
+            const selectable = downloadsFilter.filter((model) => readyForTakeOffFilter.includes(model));
             setSelectableModels(selectable);
         }
         catch (err) {
@@ -429,7 +431,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                     <div className="flex flex-col space-y-4">
                         <div className="flex pb-2">
                             <label className="text-left text-gray-700 dark:text-gray-400">
-                                {t("To engage any available AI model, use the search box below.")}
+                                {t("To activate any available AI model, use the search box below.")}
                             </label>
                             <span className="flex-grow"></span>
                         </div>
@@ -452,7 +454,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                                 </label>
                                 <input id="showReadyForTakeoffOnly" type="checkbox" className="w-8 h-5" checked={showReadyForTakeoffOnly} onChange={(e) => setShowReadyForTakeoffOnly(e.target.checked)} />
                             </div>
-                            <div className="flex items-center" data-tooltip-id="expert-mode" data-tooltip-content="Enable expert search options">
+                            {/* <div className="flex items-center" data-tooltip-id="expert-mode" data-tooltip-content="Enable expert search options">
                                 <label htmlFor="expert-mode">
                                     <div className="text-indigo-600">
                                         <IconCrown size={iconSize} />
@@ -460,7 +462,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                                     </div>
                                 </label>
                                 <input id="expertMode" type="checkbox" className="w-8 h-5" checked={expertMode} onChange={(e) => setExpertMode(e.target.checked)} />
-                            </div>
+                            </div> */}
                         </div>
                         <div className="flex pb-2">
                             <label className="text-left">
@@ -469,16 +471,16 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                         </div>
                     </div>
                 )}
-                <div className="flex rounded-lg space-x-2 items-center">
+                <div className="flex rounded space-x-2 items-center">
                     <>
                         <Select
-                            isLoading={isChangingModel}
+                            isLoading={isChangingModel || isSwitchingModel}
                             // placeholder={(t("Search for an AI model").length > 0) || ""}
                             // classNames={{
                             //     control: (state) =>
                             //         state.isFocused ? 'border-red-600' : 'border-grey-300',
                             // }}
-                            placeholder="Search ..."
+                            placeholder="Search for an AI model ..."
                             options={optionsGroupedModels}
                             value={{
                                 label: displayModel(model),
@@ -488,13 +490,14 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                             //     label: displayModel(model),
                             //     value: model?.id,
                             // } as ModelOption}
+                            controlShouldRenderValue={false}
                             isSearchable={true}
                             // hideSelectedOptions={true}
                             onChange={handleChangeSelectedModel}
                             className="model-select-container w-full text-gray-900 bg-slate-700"
                             classNamePrefix="model-select"
                             instanceId={"model-select"}
-                            isDisabled={disabled || !isOnline}
+                            isDisabled={disabled || !isOnline || isSwitchingModel}
                             data-tooltip-id="model-select"
                             data-tooltip-content="Select or search for an AI model"
                         />

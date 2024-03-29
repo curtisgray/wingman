@@ -58,6 +58,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
             globalModel,
             messageIsStreaming,
             isModelSelected,
+            isSwitchingModel,
         },
         handleUpdateConversation,
         dispatch: homeDispatch,
@@ -475,7 +476,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                         <>
                             <div className="mb-2">
                                 {t(
-                                    "To get started using Wingman, we have pre-selected a small, highly-capable Meta Llama AI model that can run on most PC's. Download and engage the Meta compatible AI model below. To download, select the 'Download' button. Once the model download is completed, select 'Engage' to begin using the model."
+                                    "To get started using Wingman, we have pre-selected a small, highly-capable Meta Llama AI model that can run on most PC's. Download and activate the Meta compatible AI model below. To download, select the 'Download' button. Once the model download is completed, select 'Engage' to begin using the model."
                                 )}
                             </div>
                             <div className="w-full">
@@ -483,12 +484,12 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                             </div>
                             <div className='mb-4'>
                                 {t(
-                                    "To engage any available AI model, use the search box below."
+                                    "To activate any available AI model, use the search box below."
                                 )}
                             </div>
                             <div className="w-full">
                                 {!isOnline && (
-                                    <div className="mb-2 p-3 rounded-lg w-full text-center text-gray-100 bg-gray-800 dark:text-gray-800 dark:bg-white">
+                                    <div className="mb-2 p-3 rounded w-full text-center text-gray-100 bg-gray-800 dark:text-gray-800 dark:bg-white">
                                         {t("Search not available while offline.")}
                                     </div>
                                 )}
@@ -530,7 +531,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                 <>
                     <div className="max-h-full overflow-x-hidden"
                         ref={chatContainerRef} onScroll={handleScroll}>
-                        <ChatStatus onSettings={handleSettings} onClearConversation={onClearAll} showStatus={!showSettings} />
+                        <ChatStatus onSettings={handleSettings} onClearConversation={onClearAll} showStatus={!showSettings} disabled={isSwitchingModel} />
 
                         {selectedConversation?.messages.map(
                             (message, index) => (
@@ -551,7 +552,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                             )
                         )}
 
-                        {loading && <ChatLoader />}
+                        {isSwitchingModel && <ChatLoader />}
                         {/* {!isModelSelected && <ChatAlert message={t("No model selected")} />} */}
 
                         {/* add a buffer at the bottom of the messages list */}

@@ -23,6 +23,7 @@ export const ChatbarSettings = () => {
             serverSidePluginKeysSet,
             conversations,
             messageIsStreaming,
+            isSwitchingModel,
         },
     } = useContext(HomeContext);
 
@@ -36,13 +37,14 @@ export const ChatbarSettings = () => {
     return (
         <div className="flex flex-col items-center space-y-1 border-t border-white/20 pt-1 text-sm">
             <SidebarButton
-                disabled={messageIsStreaming}
+                disabled={(messageIsStreaming || isSwitchingModel)}
                 text={t("Choose AI model")}
                 icon={<IconRobot size={18} />}
                 onClick={() => setIsChatSettingsDialogOpen(true)} />
                 
             {conversations.length > 0 ? (
                 <ClearConversations
+                    disabled={(messageIsStreaming || isSwitchingModel)}
                     onClearConversations={handleClearConversations}
                 />
             ) : null}
@@ -50,14 +52,14 @@ export const ChatbarSettings = () => {
             <Import onImport={handleImportConversations} />
 
             <SidebarButton
-                disabled={messageIsStreaming}
+                disabled={(messageIsStreaming || isSwitchingModel)}
                 text={t("Export data")}
                 icon={<IconFileExport size={18} />}
                 onClick={() => handleExportData()}
             />
 
             <SidebarButton
-                disabled={messageIsStreaming}
+                disabled={(messageIsStreaming || isSwitchingModel)}
                 text={t("Theme")}
                 icon={<IconBrush size={18} />}
                 onClick={() => setIsSettingDialog(true)}

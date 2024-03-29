@@ -85,7 +85,7 @@ export const VariableModal: FC<Props> = ({
         >
             <div
                 ref={modalRef}
-                className="dark:border-gray-400 inline-block max-h-[400px] transform overflow-y-auto rounded-lg border border-gray-300 bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:max-h-[600px] sm:w-full sm:max-w-lg sm:p-6 sm:align-middle"
+                className="dark:border-gray-400 inline-block max-h-[400px] transform overflow-y-auto rounded border border-gray-300 bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:max-h-[600px] sm:w-full sm:max-w-lg sm:p-6 sm:align-middle"
                 role="dialog"
             >
                 <div className="mb-4 text-xl font-bold text-black dark:text-gray-200">
@@ -104,7 +104,7 @@ export const VariableModal: FC<Props> = ({
 
                         <textarea
                             ref={index === 0 ? nameInputRef : undefined}
-                            className="mt-1 w-full rounded-lg border border-gray-500 px-4 py-2 text-gray-900 shadow focus:outline-none dark:border-gray-800 dark:border-opacity-50 dark:bg-gray-700 dark:text-gray-100"
+                            className="mt-1 w-full rounded border border-gray-500 px-4 py-2 text-gray-900 shadow focus:outline-none dark:border-gray-800 dark:border-opacity-50 dark:bg-gray-700 dark:text-gray-100"
                             style={{ resize: "none" }}
                             placeholder={`Enter a value for ${variable.key}...`}
                             value={variable.value}
@@ -117,7 +117,7 @@ export const VariableModal: FC<Props> = ({
                 ))}
 
                 <button
-                    className="mt-6 w-full rounded-lg border border-gray-500 px-4 py-2 text-gray-900 shadow hover:bg-gray-100 focus:outline-none dark:border-gray-800 dark:border-opacity-50 dark:bg-white dark:text-black dark:hover:bg-gray-300"
+                    className="mt-6 w-full rounded border border-gray-500 px-4 py-2 text-gray-900 shadow hover:bg-gray-100 focus:outline-none dark:border-gray-800 dark:border-opacity-50 dark:bg-white dark:text-black dark:hover:bg-gray-300"
                     onClick={handleSubmit}
                 >
                     Submit

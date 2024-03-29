@@ -123,10 +123,13 @@ export interface WingmanStateProps
     downloadItems: DownloadItem[];
     currentWingmanInferenceItem: WingmanItem | undefined;
     wingmanStatusMessage: string;
-    isInferring: boolean;
+    isInferring: boolean;   // set to true when currentWinmanInferenceItem.status === "inferring"
+    isActiveStatus: boolean;   // set to true when hasActiveStatus is true the currentWinmanInferenceItem.status
     isDownloading: boolean;
-    inferringAlias: string;
+    inferringAlias: string;   // set to the currentWingmanInferenceItem.alias when currentWinmanInferenceItem.status === "inferring"
     wingmanStatusLabel: string;
+
+    hasReceivedWingmanItems: boolean;
 }
 
 export const getWingmanItemStatusMessage = (wi: WingmanItem | undefined) =>
@@ -146,7 +149,7 @@ export const getWingmanItemStatusMessage = (wi: WingmanItem | undefined) =>
                 return "AI Model is Inactive"; // Signifies the successful completion of the task, like a plane safely landing
                 // return "Mission Complete"; // Signifies the successful completion of the task, like a plane safely landing
             case "error":
-                return "AI Model Load Error"; // Communicates a problem or error, as in distress signals
+                return "Error Loading AI Model"; // Communicates a problem or error, as in distress signals
                 // return "Mission Compromised"; // Communicates a problem or error, as in distress signals
             case "cancelling":
                 return "AI Model Unloading"; // Indicates aborting the current task and returning, similar to a plane returning to base
@@ -158,7 +161,7 @@ export const getWingmanItemStatusMessage = (wi: WingmanItem | undefined) =>
                 throw new Error(`Unknown WingmanItem status: ${wi.status}`);
         }
     } else {
-        return "AI Model is Down";
+        return "AI Model is Offline";
     }
 };
 
@@ -173,7 +176,7 @@ export const getWingmanItemStatusLabel = (wi: WingmanItem | undefined) =>
             case "inferring":
                 return "Active"; // The item is actively being processed, akin to a plane that has taken off and is in flight
             case "complete":
-                return "Complete"; // Signifies the successful completion of the task, like a plane safely landing
+                return "Inactive"; // Signifies the successful completion of the task, like a plane safely landing
             case "error":
                 return "Load Error"; // Communicates a problem or error, as in distress signals
             case "cancelling":
@@ -184,7 +187,7 @@ export const getWingmanItemStatusLabel = (wi: WingmanItem | undefined) =>
                 throw new Error(`Unknown WingmanItem status: ${wi.status}`);
         }
     } else {
-        return "Down";
+        return "Offline";
     }
 };
 

@@ -272,7 +272,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                         <Tab.Panel
                             key={idx}
                             className={classNames(
-                                'rounded-xl bg-white p-3 overflow-y-auto',
+                                'rounded bg-white p-3 overflow-y-auto',
                                 'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2'
                             )}
                         >
@@ -293,7 +293,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                                             key={item.id}
                                             className='flex items-center justify-between hover:bg-gray-100'
                                         >
-                                            <div className = 'relative rounded-md p-2'>
+                                            <div className = 'relative rounded p-2'>
                                                 <h3 className='text-base font-medium leading-5 dark:text-gray-700 text-gray-400'>
                                                     {displayModelName(item)}
                                                 </h3>

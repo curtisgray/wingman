@@ -73,9 +73,9 @@ export const displayClearedForTakeoff = (model: AIModel, className = "") =>
 
 export const displayDownloadInferringButton = (label: ReactNode, showPropeller: boolean = true) =>
 {
-    return <div className="flex space-x-1 items-center justify-center">
-        {showPropeller && <IconPropeller className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />}
-        <span>{label}</span>
+    return <div className="flex items-center">
+        {showPropeller && <IconPropeller className="w-8 animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="AI model is active" />}
+        <span className="w-8/12" >{label}</span>
     </div>;
 };
 
@@ -84,7 +84,7 @@ export const displayWaitButton = () =>
     return <div className="self-center m-4">
         <div className="w-48 bg-yellow-950 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
             <div className="flex space-x-1 items-center justify-center">
-                <IconAperture className="animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="In flight" />
+                <IconAperture className="animate-spin" size={10} />
                 <span>Please Wait...</span>
             </div>
         </div>

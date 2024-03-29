@@ -198,7 +198,7 @@ export const SystemPrompt: FC<Props> = ({
             </label>
             <textarea
                 ref={textareaRef}
-                className="w-full rounded-lg border border-gray-200 bg-transparent max-h-52 px-4 py-3 text-gray-900 dark:border-gray-600 dark:text-gray-100"
+                className="w-full rounded border border-gray-200 bg-transparent max-h-52 px-4 py-3 text-gray-900 dark:border-gray-600 dark:text-gray-100"
                 placeholder={
                     t(`Enter a prompt or type "/" to select a prompt...`) || ""
                 }
@@ -209,7 +209,7 @@ export const SystemPrompt: FC<Props> = ({
             />
             {/* <TextAreaAutosize
                 ref={textareaRef}
-                className="w-full rounded-lg border border-gray-200 bg-transparent max-h-60 px-4 py-3 text-gray-900 dark:border-gray-600 dark:text-gray-100"
+                className="w-full rounded border border-gray-200 bg-transparent max-h-60 px-4 py-3 text-gray-900 dark:border-gray-600 dark:text-gray-100"
                 placeholder={
                     t(`Enter a prompt or type "/" to select a prompt...`) || ""
                 }
@@ -220,7 +220,7 @@ export const SystemPrompt: FC<Props> = ({
             /> */}
             {/* <textarea
                 ref={textareaRef}
-                className="w-full rounded-lg border border-gray-200 bg-transparent px-4 py-3 text-gray-900 dark:border-gray-600 dark:text-gray-100"
+                className="w-full rounded border border-gray-200 bg-transparent px-4 py-3 text-gray-900 dark:border-gray-600 dark:text-gray-100"
                 style={{
                     resize: "none",
                     bottom: `${textareaRef?.current?.scrollHeight}px`,

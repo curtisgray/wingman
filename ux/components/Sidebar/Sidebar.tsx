@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { Tooltip } from "react-tooltip";
 
 interface Props<T> {
+    disabled: boolean;
     isOpen: boolean;
     addItemButtonTitle: string;
     side: "left" | "right";
@@ -25,6 +26,7 @@ interface Props<T> {
 }
 
 const Sidebar = <T,>({
+    disabled = false,
     isOpen,
     addItemButtonTitle,
     side,
@@ -60,7 +62,8 @@ const Sidebar = <T,>({
             >
                 <div className="flex items-center">
                     <button
-                        className="text-sidebar flex w-[190px] flex-shrink-0 cursor-pointer select-none items-center gap-3 rounded-md border dark:border-white/20 p-3 transition-colors duration-200 dark:hover:bg-gray-500/10"
+                        className="text-sidebar flex w-[190px] flex-shrink-0 cursor-pointer disabled:cursor-not-allowed select-none items-center gap-3 rounded-md border dark:border-white/20 p-3 transition-colors duration-200 dark:hover:bg-gray-500/10"
+                        disabled={disabled}
                         onClick={() => {
                             handleCreateItem();
                             handleSearchTerm("");
@@ -71,13 +74,15 @@ const Sidebar = <T,>({
                     </button>
 
                     <button
-                        className="ml-2 flex flex-shrink-0 cursor-pointer items-center gap-3 rounded-md border border-white/20 p-3 text-sm transition-colors duration-200 hover:bg-gray-500/10"
+                        className="ml-2 flex flex-shrink-0 cursor-pointer disabled:cursor-not-allowed items-center gap-3 rounded-md border border-white/20 p-3 text-sm transition-colors duration-200 hover:bg-gray-500/10"
+                        disabled={disabled}
                         onClick={handleCreateFolder}
                     >
                         <IconFolderPlus size={16} />
                     </button>
                 </div>
                 <Search
+                    disabled={disabled}
                     placeholder={t("Search...") || ""}
                     searchTerm={searchTerm}
                     onSearch={handleSearchTerm}

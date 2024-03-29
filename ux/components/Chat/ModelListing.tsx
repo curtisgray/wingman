@@ -254,18 +254,21 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
     useEffect(() =>
     {
         if (!startingInference) return;
-        // if (selectedConversation?.model?.item?.filePath === undefined) return;
         if (globalModel?.item?.filePath === undefined || !inferringAlias) return;
-        // const isInferring = selectedConversation?.model?.item?.filePath === inferringAlias;
         const isInferring = !isSwitchingModel && globalModel.item.filePath === inferringAlias;
-        // const isInferring = !isSwitchingModel && globalModel?.item?.filePath === inferringAlias;
-        // const waiting = isSwitchingModel || !inferringAlias || globalModel?.item?.filePath !== inferringAlias;
-        // const waiting = isSwitchingModel || globalModel?.item?.filePath !== inferringAlias;
-        // if (!waiting) {
         if (isInferring) {
             setStartingInference(false);
         }
-    }, [isSwitchingModel, inferringAlias, currentWingmanInferenceItem, startingInference, globalModel?.item?.filePath]);
+    }, [isOnline, isSwitchingModel, inferringAlias, currentWingmanInferenceItem, startingInference, globalModel?.item?.filePath]);
+
+    useEffect(() =>
+    {
+        if (isOnline) {
+            handleRefreshModels();
+        } else {
+            setStartingInference(false);
+        }
+    }, [isOnline]);
 
     const displayDownloadInference = (model: AIModel) =>
     {
@@ -451,7 +454,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                         <Tab.Panel
                             key={idx}
                             className={classNames(
-                                'rounded-xl bg-white p-3 h-72 overflow-y-auto',
+                                'rounded bg-white p-3 h-72 overflow-y-auto',
                                 'ring-white/60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2'
                             )}
                         >
