@@ -11,7 +11,8 @@ import { useTranslation } from "next-i18next";
 import { useContext, useState } from "react";
 import { ChatSettingsDialog } from "@/components/Chat/ChatSettingsDialog";
 
-export const ChatbarSettings = () => {
+export const ChatbarSettings = () =>
+{
     const { t } = useTranslation("sidebar");
     const [isSettingDialogOpen, setIsSettingDialog] = useState<boolean>(false);
     const [isChatSettingsDialogOpen, setIsChatSettingsDialogOpen] = useState<boolean>(false);
@@ -33,7 +34,7 @@ export const ChatbarSettings = () => {
         handleExportData,
         handleApiKeyChange,
     } = useContext(ChatbarContext);
-    
+
     return (
         <div className="flex flex-col items-center space-y-1 border-t border-white/20 pt-1 text-sm">
             <SidebarButton
@@ -41,7 +42,7 @@ export const ChatbarSettings = () => {
                 text={t("Choose AI model")}
                 icon={<IconRobot size={18} />}
                 onClick={() => setIsChatSettingsDialogOpen(true)} />
-                
+
             {conversations.length > 0 ? (
                 <ClearConversations
                     disabled={(messageIsStreaming || isSwitchingModel)}
@@ -49,7 +50,8 @@ export const ChatbarSettings = () => {
                 />
             ) : null}
 
-            <Import onImport={handleImportConversations} />
+            <Import disabled={(messageIsStreaming || isSwitchingModel)}
+                onImport={handleImportConversations} />
 
             <SidebarButton
                 disabled={(messageIsStreaming || isSwitchingModel)}
@@ -65,16 +67,16 @@ export const ChatbarSettings = () => {
                 onClick={() => setIsSettingDialog(true)}
             />
 
-            {!serverSideApiKeyIsSet ? (
+            {(!serverSideApiKeyIsSet || (messageIsStreaming || isSwitchingModel)) ? (
                 <Key apiKey={apiKey} onApiKeyChange={handleApiKeyChange} />
             ) : null}
 
             {/* <HostAddress value={wingmanHostAddress} onChange={setWingmanHostAddress} /> */}
-            
-            {!serverSidePluginKeysSet ? <PluginKeys /> : null}
 
-            <ChatSettingsDialog open={isChatSettingsDialogOpen} onClose={() => setIsChatSettingsDialogOpen(false) } />
-            <SettingDialog open={isSettingDialogOpen} onClose={() => setIsSettingDialog(false) } />
+            {(!serverSideApiKeyIsSet || (messageIsStreaming || isSwitchingModel)) ? <PluginKeys /> : null}
+
+            <ChatSettingsDialog open={isChatSettingsDialogOpen} onClose={() => setIsChatSettingsDialogOpen(false)} />
+            <SettingDialog open={isSettingDialogOpen} onClose={() => setIsSettingDialog(false)} />
         </div>
     );
 };

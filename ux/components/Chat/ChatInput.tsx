@@ -47,9 +47,7 @@ export const ChatInput = ({
     const { t } = useTranslation("chat");
 
     const {
-        state: { selectedConversation, messageIsStreaming, prompts, isReady, isModelSelected },
-
-        dispatch: homeDispatch,
+        state: { selectedConversation, messageIsStreaming, prompts, isReady, isSwitchingModel, isModelSelected },
     } = useContext(HomeContext);
 
     const [content, setContent] = useState<string>();
@@ -67,6 +65,12 @@ export const ChatInput = ({
     const filteredPrompts = prompts.filter((prompt) =>
         prompt.name.toLowerCase().includes(promptInputValue.toLowerCase())
     );
+
+    const canUsePrompt = () =>
+    {
+        // return !messageIsStreaming && !isSwitchingModel && isModelSelected;
+        return isReady;
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
@@ -87,7 +91,7 @@ export const ChatInput = ({
     };
 
     const handleSendInput = () => {
-        if (messageIsStreaming || !isReady) {
+        if (!canUsePrompt()) {
             return;
         }
 
@@ -118,10 +122,6 @@ export const ChatInput = ({
         const mobileRegex =
             /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i;
         return mobileRegex.test(userAgent);
-    };
-
-    const canUsePrompt = () => {
-        return !messageIsStreaming && isReady && isModelSelected;
     };
 
     const handleInitModal = () => {

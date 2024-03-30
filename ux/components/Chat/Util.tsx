@@ -85,7 +85,7 @@ export const displayWaitButton = () =>
         <div className="w-48 bg-yellow-950 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
             <div className="flex space-x-1 items-center justify-center">
                 <IconAperture className="animate-spin" size={10} />
-                <span>Please Wait...</span>
+                <span>Please wait...</span>
             </div>
         </div>
     </div>;
@@ -129,4 +129,19 @@ export const displayModelMetrics = (item: AIModel) =>
             </ul>
         </>;
     }
+};
+
+export const displayActivityIndicator = () =>
+{
+    return <span className="animate-spin align-middle inline-flex">
+        <IconPropeller className="animate-pulse align-middle inline-flex h-4 w-4 mx-1 text-orange-300" size={WINGMAN_DEFAULT_ICON_SIZE} />
+    </span>;
+};
+
+export const displayLoadingMessage = () =>
+{
+    return <>
+        {displayActivityIndicator()}
+        <p>Loading AI model...</p>
+    </>;
 };

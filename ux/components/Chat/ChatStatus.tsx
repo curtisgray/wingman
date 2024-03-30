@@ -1,7 +1,5 @@
 import React, { useContext, useState } from "react";
 import HomeContext from "@/pages/api/home/home.context";
-import { AIModelID, Vendors } from "@/types/ai";
-import { displayVendorIcon } from "./Util";
 import WingmanDownloadStatus from "./WingmanDownloadStatus";
 import { ChatSettingsDialog } from "./ChatSettingsDialog";
 import SelectedConversationModelStatus from "./SelectedConversationModelStatus";

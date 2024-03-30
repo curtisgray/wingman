@@ -21,7 +21,8 @@ export const MarkdownView: FC<Props> = ({ fileName, text }) =>
         } else {
             fetch(fileName)
                 .then((res) => res.text())
-                .then((text) => setContent(text));
+                .then((text) => setContent(text))
+                .catch((err) => console.error(err));
         }
     }, []);
 

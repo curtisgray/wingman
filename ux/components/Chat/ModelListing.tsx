@@ -4,7 +4,7 @@ import HomeContext from '@/pages/api/home/home.context'
 import { AIModel, AIModelID, DownloadableItem, Vendors } from '@/types/ai';
 import DownloadButton from './DownloadButton';
 import WingmanContext from '@/pages/api/home/wingman.context';
-import { displayClearedForTakeoff, displayDownloadInferringButton, displayErrorButton, displayModelMetrics, displayModelName, displayWaitButton } from './Util';
+import { displayClearedForTakeoff, displayDownloadInferringButton, displayErrorButton, displayLoadingMessage, displayModelMetrics, displayModelName, displayWaitButton } from './Util';
 import { Tooltip } from 'react-tooltip';
 
 function classNames (...classes: string[]) {
@@ -280,7 +280,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
             if (!latestModel.items)
                 return displayErrorButton("No items");
 
-            if (startingInference) return displayWaitButton();
+            if (isSwitchingModel) return displayWaitButton();
 
             // TODO: handle the case where the user has downloaded multiple items
             let index = -1;
@@ -322,6 +322,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                             <button type="button"
                                 className="w-48 bg-emerald-800 hover:bg-emerald-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                                 onClick={() => handleStartInference(latestModel, latestItem)}
+                                disabled={isSwitchingModel}
                             >
                                 {displayDownloadInferringButton(
                                     <div className="flex flex-col">
@@ -337,6 +338,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                         <button type="button"
                             className="w-48 bg-rose-800 hover:bg-rose-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                             onClick={() => handleReset(latestItem.filePath)}
+                                disabled={isSwitchingModel}
                         >
                             <div className="flex flex-col">
                                 <div>Clear AI Error</div>
@@ -348,6 +350,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                         <button type="button"
                             className="w-48 bg-gray-800 hover:bg-sky-800 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                             onClick={() => handleStartInference(latestModel, latestItem)}
+                            disabled={isSwitchingModel}
                         >
                             <div className="flex flex-col">
                                 <div>Activate AI Model</div>
@@ -429,6 +432,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                     {Object.keys(categories).map(category => (
                         <>
                             <Tab
+                                disabled={isSwitchingModel}
                                 key={category}
                                 className={({ selected }) =>
                                     classNames(
@@ -463,6 +467,11 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                                     <h3>Wingman is offline</h3>
                                 </div>
                             }
+                            {isSwitchingModel && (
+                                <div className={`flex h-full space-x-2 justify-center items-center dark:text-gray-700 text-gray-400`}>
+                                    {displayLoadingMessage()}
+                                </div>
+                            )}
                             {(items.length === 0) && 
                                 <div className="flex h-full justify-center items-center dark:text-gray-700 text-gray-400">
                                     <h3>Nothing to Show</h3>

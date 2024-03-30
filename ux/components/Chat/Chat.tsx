@@ -8,32 +8,33 @@ import { ChatBody, Conversation, Message } from "@/types/chat";
 import { Plugin } from "@/types/plugin";
 import { getEndpoint } from "@/utils/app/api";
 import
-    {
-        saveConversation,
-        saveConversations,
-        updateConversation,
-    } from "@/utils/app/conversation";
+{
+    saveConversation,
+    saveConversations,
+    updateConversation,
+} from "@/utils/app/conversation";
 import { throttle } from "@/utils/data/throttle";
 import { useTranslation } from "next-i18next";
 import
-    {
-        MutableRefObject,
-        memo,
-        useCallback,
-        useContext,
-        useEffect,
-        useRef,
-        useState,
-    } from "react";
+{
+    MutableRefObject,
+    memo,
+    useCallback,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import toast from "react-hot-toast";
 import { DownloadProps } from "@/types/download";
 import ChatStatus from "./ChatStatus";
 import { SelectModel } from "./SelectModel";
-import { AIModel, AIModelID } from "@/types/ai";
+import { AIModel, AIModelID, AIModels } from "@/types/ai";
 import InitialModelListing from "./InitialModelListing";
 import { Settings } from "@/types/settings";
 import { getSettings, saveSettings } from "@/utils/app/settings";
 import { ChatAlert } from "./ChatAlert";
+import { displayActivityIndicator, displayLoadingMessage } from "./Util";
 
 export const runtime = 'edge'; // 'nodejs' (default) | 'edge'
 
@@ -463,7 +464,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
 
     return (
         <div className="relative flex-1 overflow-hidden bg-gray-100 dark:bg-gray-800">
-            {(showOnboarding()) ? ( // no models available so display startup ui
+            {showOnboarding() ? ( // no models available so display startup ui
                 // TODO: Besides api key, we should also check if the user has selected a model
                 <div className="mx-auto flex h-full w-[300px] flex-col justify-center space-y-6 sm:w-[600px]">
                     <div className="text-center text-4xl font-bold">
@@ -529,30 +530,39 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                 <ErrorMessageDiv error={modelError} />
             ) : (   // models available so display chat
                 <>
-                    <div className="max-h-full overflow-x-hidden"
+                    <div className={`h-full overflow-y-auto overflow-x-hidden flex flex-col space-y-2 dark:bg-gray-800 dark:text-gray-200`}
                         ref={chatContainerRef} onScroll={handleScroll}>
                         <ChatStatus onSettings={handleSettings} onClearConversation={onClearAll} showStatus={!showSettings} disabled={isSwitchingModel} />
 
-                        {selectedConversation?.messages.map(
-                            (message, index) => (
-                                <MemoizedChatMessage
-                                    key={index}
-                                    message={message}
-                                    messageIndex={index}
-                                    onEdit={(editedMessage) =>
-                                    {
-                                        setCurrentMessage(editedMessage);
-                                        // discard edited message and the ones that come after then resend
-                                        handleSend(
-                                            editedMessage,
-                                            selectedConversation?.messages.length - index
-                                        );
-                                    }}
-                                />
-                            )
+                        {isSwitchingModel && (
+                            <div className={`flex space-x-2 justify-center items-center h-full`}>
+                                {displayLoadingMessage()}
+                            </div>
                         )}
 
-                        {isSwitchingModel && <ChatLoader />}
+                        {!isSwitchingModel && (
+                            // Add padding here, adjust "px-6" as needed for more or less padding
+                            <div className={`flex flex-col space-y-2 px-6 h-full overflow-y-auto`}>
+                                {selectedConversation?.messages.map(
+                                    (message, index) => (
+                                        <MemoizedChatMessage
+                                            key={index}
+                                            message={message}
+                                            messageIndex={index}
+                                            onEdit={(editedMessage) =>
+                                            {
+                                                setCurrentMessage(editedMessage);
+                                                // discard edited message and the ones that come after then resend
+                                                handleSend(
+                                                    editedMessage,
+                                                    selectedConversation!.messages.length - index
+                                                );
+                                            }}
+                                        />))}
+                            </div>
+                        )}
+
+                        {/* {isSwitchingModel && <ChatLoader />} */}
                         {/* {!isModelSelected && <ChatAlert message={t("No model selected")} />} */}
 
                         {/* add a buffer at the bottom of the messages list */}

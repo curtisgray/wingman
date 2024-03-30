@@ -6,9 +6,10 @@ import { FC } from "react";
 
 interface Props {
     onImport: (data: SupportedExportFormats) => void;
+    disabled?: boolean;
 }
 
-export const Import: FC<Props> = ({ onImport }) => {
+export const Import: FC<Props> = ({ onImport, disabled = false }) => {
     const { t } = useTranslation("sidebar");
     return (
         <>
@@ -17,6 +18,7 @@ export const Import: FC<Props> = ({ onImport }) => {
                 className="sr-only"
                 tabIndex={-1}
                 type="file"
+                disabled={disabled}
                 accept=".json"
                 onChange={(e) => {
                     if (!e.target.files?.length) return;
@@ -32,6 +34,7 @@ export const Import: FC<Props> = ({ onImport }) => {
             />
 
             <SidebarButton
+                disabled={disabled}
                 text={t("Import data")}
                 icon={<IconFileImport size={18} />}
                 onClick={() => {

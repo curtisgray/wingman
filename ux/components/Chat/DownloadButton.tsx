@@ -16,6 +16,10 @@ const DownloadButton = ({ modelRepo, filePath,
         state: { downloadItems },
     } = useContext(WingmanContext);
 
+    const {
+        state: { isSwitchingModel },
+    } = useContext(HomeContext);
+
     const { handleRefreshModels } = useContext(HomeContext);
 
     const downloadActions = useRequestDownloadAction();
@@ -211,7 +215,7 @@ const DownloadButton = ({ modelRepo, filePath,
     }, []);
 
     return (
-        <button type="button" disabled={disabled}
+        <button type="button" disabled={disabled || isSwitchingModel}
             onClick={handleRequestOrCancelDownload}
             data-tooltip-id="download-status"
             data-tooltip-content={`${tooltipString}`}
