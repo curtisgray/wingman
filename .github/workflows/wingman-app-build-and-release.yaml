@@ -82,7 +82,7 @@ jobs:
 
         # https://github.com/electron/forge/issues/2807
       - name: Install Python 3 Setuptools on macOS
-        if: matrix.platform == 'macos' || matrix.platform == 'macos-metal'
+        if: matrix.platform == 'macos'
         run: python3 -m pip install setuptools
 
       - name: Setup Node.js
@@ -97,9 +97,9 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       # install a `appdmg` package for macOS
-      # - name: Install appdmg
-      #   if: matrix.platform == 'macos' || matrix.platform == 'macos-metal'
-      #   run: npm install -g appdmg
+      - name: Install appdmg
+        if: matrix.platform == 'macos-metal'
+        run: npm install -g appdmg
 
       - name: Install VCPKG
         if: matrix.platform == 'macos-metal'
