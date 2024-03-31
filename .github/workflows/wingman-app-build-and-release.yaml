@@ -82,13 +82,13 @@ jobs:
 
         # https://github.com/electron/forge/issues/2807
       - name: Install Python 3 Setuptools on macOS
-        if: matrix.platform == 'macos'
+        if: matrix.platform == 'macos' || matrix.platform == 'macos-metal'
         run: python3 -m pip install setuptools
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '21' # Specify the Node.js version to use, ensure it matches your project requirements
+          node-version: '20' # Specify the Node.js version to use, ensure it matches your project requirements
 
       - uses: actions/github-script@v6
         with:
