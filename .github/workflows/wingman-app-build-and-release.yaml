@@ -88,18 +88,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20' # Specify the Node.js version to use, ensure it matches your project requirements
+          node-version: '21' # Specify the Node.js version to use, ensure it matches your project requirements
 
       - uses: actions/github-script@v6
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
-
-      # install a `appdmg` package for macOS
-      - name: Install appdmg
-        if: matrix.platform == 'macos-metal'
-        run: npm install -g appdmg
 
       - name: Install VCPKG
         if: matrix.platform == 'macos-metal'
