@@ -81,13 +81,6 @@ jobs:
           security -v list-keychain -d user -s $KEYCHAIN_PATH
 
         # https://github.com/electron/forge/issues/2807
-
-      - name: Install Python 3 on MacOS
-        if: matrix.platform == 'macos'
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
       - name: Install Python 3 Setuptools on macOS
         if: matrix.platform == 'macos'
         run: python3 -m pip install setuptools
@@ -102,6 +95,11 @@ jobs:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      # install a `appdmg` package for macOS
+      - name: Install appdmg
+        if: matrix.platform == 'macos'
+        run: npm install -g appdmg
 
       - name: Install VCPKG
         if: matrix.platform == 'macos-metal'
