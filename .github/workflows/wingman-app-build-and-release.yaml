@@ -81,12 +81,16 @@ jobs:
           security -v list-keychain -d user -s $KEYCHAIN_PATH
 
         # https://github.com/electron/forge/issues/2807
-      - name: Install Python 3 Setuptools on macOS
+
+      - name: Install Python 3 on MacOS
         if: matrix.platform == 'macos'
-        run: python3 -m pip install setuptools
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
+
+      - name: Install Python 3 Setuptools on macOS
+        if: matrix.platform == 'macos'
+        run: python3 -m pip install setuptools
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
