@@ -323,24 +323,24 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                 } as ModelOption)),
         }));
 
-    const getGroupedModelList = (): readonly (ModelOption | GroupBase<ModelOption>)[] => {
-        const getOptions = (vendor: string) => {
-            const options = selectableModels
-                .filter((m) => m.vendor === vendor)
-                .map((mm) => ({
-                    label: displayModel(mm),
-                    value: mm.id,
-                } as ModelOption));
-            return options;
-        }
-        const groupedModels = Object.values(Vendors)
-            .filter((vendor) => vendor.isEnabled)
-            .map((vendor) => ({
-                label: vendor.displayName,
-                options: getOptions(vendor.name),
-            }));
-        return groupedModels;
-    };
+    // const getGroupedModelList = (): readonly (ModelOption | GroupBase<ModelOption>)[] => {
+    //     const getOptions = (vendor: string) => {
+    //         const options = selectableModels
+    //             .filter((m) => m.vendor === vendor)
+    //             .map((mm) => ({
+    //                 label: displayModel(mm),
+    //                 value: mm.id,
+    //             } as ModelOption));
+    //         return options;
+    //     }
+    //     const groupedModels = Object.values(Vendors)
+    //         .filter((vendor) => vendor.isEnabled)
+    //         .map((vendor) => ({
+    //             label: vendor.displayName,
+    //             options: getOptions(vendor.name),
+    //         }));
+    //     return groupedModels;
+    // };
 
     const optionsOptimizations = model?.items?.filter((item: DownloadableItem) => item.isDownloaded || !showDownloadedItemsOnly)
         .map((item: DownloadableItem) => ({

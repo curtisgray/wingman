@@ -1,5 +1,4 @@
 import { ChatInput } from "./ChatInput";
-import { ChatLoader } from "./ChatLoader";
 import { ErrorMessageDiv } from "./ErrorMessageDiv";
 import { MemoizedChatMessage } from "./MemoizedChatMessage";
 import HomeContext from "@/pages/api/home/home.context";
@@ -26,15 +25,13 @@ import
     useState,
 } from "react";
 import toast from "react-hot-toast";
-import { DownloadProps } from "@/types/download";
 import ChatStatus from "./ChatStatus";
 import { SelectModel } from "./SelectModel";
-import { AIModel, AIModelID, AIModels } from "@/types/ai";
+import { AIModel, AIModelID } from "@/types/ai";
 import InitialModelListing from "./InitialModelListing";
 import { Settings } from "@/types/settings";
 import { getSettings, saveSettings } from "@/utils/app/settings";
-import { ChatAlert } from "./ChatAlert";
-import { displayActivityIndicator, displayLoadingMessage } from "./Util";
+import { displayLoadingMessage } from "./Util";
 
 export const runtime = 'edge'; // 'nodejs' (default) | 'edge'
 
@@ -55,10 +52,8 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
             pluginKeys,
             serverSideApiKeyIsSet,
             modelError,
-            loading,
             globalModel,
             messageIsStreaming,
-            isModelSelected,
             isSwitchingModel,
         },
         handleUpdateConversation,
@@ -428,14 +423,6 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
         return false;
     };
 
-    const hasDownloadItems = () =>
-    {
-        const completedItems = downloadItems?.filter((item) => item.status === "complete");
-        if (completedItems && completedItems.length > 0) {
-            return true;
-        }
-        return false;
-    };
 
     const hasModelBeenSelected = () =>
     {
@@ -451,7 +438,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
     const showOnboarding = () =>
     {
         if (!settings.needsOnboarding) return false;
-        // const userHasModels = (hasDownloadItems() || hasModelBeenSelected() || isModelInferring(selectedConversation?.model));
+
         const userHasModels = (hasModelBeenSelected() || isModelInferring(selectedConversation?.model));
         if (!userHasModels && !apiKey && !serverSideApiKeyIsSet) return true;
 
@@ -561,9 +548,6 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                                         />))}
                             </div>
                         )}
-
-                        {/* {isSwitchingModel && <ChatLoader />} */}
-                        {/* {!isModelSelected && <ChatAlert message={t("No model selected")} />} */}
 
                         {/* add a buffer at the bottom of the messages list */}
                         <div ref={messagesEndRef} className="h-[153.333px]" />

@@ -301,8 +301,6 @@ const Home = ({
     {
         if (selectedConversation) {
             setIsSwitchingConversationModel(true);
-            // homeDispatch({ field: "isSwitchingModel", value: true });
-            // updateIsSwitchingConversationModel(true);
             let m = model;
             if (m === undefined) {
                 m = AIModels[fallbackModelID];
@@ -317,7 +315,6 @@ const Home = ({
     const changeGlobalModel = (model: AIModel | undefined) =>
     {
         setIsSwitchingGlobalModel(true);
-        // homeDispatch({ field: "isSwitchingModel", value: true });
         homeDispatch({ field: "globalModel", value: model });
     };
 
@@ -329,9 +326,7 @@ const Home = ({
             id: uuidv4(),
             name: `${t('New Conversation')}`,
             messages: [],
-            // model: lastConversation?.model || AIModels[defaultModelId],
             model: AIModels[defaultModelId],
-            // inferringAlias: "",
             systemPrompt: DEFAULT_SYSTEM_PROMPT,
             temperature: lastConversation?.temperature ?? DEFAULT_TEMPERATURE,
             folderId: null,
@@ -374,7 +369,6 @@ const Home = ({
             name: `${conversation.name} (copy)`,
             messages: conversation.messages,
             model: conversation.model,
-            // inferringAlias: conversation.inferringAlias,
             systemPrompt: conversation.systemPrompt,
             temperature: conversation.temperature,
             folderId: conversation.folderId,
@@ -428,15 +422,6 @@ const Home = ({
             homeDispatch({ field: "showChatbar", value: false });
         }
     }, [selectedConversation]);
-
-    // This effect is designed to only run when `isSwitchingConversationModel` or `isSwitchingGlobalModel` is `true`.
-    //    It's only purpose is to set the `isSwitchingModel` flag in the home state.
-    // useEffect(() =>
-    // {
-    //     const latestIsSwitchingModel = latestIsSwitchingConversationModel.current || latestIsSwitchingGlobalModel.current;
-    //     const currentIsSwitchingModel = isSwitchingConversationModel || isSwitchingGlobalModel;
-    //     homeDispatch({ field: "isSwitchingModel", value: currentIsSwitchingModel });
-    // }, [isSwitchingConversationModel, isSwitchingGlobalModel]);
 
     useEffect(() =>
     {
@@ -504,37 +489,6 @@ const Home = ({
             }
         }
 
-        // if (globalModel && selectedConversation?.model) {
-        //     if (globalModel.id === selectedConversation.model.id) {
-        //         if (!Vendors[globalModel.vendor].isDownloadable) {
-        //             if (isSwitchingModel)
-        //                 homeDispatch({ field: "isSwitchingModel", value: false });
-        //         } else {
-        //             if (globalModel.item?.filePath === inferringAlias) {
-        //                 if (isSwitchingModel)
-        //                     homeDispatch({ field: "isSwitchingModel", value: false });
-        //             } else {
-        //                 if (!isSwitchingModel)
-        //                     homeDispatch({ field: "isSwitchingModel", value: true });
-        //             }
-        //         }
-        //     } else if (globalModel.id === AIModelID.NO_MODEL_SELECTED) {
-        //         if (isSwitchingModel)
-        //             homeDispatch({ field: "isSwitchingModel", value: false });
-        //     } else {
-        //         if (!isSwitchingModel)
-        //             homeDispatch({ field: "isSwitchingModel", value: true });
-        //     }
-        // } else if (selectedConversation?.model) {
-        //     if (selectedConversation.model.id === AIModelID.NO_MODEL_SELECTED) {
-        //         if (isSwitchingModel)
-        //             homeDispatch({ field: "isSwitchingModel", value: false });
-        //     } else {
-        //         if (!isSwitchingModel)
-        //             homeDispatch({ field: "isSwitchingModel", value: true });
-        //     }
-        // }
-
         let modelSelected = (
             selectedConversation?.model !== undefined
             && globalModel !== undefined
@@ -550,32 +504,15 @@ const Home = ({
         }
 
         if (isOnline && hasReceivedWingmanItems && models && models.length > 0
-            // && !modelSelected
             && !isSwitchingConversationModel
             && !isSwitchingGlobalModel
             && !userMustSelectModel
-            // && !isSwitchingModel
             && selectedConversation?.model
             && (selectedConversation.model.id !== AIModels[AIModelID.NO_MODEL_SELECTED].id)
             && (globalModel?.id !== selectedConversation.model.id || isModelInferenceStatusError(selectedConversation.model))
         )
             changeConversationModel(selectedConversation.model);
-
-        // homeDispatch({
-        //     field: "isModelSelected",
-        //     value: modelSelected,
-        // });
-
-        // if (isOnline && hasReceivedWingmanItems && models && models.length > 0
-        //     && !modelSelected
-        //     && !isSwitchingModel
-        //     && selectedConversation?.model
-        //     && selectedConversation.model.id !== AIModelID.NO_MODEL_SELECTED)
-        //     changeConversationModel(selectedConversation.model);
-
-        // homeDispatch({ field: "isSwitchingModel", value: isSwitchingConversationModel || isSwitchingGlobalModel });
     });
-    // }, [globalModel, selectedConversation, inferringAlias]);
 
     const isReadyToSwitchConversationModel = () =>
     {
@@ -666,20 +603,6 @@ const Home = ({
             throw new Error("Operational Error. The app should never be in this state. Please contact the developer.");
         }
 
-        // const sccm = (model: AIModel | undefined) =>
-        // {
-        //     if (model === undefined) {
-        //         // When the algorithm below sets the conversation model to undefined,
-        //         //    it is requesting the user to select another model. We'll have
-        //         //    to set the conversation model to AIModelID.NO_MODEL_SELECTED
-        //         //    and wait for the user to select another model.
-        //         setUserMustSelectModel(true);
-        //     } else {
-        //         if (globalModel?.id !== model.id)
-        //             changeGlobalModel(model);
-        //     }
-        // };
-
         const model = validateModel(selectedConversation!.model);
         if (model === undefined) {
             // When `validateModel` returns undefined,
@@ -698,61 +621,6 @@ const Home = ({
             }
         }
         setIsSwitchingConversationModel(false);
-
-        // const vendor = Vendors[selectedConversation!.model.vendor];
-        // if (vendor.isDownloadable) {
-        //     const latestModel = models!.find((m) => m.id === selectedConversation!.model.id);
-        //     if (latestModel === undefined) {
-        //         toast.error(`${StripFormatFromModelRepo(selectedConversation!.model.name)} is not available. Please select another model.`,
-        //             { duration: 15000 });
-        //         sccm(undefined);
-        //     } else {
-        //         const latestItem = latestModel.items?.find((item) => item.quantization === selectedConversation!.model.item?.quantization);
-        //         if (latestItem === undefined) {
-        //             toast.error(`Operational Error: Please use the View menu to reload.`,
-        //                 { duration: 15000 });
-        //             sccm(undefined);
-        //         } else {
-        //             const itemHasError = (item: DownloadableItem | undefined) =>
-        //             {
-        //                 // find item in wingmanItems and check the status
-        //                 if (item === undefined) return false;
-        //                 const wingmanItem = wingmanItems.find((wi) => wi.alias === item.filePath);
-        //                 if (wingmanItem === undefined) return false;
-        //                 return wingmanItem.status === "error";
-        //             };
-
-        //             if (itemHasError(latestItem)) {
-        //                 let error = "Unknown model loading error. Please use the View menu to reload.";
-        //                 const wi = wingmanItems?.find((wi) => wi.alias === latestItem.filePath);
-        //                 if (wi !== undefined) {
-        //                     error = wi.error ? wi.error : "Internal processing error. Please restart the application.";
-        //                 }
-        //                 toast.error(
-        //                     `${StripFormatFromModelRepo(latestModel.name)} cannot run. Error: ${error} Please choose another model.`,
-        //                     { duration: 15000 }
-        //                 );
-        //                 sccm(undefined);
-        //             } else {
-        //                 if (!isItemDownloaded(latestItem)) {
-        //                     toast.error(
-        //                         `${StripFormatFromModelRepo(latestModel.name)}:${latestItem.quantizationName} is not downloaded. Please download the quantized model to run it.`,
-        //                         { duration: 15000 }
-        //                     );
-        //                     sccm(undefined);
-        //                 } else {
-        //                     const draftModel = { ...latestModel };
-        //                     draftModel.item = latestItem;
-        //                     sccm(draftModel);
-        //                 }
-        //             }
-        //         }
-        //     }
-        // } else {
-        //     sccm(selectedConversation!.model);
-        // }
-
-        // setIsSwitchingConversationModel(false);
     }, [isSwitchingConversationModel]);
 
     // This effect is designed to only run when `userMustSelectModel` is `true`.
@@ -790,106 +658,6 @@ const Home = ({
         }
         setIsSwitchingGlobalModel(false);
     }, [isSwitchingGlobalModel]);
-
-    // useEffect(() =>
-    // {
-    //     if (!isOnline || !hasReceivedWingmanItems || isModelSelected) return;
-
-    //     if (isReadyToSwitchConversationModel()) {
-    //         // changeGlobalModel(selectedConversation?.model);
-    //         changeConversationModel(selectedConversation?.model);
-    //     }
-
-    //     // const sccm = (model: AIModel | undefined) =>
-    //     // {
-    //     //     if (model === undefined) {
-    //     //         changeConversationModel(model);
-    //     //     } else {
-    //     //         if (globalModel !== model)
-    //     //             changeGlobalModel(model);
-    //     //     }
-    //     // };
-
-    //     // homeDispatch({
-    //     //     field: "isModelSelected",
-    //     //     value: (selectedConversation?.model && selectedConversation.model.id !== AIModelID.NO_MODEL_SELECTED)
-    //     // });
-
-    //     // // if the selectedConversation.model is the same as the already inferring model, then do nothing
-    //     // if (!isSwitchingModel
-    //     //     && inferringAlias
-    //     //     && selectedConversation?.model?.item?.filePath
-    //     //     && selectedConversation.model.item.filePath === inferringAlias) {
-    //     //     // under these circumstances, if the globalModel is not the same as the selectedConversation.model, then set the globalModel
-    //     //     if (globalModel !== selectedConversation.model) {
-    //     //         sccm(selectedConversation.model);
-    //     //     }
-    //     //     return;
-    //     // }
-
-    //     // if (!isSwitchingModel
-    //     //     && models && models.length > 0
-    //     //     && selectedConversation
-    //     //     && selectedConversation.model) {
-    //     //     const vendor = Vendors[selectedConversation.model.vendor];
-    //     //     if (vendor.isDownloadable) {
-    //     //         const latestModel = models.find((m) => m.id === selectedConversation.model.id);
-    //     //         if (latestModel === undefined) {
-    //     //             toast.error(`${StripFormatFromModelRepo(selectedConversation.model.name)} is not available. Please select another model.`,
-    //     //                 { duration: 15000 });
-    //     //             sccm(undefined);
-    //     //             return;
-    //     //         }
-    //     //         const latestItem = latestModel.items?.find((item) => item.quantization === selectedConversation.model.item?.quantization);
-    //     //         if (latestItem === undefined) {
-    //     //             toast.error(`Operational Error: Please use the View menu to reload.`,
-    //     //                 { duration: 15000 });
-    //     //             sccm(undefined);
-    //     //             return;
-    //     //         }
-
-    //     //         const itemHasError = (item: DownloadableItem | undefined) =>
-    //     //         {
-    //     //             // find item in wingmanItems and check the status
-    //     //             if (item === undefined) return false;
-    //     //             const wingmanItem = wingmanItems.find((wi) => wi.alias === item.filePath);
-    //     //             if (wingmanItem === undefined) return false;
-    //     //             return wingmanItem.status === "error";
-    //     //         };
-
-    //     //         // if (latestItem.hasError) {
-    //     //         if (itemHasError(latestItem)) {
-    //     //             let error = "Unknown model loading error. Please use the View menu to reload.";
-    //     //             const wi = wingmanItems?.find((wi) => wi.alias === latestItem.filePath);
-    //     //             if (wi !== undefined) {
-    //     //                 error = wi.error ? wi.error : "Internal processing error. Please restart the application.";
-    //     //             }
-    //     //             toast.error(
-    //     //                 `${StripFormatFromModelRepo(latestModel.name)} cannot run. Error: ${error} Please choose another model.`,
-    //     //                 { duration: 15000 }
-    //     //             );
-    //     //             sccm(undefined);
-    //     //             return;
-    //     //         }
-
-    //     //         if (!isItemDownloaded(latestItem)) {
-    //     //             toast.error(
-    //     //                 `${StripFormatFromModelRepo(latestModel.name)}:${latestItem.quantizationName} is not downloaded. Please download the quantized model to run it.`,
-    //     //                 { duration: 15000 }
-    //     //             );
-    //     //             sccm(undefined);
-    //     //             return;
-    //     //         }
-
-    //     //         const draftModel = { ...latestModel };
-    //     //         draftModel.item = latestItem;
-    //     //         sccm(draftModel);
-    //     //     } else {
-    //     //         sccm(selectedConversation.model);
-    //     //     }
-    //     // }
-    // }, [selectedConversation?.id, selectedConversation?.model, models, globalModel, hasReceivedWingmanItems, isModelSelected]);
-    // // }, [selectedConversation?.id, selectedConversation?.model, models, wingmanItems, isOnline, inferringAlias, globalModel, hasReceivedWingmanItems, isSwitchingModel]);
 
     useEffect(() =>
     {
@@ -1034,58 +802,6 @@ const Home = ({
         serverSideHostAddress,
     ]);
 
-    // useEffect(() =>
-    // {
-    //     if (!isOnline || !hasReceivedWingmanItems) return;
-
-    //     // if the globalModel is the same as the already inferring model, then do nothing
-    //     if (inferringAlias
-    //         && globalModel?.item?.filePath
-    //         && globalModel?.item?.filePath === inferringAlias) {
-    //         if (isSwitchingModel)
-    //             homeDispatch({ field: "isSwitchingModel", value: false });
-    //         return;
-    //     }
-
-    //     if (isSwitchingModel) {
-    //         if (globalModel !== undefined) {
-    //             const vendor = Vendors[globalModel.vendor];
-    //             // check if the globalModel is downloadable, e.g., running on the Wingman server
-    //             //  if so, then start the model running on the Wingman server
-    //             if (vendor.isDownloadable) {
-    //                 if (globalModel.item !== undefined) {
-    //                     // if the globalModel is not the currentWingmanInferenceItem, then issue a request to start the model
-    //                     if (inferringAlias !== globalModel.item.filePath) {
-    //                         // issue a request to start the model running on the Wingman server
-    //                         //  and wait for the currentWingmanInferenceItem to be set to the globalModel
-    //                         const wi = inferenceActions.requestStartInference(
-    //                             globalModel.item!.filePath, globalModel.id, globalModel.item!.filePath, -1);
-    //                         if (wi === undefined) {
-    //                             toast.error(`Could not activate ${StripFormatFromModelRepo(globalModel.name)}`);
-    //                         }
-    //                         // toast.success(`${StripFormatFromModelRepo(globalModel.name)} has been activated`);
-    //                     } else {
-    //                         homeDispatch({ field: "isSwitchingModel", value: false });
-    //                     }
-    //                 } else {
-    //                     homeDispatch({ field: "isSwitchingModel", value: false });
-    //                     toast.error(`Operational Error - Please use the View menu to reload.`,
-    //                         { duration: 15000 });
-    //                 }
-    //             } else {
-    //                 if (globalModel.id !== AIModelID.NO_MODEL_SELECTED) {
-    //                     // toast.success(`${StripFormatFromModelRepo(globalModel.name)} has been activated`);
-    //                 } else {
-    //                     homeDispatch({ field: "isSwitchingModel", value: false });
-    //                 }
-    //             }
-    //         } else {
-    //             homeDispatch({ field: "isSwitchingModel", value: false });
-    //         }
-    //     }
-    // }, [globalModel, isOnline, inferringAlias, hasReceivedWingmanItems]);
-    // // }, [globalModel, isOnline, inferringAlias, isSwitchingModel, hasReceivedWingmanItems]);
-
     useEffect(() =>
     {
         if (isSwitchingModel) {
@@ -1097,34 +813,8 @@ const Home = ({
 
     useEffect(() =>
     {
-        // const isReady = () =>
-        // {
-        //     if (globalModel && isOnline) {
-        //         if (!Vendors[globalModel.vendor].isDownloadable) {
-        //             return true;
-        //         } else if (globalModel.id === currentWingmanInferenceItem?.modelRepo) {
-        //             if (currentWingmanInferenceItem?.status === "inferring") {
-        //                 return true;
-        //             }
-        //         }
-        //     }
-        //     return false;
-        // };
         homeDispatch({ field: "isReady", value: !messageIsStreaming && !isSwitchingModel && isModelSelected });
     }, [messageIsStreaming, isSwitchingModel, isModelSelected]);
-    // }, [globalModel, currentWingmanInferenceItem, isOnline]);
-
-    // useEffect(() =>
-    // {
-    //     if (isOnline) {
-
-    //     } else {
-    //         setIsSwitchingConversationModel(false);
-    //         setIsSwitchingGlobalModel(false);
-    //         // homeDispatch({ field: "isSwitchingModel", value: false });
-    //         // homeDispatch({ field: "globalModel", value: undefined });
-    //     }
-    // }, [isOnline]);
 
     return (
         <WingmanContext.Provider
@@ -1158,16 +848,6 @@ const Home = ({
                     />
                     <link rel="icon" href="/favicon.ico" />
                 </Head>
-                {/* {isWaiting() && (
-                    <div className="fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-95 z-150 flex items-center justify-center fadeIn">
-                        <div className="flex flex-col items-center justify-center">
-                            <span className="animate-pulse inline-flex h-2 w-2 mx-1 rounded-full bg-orange-400"></span>
-                            <p className="text-white text-lg mt-4">
-                                {`${t('Working')}...`}
-                            </p>
-                        </div>
-                    </div>
-                )} */}
                 {selectedConversation && (
                     <main
                         className={`flex flex-col h-screen w-screen ${lightMode}`}

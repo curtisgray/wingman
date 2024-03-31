@@ -148,10 +148,10 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
             // get the first listSize models
             const recentModels = sortedModelsByDate.slice(0, listSize);
             // sort models by downloads descending
-            const sortedModelsByDownloads = downloadableModels.sort((a, b) =>
-            {
-                return b.downloads - a.downloads;
-            });
+            // const sortedModelsByDownloads = downloadableModels.sort((a, b) =>
+            // {
+            //     return b.downloads - a.downloads;
+            // });
             // get the first listSize models
             // const popularModels = sortedModelsByDownloads.slice(0, listSize);
             // sort models by date and likes descending to derive trending models
@@ -332,7 +332,6 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                             </button>
                         </div>;
                     }
-                // } else if (latestItem.hasError) {
                 } else if (itemHasError(latestItem)) {
                     return <div className="self-center m-4">
                         <button type="button"

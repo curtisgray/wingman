@@ -5,8 +5,7 @@ import { WingmanItem, getWingmanItemStatusMessage } from "@/types/wingman";
 import { StripFormatFromModelRepo, quantizationFromFilePath } from "@/types/download";
 import HomeContext from "@/pages/api/home/home.context";
 import { AIModelID, VendorInfo, Vendors } from "@/types/ai";
-import { WINGMAN_DEFAULT_ICON_SIZE, displayVendorIcon } from "./Util";
-import { IconInnerShadowBottom, IconPropeller } from "@tabler/icons-react";
+import { displayVendorIcon } from "./Util";
 
 const SelectedConversationModelStatus = ({ showModel = true, showQuantization = true, showAlias = false, className = "" }) =>
 {
@@ -16,7 +15,7 @@ const SelectedConversationModelStatus = ({ showModel = true, showQuantization = 
     } = useContext(WingmanContext);
 
     const {
-        state: { selectedConversation, isSwitchingModel },
+        state: { selectedConversation },
     } = useContext(HomeContext);
 
     const [wingmanItem, setWingmanItem] = useState<WingmanItem | undefined>(undefined);
@@ -38,8 +37,6 @@ const SelectedConversationModelStatus = ({ showModel = true, showQuantization = 
     const displayMonitoredStatusIndicator = (item: WingmanItem | undefined) =>
     {
         if (modelName === NO_MODEL_SELECTED) return <></>;
-        // return displayActivityIndicator();
-        // if (isSwitchingModel) return displayActivityIndicator();
         switch (item?.status) {
             case "queued":
             case "preparing":
@@ -127,7 +124,4 @@ const SelectedConversationModelStatus = ({ showModel = true, showQuantization = 
 
 export default SelectedConversationModelStatus;
 
-function displayActivityIndicator()
-{
-    throw new Error("Function not implemented.");
-}
+
