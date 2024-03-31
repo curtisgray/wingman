@@ -20,7 +20,7 @@ jobs:
       matrix:
         # os: [windows-latest, ubuntu-latest, macos-latest]
         # os: [windows-latest, macos-11, macos-14]
-        os: [macos-11, macos-14-xlarge, self-hosted]
+        os: [macos-11, macos-14, self-hosted]
         include:
           # - os: windows-latest
           #   platform: windows
@@ -28,7 +28,7 @@ jobs:
           #   platform: linux
           - os: macos-11
             platform: macos
-          - os: macos-14-xlarge
+          - os: macos-14
             platform: macos-metal
           - os: self-hosted
             platform: windows

@@ -24,6 +24,15 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "npm install failed" 
     }
+    # Conditional appdmg installation for macOS builds
+    # if ($BuildPlatform -eq "macos" -or $BuildPlatform -eq "macos-metal") {
+    if ($BuildPlatform -eq "macos-metal") {
+        Write-Host "Installing appdmg for macOS..."
+        npm install appdmg --save-dev
+        if ($LASTEXITCODE -ne 0) {
+            throw "npm install appdmg failed"
+        }
+    }
 
     # Build the project
     Write-Host "Building the project..."
