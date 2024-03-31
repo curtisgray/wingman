@@ -82,8 +82,12 @@ jobs:
 
         # https://github.com/electron/forge/issues/2807
       - name: Install Python 3 Setuptools on macOS
-        if: matrix.platform == 'macos' || matrix.platform == 'macos-metal'
+        if: matrix.platform == 'macos'
         run: python3 -m pip install setuptools
+
+      - name: Install Python 3 Setuptools on macOS Metal via Homebrew
+        if: matrix.platform == 'macos-metal'
+        run: brew install python-setuptools
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
