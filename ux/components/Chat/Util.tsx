@@ -6,6 +6,7 @@ import { ReactNode } from "react";
 import { Tooltip } from "react-tooltip";
 
 export const WINGMAN_DEFAULT_ICON_SIZE = 18;
+export const WINGMAN_OFFLINE_MESSAGE = "Connecting to Wingman service...";
 
 export const isModelDownloadable = (model: AIModel) =>
 {
@@ -49,16 +50,48 @@ export const displayModelName = (model: AIModel) =>
     }
 };
 
+export const displayMemoryRequired = (model: AIModel) =>
+{
+    if (model.availableMemory === 0) return <></>;
+    const memoryRequired = (model.normalizedQuantizedMemRequired / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const memoryAvailable = (model.availableMemory / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const tooltipString = `${memoryRequired} GB of memory is required, ${model.isInferable ? 'and ' : 'but only '}${memoryAvailable} GB is available. ${model.isInferable ? 'Model is ready to run.' : 'Model does not have enough memory to run.'}`;
+    // calculate the percentage of memory required for the progress bar
+    const progress = Math.round((model.normalizedQuantizedMemRequired / model.availableMemory) * 100);
+    if (model.isInferable) {
+        return <><progress
+                    value={progress}
+                    max="100"
+                    className={`flex w-16 rounded [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-green-800 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500`}
+                    data-tooltip-id="memory-status"
+                    data-tooltip-content={`${tooltipString}`}></progress>
+                <Tooltip id="memory-status" />
+            </>;
+    } else {
+        return <><progress
+            value={progress}
+            max="100"
+            className={`flex w-16 rounded [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-red-800 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500`}
+            data-tooltip-id="memory-status"
+            data-tooltip-content={`${tooltipString}`}></progress>
+            <Tooltip id="memory-status" />
+        </>;
+    }
+};
+
 export const displayClearedForTakeoff = (model: AIModel, className = "") =>
 {
     if (Vendors[model.vendor].isDownloadable) {
+        const memoryRequiredView = displayMemoryRequired(model);
         if (model.isInferable) {
-            return <div className={`${className} text-sky-400`}>
+            return <div className={`${className} text-sky-400 flex space-x-2`}>
+                {memoryRequiredView}
                 <IconPlaneTilt size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-inferable" data-tooltip-content="This AI model should run well on your PC" />
                 <Tooltip id="is-inferable" />
             </div>;
         } else {
-            return <div className={`${className} text-gray-400`}>
+            return <div className={`${className} text-gray-400 flex space-x-2`}>
+                {memoryRequiredView}
                 <IconPlaneOff size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-not-inferable" data-tooltip-content="This AI model is unlikely to run well on your PC" />
                 <Tooltip id="is-not-inferable" />
             </div>;

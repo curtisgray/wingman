@@ -59,12 +59,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         return -1;
     }
 
-    const isInferable = (model: AIModel): boolean =>
+    interface Inferability
     {
-        if (!Vendors[model.vendor].isDownloadable) return true;
+        isInferable: boolean;
+        availableMemory: number;
+        normalizedQuantizedMemRequired: number;
+    }
+
+    const checkInferability = (model: AIModel): Inferability =>
+    {
+        if (!Vendors[model.vendor].isDownloadable) return {isInferable: false, availableMemory: -1, normalizedQuantizedMemRequired: -1};
         if (!model.size) {
             logger.debug(`Model '${model.name}' has EMPTY size. Will not be analyzed to see if it is inferable.`);
-            return false;
+            return {isInferable: false, availableMemory: -1, normalizedQuantizedMemRequired: -1};
         }
         let availableMemory = -1;
         // check if the model can be run on the current gpu and memory
@@ -105,7 +112,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
             }
         }
         logger.silly(`Available Memory to run ${model.name} (${model.size}): ${availableMemory}`);
-        if (availableMemory === -1) return false;
+        if (availableMemory === -1) return {isInferable: false, availableMemory: -1, normalizedQuantizedMemRequired: -1};
 
         // paramSize is the last character of the model size
         const parameterSizeIndicator = model.size.slice(-1);
@@ -129,7 +136,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
                 sizeMultiplier = 1000000000000000;
                 break;
         }
-        if (sizeMultiplier === -1) return false;
+        if (sizeMultiplier === -1) return { isInferable: false, availableMemory: availableMemory, normalizedQuantizedMemRequired: -1};
         let moeMultiplier = 1;
         let parameterValue = 0;
         if (isMoe) {
@@ -153,8 +160,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         // logger.info(`Memory Delta to Run '${model.name}': ${memoryDelta}`);
         logger.debug(`Model '${model.name}' (${model.size}) ${normalizedQuantizedMemRequired <= availableMemory ? 'is' : 'is not'} inferable. Available Memory: ${availableMemory} Quantized Need: ${normalizedQuantizedMemRequired} Delta: ${memoryDelta}`);
         // logger.info(`Model ${normalizedQuantizedMemRequired <= availableMemory ? 'is' : 'is not'} inferable`);
-        if (normalizedQuantizedMemRequired <= availableMemory) return true;
-        return false;
+        if (normalizedQuantizedMemRequired <= availableMemory) return {isInferable: true, availableMemory: availableMemory, normalizedQuantizedMemRequired: normalizedQuantizedMemRequired};
+        return {isInferable: false, availableMemory: availableMemory, normalizedQuantizedMemRequired: normalizedQuantizedMemRequired};
     };
 
     const setIsInferables = (models: AIModel[]) =>
@@ -163,10 +170,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
             // set isInferable to true for each model that can be run on the current gpu and memory
             let inferrables = 0;
             for (let i = 0; i < models.length; i++) {
-                const isInferableModel = isInferable(models[i]);
-                if (isInferableModel)
+                const inferability = checkInferability(models[i]);
+                if (inferability)
                     inferrables++;
-                models[i].isInferable = isInferableModel;
+                models[i].isInferable = inferability.isInferable;
+                models[i].availableMemory = inferability.availableMemory;
+                models[i].normalizedQuantizedMemRequired = inferability.normalizedQuantizedMemRequired;
             }
             logger.info(`Number of inferable models: ${inferrables}`);
         }

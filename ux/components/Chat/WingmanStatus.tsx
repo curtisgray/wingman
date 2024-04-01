@@ -1,5 +1,6 @@
 import React, { ReactNode, useContext } from "react";
 import WingmanContext from "@/pages/api/home/wingman.context";
+import { WINGMAN_OFFLINE_MESSAGE } from "./Util";
 
 const WingmanStatus = ({title = "Wingman", showHardware = false, className = "" }) =>
 {
@@ -15,7 +16,7 @@ const WingmanStatus = ({title = "Wingman", showHardware = false, className = "" 
     {
         return (
             <>
-                <p>{title} <span title="Wingman is offline">{connectionStatus}</span></p>
+                <p>{title} <span title={`${WINGMAN_OFFLINE_MESSAGE}`}>{connectionStatus}</span></p>
             </>
         );
     };

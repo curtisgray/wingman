@@ -3,6 +3,7 @@ import React, { useState, ReactNode, useContext } from "react";
 import { LineChart, Line, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { useWingman } from "@/hooks/useWingman";
 import WingmanContext from "@/pages/api/home/wingman.context";
+import { WINGMAN_OFFLINE_MESSAGE } from "./Util";
 
 
 interface WingmanChartProps
@@ -61,7 +62,7 @@ const WingmanChart = ({ showGraph = true, showHardware = false, className = "" }
     {
         return (
             <>
-                <p>Inference Metrics <span title="Wingman is offline">{connectionStatus}</span></p>
+                <p><span title={`${WINGMAN_OFFLINE_MESSAGE}`}>{connectionStatus}</span></p>
             </>
         );
     };

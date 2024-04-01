@@ -443,75 +443,79 @@ const Home = ({
                 homeDispatch({ field: "isSwitchingModel", value: false });
         };
 
-        if (selectedConversation?.model) {
-            if (selectedConversation.model.id === AIModelID.NO_MODEL_SELECTED) {
-                if (globalModel) {
-                    if (globalModel.id === AIModelID.NO_MODEL_SELECTED) {
-                        disableSwitching();
-                    } else if (globalModel.id === selectedConversation.model.id) {
-                        if (globalModel.item?.filePath === inferringAlias) {
-                            disableSwitching();
-                        } else {
-                            enableSwitching();
-                        }
-                    } else {
-                        disableSwitching();
-                    }
-                } else {
-                    disableSwitching();
-                }
-            } else {
-                if (globalModel) {
-                    if (globalModel.id === AIModelID.NO_MODEL_SELECTED) {
-                        enableSwitching();
-                    } else if (globalModel.id === selectedConversation.model.id) {
-                        if (globalModel.item?.filePath === inferringAlias) {
-                            disableSwitching();
-                        } else {
-                            enableSwitching();
-                        }
-                    } else {
-                        enableSwitching();
-                    }
-                } else {
-                    // enableSwitching();
-                }
-            }
+        if (!isOnline) {
+            disableSwitching();
         } else {
-            if (globalModel) {
-                if (globalModel.id === AIModelID.NO_MODEL_SELECTED) {
-                    disableSwitching();
+            if (selectedConversation?.model) {
+                if (selectedConversation.model.id === AIModelID.NO_MODEL_SELECTED) {
+                    if (globalModel) {
+                        if (globalModel.id === AIModelID.NO_MODEL_SELECTED) {
+                            disableSwitching();
+                        } else if (globalModel.id === selectedConversation.model.id) {
+                            if (globalModel.item?.filePath === inferringAlias) {
+                                disableSwitching();
+                            } else {
+                                enableSwitching();
+                            }
+                        } else {
+                            disableSwitching();
+                        }
+                    } else {
+                        disableSwitching();
+                    }
                 } else {
-                    disableSwitching();
+                    if (globalModel) {
+                        if (globalModel.id === AIModelID.NO_MODEL_SELECTED) {
+                            enableSwitching();
+                        } else if (globalModel.id === selectedConversation.model.id) {
+                            if (globalModel.item?.filePath === inferringAlias) {
+                                disableSwitching();
+                            } else {
+                                enableSwitching();
+                            }
+                        } else {
+                            enableSwitching();
+                        }
+                    } else {
+                        // enableSwitching();
+                    }
                 }
             } else {
-                enableSwitching();
+                if (globalModel) {
+                    if (globalModel.id === AIModelID.NO_MODEL_SELECTED) {
+                        disableSwitching();
+                    } else {
+                        disableSwitching();
+                    }
+                } else {
+                    enableSwitching();
+                }
             }
-        }
 
-        let modelSelected = (
-            selectedConversation?.model !== undefined
-            && globalModel !== undefined
-            && selectedConversation.model.id !== AIModelID.NO_MODEL_SELECTED
-            && globalModel.id === selectedConversation.model.id
-        );
-        
-        if (modelSelected !== isModelSelected) {
-            homeDispatch({
-                field: "isModelSelected",
-                value: modelSelected,
-            });
-        }
+            let modelSelected = (
+                selectedConversation?.model !== undefined
+                && globalModel !== undefined
+                && selectedConversation.model.id !== AIModelID.NO_MODEL_SELECTED
+                && globalModel.id === selectedConversation.model.id
+            );
 
-        if (isOnline && hasReceivedWingmanItems && models && models.length > 0
-            && !isSwitchingConversationModel
-            && !isSwitchingGlobalModel
-            && !userMustSelectModel
-            && selectedConversation?.model
-            && (selectedConversation.model.id !== AIModels[AIModelID.NO_MODEL_SELECTED].id)
-            && (globalModel?.id !== selectedConversation.model.id || isModelInferenceStatusError(selectedConversation.model))
-        )
-            changeConversationModel(selectedConversation.model);
+            if (modelSelected !== isModelSelected) {
+                homeDispatch({
+                    field: "isModelSelected",
+                    value: modelSelected,
+                });
+            }
+
+            if (hasReceivedWingmanItems && models && models.length > 0
+                && !isSwitchingConversationModel
+                && !isSwitchingGlobalModel
+                && !userMustSelectModel
+                && selectedConversation?.model
+                && (selectedConversation.model.id !== AIModels[AIModelID.NO_MODEL_SELECTED].id)
+                && (globalModel?.id !== selectedConversation.model.id || isModelInferenceStatusError(selectedConversation.model))
+            )
+                changeConversationModel(selectedConversation.model);
+        }
     });
 
     const isReadyToSwitchConversationModel = () =>

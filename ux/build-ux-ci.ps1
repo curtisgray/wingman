@@ -5,6 +5,9 @@ param(
 
     [Parameter(Mandatory = $false)]
     [switch]$Force
+
+    [Parameter(Mandatory = $false)]
+    [switch]$SkipDeployment
 )
 
 try {
@@ -68,21 +71,27 @@ try {
     Write-Host "Build and Publish Electron app..."
     # set environment variable DEBUG=* to see verbose output
     $oldDebug = $env:DEBUG
+    $command = "publish"
+
+    if ($SkipDeployment) {
+        $command = "make"
+    }
+
     # $env:DEBUG="*"
     # $env:DEBUG="electron-packager,squirrel"
     if ($BuildPlatform -eq "macos") {
-        ./node_modules/.bin/electron-forge publish --platform=darwin --arch=x64
+        ./node_modules/.bin/electron-forge $command --platform=darwin --arch=x64
     } elseif ($BuildPlatform -eq "macos-metal") {
-        ./node_modules/.bin/electron-forge publish --platform=darwin --arch=arm64
+        ./node_modules/.bin/electron-forge $command --platform=darwin --arch=arm64
     } else {
-        ./node_modules/.bin/electron-forge publish --platform=$platform --arch=$arch 
+        ./node_modules/.bin/electron-forge $command --platform=$platform --arch=$arch 
     }
     $env:DEBUG = $oldDebug
     if ($LASTEXITCODE -ne 0) {
-        throw "electron-forge publish failed" 
+        throw "electron-forge $command failed" 
     }
 
-    Write-Host "UX build completed successfully."
+    Write-Host "UX $command completed successfully."
 }
 catch {
     Write-Error "An error occurred during the UX build process: $_"

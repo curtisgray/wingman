@@ -5,7 +5,7 @@ import { WingmanItem, getWingmanItemStatusMessage } from "@/types/wingman";
 import { StripFormatFromModelRepo, quantizationFromFilePath } from "@/types/download";
 import HomeContext from "@/pages/api/home/home.context";
 import { AIModelID, VendorInfo, Vendors } from "@/types/ai";
-import { displayVendorIcon } from "./Util";
+import { WINGMAN_OFFLINE_MESSAGE, displayVendorIcon } from "./Util";
 
 const SelectedConversationModelStatus = ({ showModel = true, showQuantization = true, showAlias = false, className = "" }) =>
 {
@@ -96,7 +96,7 @@ const SelectedConversationModelStatus = ({ showModel = true, showQuantization = 
     if (!isOnline)
         return (
             <div className={`${className}`}>
-                <span>Wingman is offline</span>
+                <span>{`${WINGMAN_OFFLINE_MESSAGE}`}</span>
             </div>
         );
 

@@ -1,0 +1,170 @@
+name: Wingman App Build and Release
+
+defaults:
+  run:
+    shell: bash
+
+on:
+  push:
+    branches:
+      - debug
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+jobs:
+  build-and-release:
+    permissions: write-all
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [macos-14]
+        include:
+          - os: macos-14
+            platform: macos-metal
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set self-hosted Windows to use Git Bash
+        if: matrix.os == 'self-hosted'
+        shell: pwsh
+        run: |
+          echo "Setting up Git Bash as default shell"
+          echo "C:/Program Files/Git/bin" >> $env:GITHUB_PATH
+
+      - name: Extract Package Version
+        run: |
+          package_version=$(jq -r '.version' ./ux/package.json)
+          echo "PACKAGE_VERSION=$package_version" >> $GITHUB_ENV
+
+      - name: Install the Apple developer certificates
+        if: matrix.platform == 'macos' || matrix.platform == 'macos-metal'
+        env:
+          APP_CERTIFICATE_BASE64: ${{ secrets.MACOS_APP_CERTIFICATE_BASE64 }}
+          INSTALLER_CERTIFICATE_BASE64: ${{ secrets.MACOS_INSTALLER_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
+        run: |
+          echo "Creating variables"
+          APP_CERTIFICATE_PATH=$RUNNER_TEMP/app_certificate.p12
+          INSTALLER_CERTIFICATE_PATH=$RUNNER_TEMP/installer_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          echo "Importing certificates from secrets"
+          echo -n "$APP_CERTIFICATE_BASE64" | base64 --decode -o $APP_CERTIFICATE_PATH
+          echo -n "$INSTALLER_CERTIFICATE_BASE64" | base64 --decode -o $INSTALLER_CERTIFICATE_PATH
+
+          echo "Creating temporary keychain"
+          security -v create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security -v set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          echo "Importing certificates to keychain"
+          security -v import $APP_CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security -v import $INSTALLER_CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          echo "Setting keychain ACLs"
+          security -v set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          echo "Setting default keychain"
+          security -v list-keychain -d user -s $KEYCHAIN_PATH
+
+        # https://github.com/electron/forge/issues/2807
+      - name: Install Python 3 Setuptools on macOS
+        if: matrix.platform == 'macos'
+        run: python3 -m pip install setuptools
+
+      - name: Install Python 3 Setuptools on macOS Metal via Homebrew
+        if: matrix.platform == 'macos-metal'
+        run: brew install python-setuptools
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20' # Specify the Node.js version to use, ensure it matches your project requirements
+
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Install VCPKG
+        if: matrix.platform == 'macos-metal'
+        run: |
+          git clone https://github.com/microsoft/vcpkg
+          ./vcpkg/bootstrap-vcpkg.sh
+          export VCPKG_INSTALLATION_ROOT=$(pwd)/vcpkg
+          echo "VCPKG_INSTALLATION_ROOT=${VCPKG_INSTALLATION_ROOT}" >> $GITHUB_ENV
+
+      - name: Set VCPKG Environment Variables
+        if: matrix.platform != 'windows'
+        run: |
+          echo "VCPKG_ROOT=${VCPKG_INSTALLATION_ROOT}" >> $GITHUB_ENV
+
+      - name: Install PowerShell macOS
+        if: matrix.platform == 'macos'
+        run: |
+          architecture=$(uname -m)
+          # Download the powershell '.tar.gz' archive
+          if [ "$architecture" = "x86_64" ]; then
+            curl -L -o /tmp/powershell.tar.gz https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/powershell-7.4.1-osx-x64.tar.gz
+          elif [ "$architecture" = "arm64" ]; then
+            curl -L -o /tmp/powershell.tar.gz https://github.com/PowerShell/PowerShell/releases/download/v7.4.1/powershell-7.4.1-osx-arm64.tar.gz
+          fi
+          # Create the target folder where powershell is placed
+          sudo mkdir -p /usr/local/microsoft/powershell/7
+          # Expand powershell to the target folder
+          sudo tar zxf /tmp/powershell.tar.gz -C /usr/local/microsoft/powershell/7
+          # Set execute permissions
+          sudo chmod +x /usr/local/microsoft/powershell/7/pwsh
+          # Create the symbolic link that points to pwsh
+          sudo ln -sf /usr/local/microsoft/powershell/7/pwsh /usr/local/bin/pwsh
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v2
+        with:
+          path: '~/.npm'
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Build, Package and Release to GitHub
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_ID: ${{ secrets.MACOS_APP_NOTARIZATION_USERID }}
+          APPLE_PASSWORD: ${{ secrets.MACOS_APP_NOTARIZATION_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.MACOS_APP_NOTARIZATION_TEAMID }}
+        run: .\build.ps1 -BuildPlatform ${{ matrix.platform }}
+
+      - name: Create and Push Git Tag if Not Exists
+        run: |
+          PACKAGE_VERSION=${{ env.PACKAGE_VERSION }}
+          echo "Checking for existing tag for version $PACKAGE_VERSION..."
+
+          # Fetch tags to ensure we have the latest tags in the local git history
+          git fetch --tags
+
+          # Check if the tag already exists
+          if git rev-parse "v$PACKAGE_VERSION" >/dev/null 2>&1; then
+            echo "Tag v$PACKAGE_VERSION already exists. Skipping tag creation."
+          else
+            echo "Tag v$PACKAGE_VERSION does not exist. Creating and pushing tag..."
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git tag -a "v$PACKAGE_VERSION" -m "Release version $PACKAGE_VERSION"
+            git push origin "v$PACKAGE_VERSION"
+            echo "Tag v$PACKAGE_VERSION created and pushed."
+          fi
+
+      - name: Save Tag Name
+        run: echo "v${{ env.PACKAGE_VERSION }}" > tag.txt
+
+      - name: Upload Tag Name as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tag-name
+          path: tag.txt
+          overwrite: true

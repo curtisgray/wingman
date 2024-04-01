@@ -4,7 +4,7 @@ import HomeContext from '@/pages/api/home/home.context'
 import { AIModel, AIModelID, DownloadableItem, Vendors } from '@/types/ai';
 import DownloadButton from './DownloadButton';
 import WingmanContext from '@/pages/api/home/wingman.context';
-import { displayClearedForTakeoff, displayDownloadInferringButton, displayErrorButton, displayLoadingMessage, displayModelMetrics, displayModelName, displayWaitButton } from './Util';
+import { WINGMAN_OFFLINE_MESSAGE, displayClearedForTakeoff, displayDownloadInferringButton, displayErrorButton, displayLoadingMessage, displayModelMetrics, displayModelName, displayWaitButton } from './Util';
 import { Tooltip } from 'react-tooltip';
 
 function classNames (...classes: string[]) {
@@ -463,7 +463,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                         >
                             {!isOnline &&
                                 <div className="flex h-full justify-center items-center dark:text-gray-700 text-gray-400">
-                                    <h3>Wingman is offline</h3>
+                                    <h3>{`${WINGMAN_OFFLINE_MESSAGE}`}</h3>
                                 </div>
                             }
                             {isSwitchingModel && (

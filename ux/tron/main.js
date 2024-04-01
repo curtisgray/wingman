@@ -129,6 +129,13 @@ if (!gotTheLock)
         logger.log("info", data);
     };
 
+    const dtell = (data) =>
+    {
+        // strip trailing newline
+        data = data.replace(/\n$/, "");
+        logger.log("debug", data);
+    };
+
     const etell = (data) =>
     {
         // strip trailing newline
@@ -141,6 +148,7 @@ if (!gotTheLock)
         const killFilePath = path.join(APP_DIR, WINGMAN_KILL_FILE_NAME);
         tell(`Creating kill file: ${killFilePath}`);
         fs.writeFileSync(killFilePath, `[${Date.now}] This file is used to signal the Wingman process to terminate.`, { encoding: "utf-8" });
+        dtell(`Created kill file: ${killFilePath}`);
         return killFilePath;
     };
 
@@ -248,7 +256,7 @@ if (!gotTheLock)
         });
     };
 
-    const handleWingmanResetAndRestart = async (exeDir, wingmanDir, nextDir, waitForExitFirst = true, resetInference = false) =>
+    const handleWingmanResetAndRestart = async (exeDir, wingmanDir, nextDir, waitForExitFirst = true) =>
     {
         return new Promise(async (resolve) =>
         {
@@ -271,11 +279,8 @@ if (!gotTheLock)
                     etell('[W] (handleAIModelLoadingError): Terminating Wingman server process...');
                     // Ensure the termination of the wingman process
                     await wingmanProcessController.terminate(true);
+                    dtell('[W] (handleAIModelLoadingError): Wingman server process terminated.');
                 }
-
-                // Wait for the wingman_reset process to complete
-                if (resetInference)
-                    await executeWingmanReset(exeDir);
 
                 // After reset is complete, attempt to restart wingman
                 ipcMain.emit("start-wingman", wingmanDir, nextDir);
@@ -448,7 +453,9 @@ if (!gotTheLock)
                                 {
                                     return new Promise(async (resolve) =>
                                     {
+                                        dtell(`[W] (terminate): Terminating Wingman process using a kill file...`);
                                         createKillFile();
+                                        dtell(`[W] (terminate): Wingman process is shutting down...`);
                                         isServerShuttingDown = true;
                                         if (waitForExit)
                                         {
@@ -457,15 +464,16 @@ if (!gotTheLock)
                                                 tell(`[W] (terminate): Wingman process exited.`);
                                                 resolve();
                                             });
-                                            tell(`[W] (terminate): Waiting for Wingman process to exit...`);
-                                            await waitForFunctionResult(() => !wingmanProcessController, 5000, 1000);
+                                            const timeout = 15000;
+                                            tell(`[W] (terminate): Waiting ${timeout}ms for Wingman process to exit...`);
+                                            await waitForFunctionResult(() => !wingmanProcessController, timeout, 1000);
                                             if (wingmanProcessController)
                                             {
                                                 etell(`[W] (terminate): Wingman process did not exit. Forcibly terminating...`);
-                                                // send SIGINT and SIGKILL to the process
+                                                // send SIGINT and *SIGKILL to the process
                                                 subprocess.kill('SIGINT');
-                                                subprocess.kill('SIGKILL');
-                                                await waitForFunctionResult(() => !wingmanProcessController, 5000, 1000);
+                                                // subprocess.kill('SIGKILL');
+                                                await waitForFunctionResult(() => !wingmanProcessController, 1000, 1000);
                                             }
                                         } else
                                             resolve();

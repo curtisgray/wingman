@@ -46,7 +46,9 @@ export interface AIModel
     size: string;
     iQScore: number;
     eQScore: number;
-    isInferable?: boolean;
+    isInferable: boolean;
+    availableMemory: number;
+    normalizedQuantizedMemRequired: number;
 }
 
 export interface AIModelInstance
@@ -119,6 +121,9 @@ export const AIModels: Record<AIModelID, AIModel> = {
         size: "",
         iQScore: 0,
         eQScore: 0,
+        isInferable: true,
+        availableMemory: -1,
+        normalizedQuantizedMemRequired: -1,
     },
     [AIModelID.GPT_4_PREVIEW]: {
         isa: "AIModel",
@@ -134,6 +139,9 @@ export const AIModels: Record<AIModelID, AIModel> = {
         size: "128K",
         iQScore: 0,
         eQScore: 0,
+        isInferable: true,
+        availableMemory: -1,
+        normalizedQuantizedMemRequired: -1,
    },
     [AIModelID.GPT_4_VISION_PREVIEW]: {
         isa: "AIModel",
@@ -149,6 +157,9 @@ export const AIModels: Record<AIModelID, AIModel> = {
         size: "128K",
         iQScore: 0,
         eQScore: 0,
+        isInferable: true,
+        availableMemory: -1,
+        normalizedQuantizedMemRequired: -1,
     },
     [AIModelID.GPT_4]: {
         isa: "AIModel",
@@ -164,6 +175,9 @@ export const AIModels: Record<AIModelID, AIModel> = {
         size: "8K",
         iQScore: 0,
         eQScore: 0,
+        isInferable: true,
+        availableMemory: -1,
+        normalizedQuantizedMemRequired: -1,
     },
     [AIModelID.GPT_4_32K]: {
         isa: "AIModel",
@@ -179,6 +193,9 @@ export const AIModels: Record<AIModelID, AIModel> = {
         size: "32K",
         iQScore: 0,
         eQScore: 0,
+        isInferable: true,
+        availableMemory: -1,
+        normalizedQuantizedMemRequired: -1,
     },
     [AIModelID.GPT_3_5_TURBO_PREVIEW]: {
         isa: "AIModel",
@@ -194,6 +211,9 @@ export const AIModels: Record<AIModelID, AIModel> = {
         size: "16K",
         iQScore: 0,
         eQScore: 0,
+        isInferable: true,
+        availableMemory: -1,
+        normalizedQuantizedMemRequired: -1,
     },
     [AIModelID.GPT_3_5_TURBO]: {
         isa: "AIModel",
@@ -209,6 +229,9 @@ export const AIModels: Record<AIModelID, AIModel> = {
         size: "4K",
         iQScore: 0,
         eQScore: 0,
+        isInferable: true,
+        availableMemory: -1,
+        normalizedQuantizedMemRequired: -1,
     },
     [AIModelID.GPT_3_5_TURBO_16K]: {
         isa: "AIModel",
@@ -224,6 +247,9 @@ export const AIModels: Record<AIModelID, AIModel> = {
         size: "16K",
         iQScore: 0,
         eQScore: 0,
+        isInferable: true,
+        availableMemory: -1,
+        normalizedQuantizedMemRequired: -1,
     },
     // [AIModelID.GPT_3_5_TURBO_INSTRUCT]: {
     //     isa: "AIModel",

@@ -4,7 +4,10 @@ param(
     [string]$BuildPlatform,
 
     [Parameter(Mandatory = $false)]
-    [switch]$Force
+    [switch]$Force,
+
+    [Parameter(Mandatory = $false)]
+    [switch]$SkipDeployment
 )
 
 Push-Location -Path $PSScriptRoot
@@ -24,7 +27,7 @@ try {
     # Build Wingman UX
     Write-Host "Building Wingman UX"
     Push-Location -Path "./ux"
-    ./build-ux-ci.ps1 -BuildPlatform $BuildPlatform -Force:$Force
+    ./build-ux-ci.ps1 -BuildPlatform $BuildPlatform -Force:$Force -SkipDeployment:$SkipDeployment
     if ($LASTEXITCODE -ne 0) {
         throw "Building Wingman UX failed with exit code $LASTEXITCODE" 
     }
