@@ -137,7 +137,7 @@ jobs:
           APPLE_ID: ${{ secrets.MACOS_APP_NOTARIZATION_USERID }}
           APPLE_PASSWORD: ${{ secrets.MACOS_APP_NOTARIZATION_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.MACOS_APP_NOTARIZATION_TEAMID }}
-        run: .\build.ps1 -BuildPlatform ${{ matrix.platform }} -SkipDeployment
+        run: .\build.ps1 -BuildPlatform ${{ matrix.platform }}
 
       - name: Create and Push Git Tag if Not Exists
         run: |
@@ -159,12 +159,12 @@ jobs:
             echo "Tag v$PACKAGE_VERSION created and pushed."
           fi
 
-      # - name: Save Tag Name
-      #   run: echo "v${{ env.PACKAGE_VERSION }}" > tag.txt
+      - name: Save Tag Name
+        run: echo "v${{ env.PACKAGE_VERSION }}" > tag.txt
 
-      # - name: Upload Tag Name as Artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: tag-name
-      #     path: tag.txt
-      #     overwrite: true
+      - name: Upload Tag Name as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tag-name
+          path: tag.txt
+          overwrite: true

@@ -447,37 +447,42 @@ const Home = ({
             disableSwitching();
         } else {
             if (selectedConversation?.model) {
-                if (selectedConversation.model.id === AIModelID.NO_MODEL_SELECTED) {
-                    if (globalModel) {
-                        if (globalModel.id === AIModelID.NO_MODEL_SELECTED) {
-                            disableSwitching();
-                        } else if (globalModel.id === selectedConversation.model.id) {
-                            if (globalModel.item?.filePath === inferringAlias) {
-                                disableSwitching();
-                            } else {
-                                enableSwitching();
-                            }
-                        } else {
-                            disableSwitching();
-                        }
-                    } else {
-                        disableSwitching();
-                    }
+                const vendor = Vendors[selectedConversation.model.vendor];
+                if (!vendor.isDownloadable) {
+                    disableSwitching();
                 } else {
-                    if (globalModel) {
-                        if (globalModel.id === AIModelID.NO_MODEL_SELECTED) {
-                            enableSwitching();
-                        } else if (globalModel.id === selectedConversation.model.id) {
-                            if (globalModel.item?.filePath === inferringAlias) {
+                    if (selectedConversation.model.id === AIModelID.NO_MODEL_SELECTED) {
+                        if (globalModel) {
+                            if (globalModel.id === AIModelID.NO_MODEL_SELECTED) {
                                 disableSwitching();
+                            } else if (globalModel.id === selectedConversation.model.id) {
+                                if (globalModel.item?.filePath === inferringAlias) {
+                                    disableSwitching();
+                                } else {
+                                    enableSwitching();
+                                }
+                            } else {
+                                disableSwitching();
+                            }
+                        } else {
+                            disableSwitching();
+                        }
+                    } else {
+                        if (globalModel) {
+                            if (globalModel.id === AIModelID.NO_MODEL_SELECTED) {
+                                enableSwitching();
+                            } else if (globalModel.id === selectedConversation.model.id) {
+                                if (globalModel.item?.filePath === inferringAlias) {
+                                    disableSwitching();
+                                } else {
+                                    enableSwitching();
+                                }
                             } else {
                                 enableSwitching();
                             }
                         } else {
-                            enableSwitching();
+                            // enableSwitching();
                         }
-                    } else {
-                        // enableSwitching();
                     }
                 }
             } else {
@@ -488,7 +493,12 @@ const Home = ({
                         disableSwitching();
                     }
                 } else {
-                    enableSwitching();
+                    const vendor = Vendors[globalModel!.vendor];
+                    if (!vendor.isDownloadable) {
+                        disableSwitching();
+                    } else {
+                        enableSwitching();
+                    }
                 }
             }
 
