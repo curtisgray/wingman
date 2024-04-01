@@ -4,7 +4,7 @@ param(
     [string]$BuildPlatform,
 
     [Parameter(Mandatory = $false)]
-    [switch]$Force
+    [switch]$Force,
 
     [Parameter(Mandatory = $false)]
     [switch]$SkipDeployment
