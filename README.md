@@ -12,17 +12,12 @@ Wingman - Rooster is the first release of Wingman. Future releases will be named
 </p>
 
 ---
-<div id="download-table">
-
-<div>
-
----
 
 ## Requirements for Hardware and OS
 
-- Windows 10+ or Mac OS X
+- Windows 10+ or MacOS 10.15+
 - 2016 or newer CPU
-- 16GB+ RAM
+- 8GB+ RAM
 - 2016 or newer GPU with at least 3GB of RAM
 - GPU not required, but recommended
 - 100GB free disk space (for AI models)
@@ -52,11 +47,13 @@ Wingman - Rooster is the first release of Wingman. Future releases will be named
 - Save and organize your chats into folders so you can find them again later. 
 - Set system prompts and prompt templates so you can talk with characters and get the best results from all models.
 ---
-<p align="center">
+
+<p style="background-color: #000000; padding: 10px; max-width:5rem; margin: auto; border-radius: 10px;">
 <img src="https://electricpipelines.com/wp-content/uploads/sites/5/2022/05/electric-logo-transparent-300x300-2.png" width=128>
 </p>
 
-### Sponsored by [Electric Pipelines](https://electricpipelines.com/): We offer enhanced software engineering. For custom Wingman modifications or deployments, [contact us today](https://electricpipelines.com/)!
+### Sponsored by [Electric Pipelines](https://electricpipelines.com/): Offering enhanced software engineering. For custom Wingman modifications or deployments, [contact us today](https://electricpipelines.com/)!
+---
 
 ## Planned Features
 
@@ -94,10 +91,8 @@ Wingman is more than just an application; it's a gateway to a more accessible an
 - ✉️ Genius Primer
 - ✉️ Flight Formation
 
-
 **Legend**:
 ✅ Completed, ⏳ In Progress, ✉️ Not Started
-
 
 ## Installation
 
@@ -105,47 +100,36 @@ Note, an OpenAI API key is NOT needed, unless you want to run an OpenAI GPT-styl
 
 Wingman will autodetect whether you have an OpenAI API key and make a GPT AI models available automatically.
 
-### **Native Installers**
+### Native Installers (Windows and MacOS)
 
-*Coming soon for Windows, Mac and Linux*
+Download the latest release from the [Releases](https://github.com/curtisgray/wingman/releases/latest) page.
 
-### **Build From Source**
+### Build From Source
 
 See [Build Locally](#build-locally) for instructions on how to build Wingman locally.
 
 #### Prerequisites
 
-None
+- [Node.js](https://nodejs.org/en/download/)
+- [CMake](https://cmake.org/download/)
+- [Visual Studio (for Windows)](https://visualstudio.microsoft.com/downloads/)
+- [Xcode (for MacOS)](https://developer.apple.com/xcode/)
 
+#### Build Locally
 
-## Build Locally
+##### 1. Clone Repo
 
-**1. Clone Repo**
+  ```bash
+  git clone https://github.com/curtisgray/wingman.git --recurse-submodules
+  ```
 
-```bash
-git clone https://github.com/curtisgray/wingman.git
-```
-
-**2. Build Front and Back Ends**
-
+##### 2. Build Front and Back Ends
 
 ```powershell
 build.ps1
 ```
 
-**3. Provide OpenAI API Key**
-
-Create a .env.local file in the root of the repo with your OpenAI API Key:
-
-```bash
-OPENAI_API_KEY=YOUR_KEY
-```
-
-> You can set `OPENAI_API_HOST` where access to the official OpenAI host is restricted or unavailable, allowing users to configure an alternative host for their specific needs.
-
-> Additionally, if you have multiple OpenAI Organizations, you can set `OPENAI_ORGANIZATION` to specify one.
-
-**4. Run App**
+##### 3. Run App
 
 Windows:
 
@@ -155,9 +139,9 @@ Mac:
 
 - Open Finder and navigate to the Applications folder. Double-click Wingman.
 
-**5. Use It**
+## Use Wingman
 
-You should be able to start chatting.
+Download a model from within the app, or enter your OpenAI API key to use OpenAI models.
 
 ## Contact
 
