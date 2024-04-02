@@ -126,6 +126,8 @@ if (!gotTheLock)
     {
         // strip trailing newline
         data = data.replace(/\n$/, "");
+        // prepend the current process id
+        data = `[${process.pid}] ${data}`;
         logger.log("info", data);
     };
 
@@ -133,6 +135,8 @@ if (!gotTheLock)
     {
         // strip trailing newline
         data = data.replace(/\n$/, "");
+        // prepend the current process id
+        data = `[${process.pid}] ${data}`;
         logger.log("debug", data);
     };
 
@@ -140,6 +144,8 @@ if (!gotTheLock)
     {
         // strip trailing newline
         data = data.replace(/\n$/, "");
+        // prepend the current process id
+        data = `[${process.pid}] ${data}`;
         logger.log("error", data);
     };
 
@@ -283,6 +289,7 @@ if (!gotTheLock)
                 }
 
                 // After reset is complete, attempt to restart wingman
+                dtell(`[W] (handleAIModelLoadingError): Firing 'start-wingman' event...`);
                 ipcMain.emit("start-wingman", wingmanDir, nextDir);
                 resolve();
             } catch (error)
@@ -461,20 +468,20 @@ if (!gotTheLock)
                                         {
                                             subprocess.on('close', () =>
                                             {
-                                                tell(`[W] (terminate): Wingman process exited.`);
+                                                tell(`[W] (terminate): Wingman process has cleanly exited.`);
                                                 resolve();
                                             });
-                                            const timeout = 15000;
-                                            tell(`[W] (terminate): Waiting ${timeout}ms for Wingman process to exit...`);
-                                            await waitForFunctionResult(() => !wingmanProcessController, timeout, 1000);
-                                            if (wingmanProcessController)
-                                            {
-                                                etell(`[W] (terminate): Wingman process did not exit. Forcibly terminating...`);
-                                                // send SIGINT and *SIGKILL to the process
-                                                subprocess.kill('SIGINT');
-                                                // subprocess.kill('SIGKILL');
-                                                await waitForFunctionResult(() => !wingmanProcessController, 1000, 1000);
-                                            }
+                                            // const timeout = 15000;
+                                            // tell(`[W] (terminate): Waiting ${timeout}ms for Wingman process to exit...`);
+                                            // await waitForFunctionResult(() => !wingmanProcessController, timeout, 1000);
+                                            // if (wingmanProcessController)
+                                            // {
+                                            //     etell(`[W] (terminate): Wingman process did not exit. Forcibly terminating...`);
+                                            //     // send SIGINT and *SIGKILL to the process
+                                            //     subprocess.kill('SIGINT');
+                                            //     // subprocess.kill('SIGKILL');
+                                            //     await waitForFunctionResult(() => !wingmanProcessController, 1000, 1000);
+                                            // }
                                         } else
                                             resolve();
                                     });
@@ -548,12 +555,12 @@ if (!gotTheLock)
                     //   so check if there is a known model error, and otherwise restart the process
                     if (code === null)
                     {
-                        if (!forceShutdown && !hasModelLoadingError)
-                        {
-                            // TODO: this is an experimental fix for the issue where the Wingman process is killed
-                            etell(`[W] close: Wingman process was killed. Forcibly restarting...`);
-                            await handleWingmanResetAndRestart(cwd, wingmanDir, nextDir);
-                        }
+                        // if (!forceShutdown && !hasModelLoadingError)
+                        // {
+                        //     // TODO: this is an experimental fix for the issue where the Wingman process is killed
+                        //     etell(`[W] close: Wingman process was killed. Forcibly restarting...`);
+                        //     await handleWingmanResetAndRestart(cwd, wingmanDir, nextDir);
+                        // }
                     }
                     if (code !== 0)
                     {
