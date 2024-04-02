@@ -120,7 +120,6 @@ if (!gotTheLock)
         return { findPort, cancel };
     };
 
-    let wingmanProcessController = null;
     let nextJsServerProcessController = null;
 
     logger.log("info", "Starting Wingman Electron");
@@ -432,34 +431,22 @@ if (!gotTheLock)
                     const output = data.toString();
                     tell(`[W] stdout: ${output}`);
 
-                    // check for exit messages
-                    if (WINGMAN_EXIT_MESSAGES.some(msg => output.includes(msg)))
+                    // Server is ready: `96ad0fad-82da-43a9-a313-25f51ef90e7c`
+                    if (output.includes("96ad0fad-82da-43a9-a313-25f51ef90e7c"))
                     {
-                        tell(`[W] stdout: Wingman exit detected with message: ${output}`);
+                        isServerReady = true;
+                        resolve({
+                            terminate: terminateWingman,
+                            shutdown: shutdownWingman,
+                            pid: subprocess.pid,
+                        });
                     }
-                    else
-                    {
-                        // Server is ready: `96ad0fad-82da-43a9-a313-25f51ef90e7c`
-                        if (output.includes("96ad0fad-82da-43a9-a313-25f51ef90e7c"))
-                        {
-                            isServerReady = true;
-                            resolve({
-                                terminate: terminateWingman,
-                                shutdown: shutdownWingman,
-                                pid: subprocess.pid,
-                            });
-                        }
 
-                        if (!isServerReady)
+                    if (isServerReady)
+                    {
+                        if (mustShutdownForModelLoadingError(output) === true)
                         {
-                        }
-                        else
-                        {
-                            if (mustShutdownForModelLoadingError(output) === true)
-                            {
-                                // await handleWingmanResetAndRestart(cwd, wingmanDir, nextDir);
-                                await terminateAndRestartWingman();
-                            }
+                            await terminateAndRestartWingman();
                         }
                     }
                 });
@@ -468,27 +455,18 @@ if (!gotTheLock)
                 {
                     if (!data) { etell(`[W] stderr: data is empty`); return; }
                     const output = data.toString();
-                    // check for exit messages
-                    if (WINGMAN_EXIT_MESSAGES.some(msg => output.includes(msg)))
+                    if (mustShutdownForModelLoadingError(output) === true)
                     {
-                        tell(`[W] stderr: Wingman exit detected with message: ${output}`);
-                    }
-                    else
+                        await terminateAndRestartWingman();
+                    } else
                     {
-                        if (mustShutdownForModelLoadingError(output) === true)
+                        if (output === ".")
+                        {   // this should be written directly to stderr
+                            process.stderr.write(output);
+                        }
+                        else
                         {
-                            // await handleWingmanResetAndRestart(cwd, wingmanDir, nextDir);
-                            await terminateAndRestartWingman();
-                        } else
-                        {
-                            if (output === ".")
-                            {   // this should be written directly to stderr
-                                process.stderr.write(output);
-                            }
-                            else
-                            {
-                                etell(`[W] stderr: ${output}`);
-                            }
+                            etell(`[W] stderr: ${output}`);
                         }
                     }
                 });
@@ -514,7 +492,6 @@ if (!gotTheLock)
                     {
                         tell(`[W] close: process exited with code ${code}`);
                     }
-                    wingmanProcessController = null;
                     removeProcessFromMap(subprocess.pid);
                 });
 
@@ -578,22 +555,6 @@ if (!gotTheLock)
                             resolve();
                         }
                     });
-                }
-
-                if (!isServerReady)
-                {
-                    // dyld error: `dyld: Symbol not found`
-                    if (output.includes("dyld: Symbol not found"))
-                    {
-                        etell(`[UX] stdout: ${output}`);
-                        reject(new Error('dyld: Symbol not found'));
-                    }
-                    // bad image error: `illegal hardware instruction`
-                    if (output.includes("illegal hardware instruction"))
-                    {
-                        etell(`[UX] stdout: ${output}`);
-                        reject(new Error('illegal hardware instruction'));
-                    }
                 }
             });
 
@@ -687,11 +648,7 @@ if (!gotTheLock)
             {
                 ipcMain.emit('report-error', null, error.toString());
             });
-        // APP_WINDOW.on('page-title-updated', function (e)
-        // {   // prevent the window title from changing
-        //     // TODO: this might be unnecessary after setting the title in NextJs app page
-        //     e.preventDefault();
-        // });
+
         APP_WINDOW.on("will-navigate", (e) => e.preventDefault());
         APP_WINDOW.on("closed", () =>
         {
@@ -753,19 +710,13 @@ if (!gotTheLock)
     {
         dtell(`(start-wingman): Starting Wingman services...`);
         ensureNoOtherWingmanProcesses(true);
-        // if (wingmanProcessController)
-        // {
-        //     etell('Wingman is already running... terminating existing process...');
-        //     await wingmanProcessController.terminate();
-        // }
         launchWingmanExecutable(wingmanDir, nextDir)
             .then((controller) =>
             {
                 dtell(`(start-wingman): Wingman services started.`);
                 if (firstTimeStartingWingman)
                 {
-                    wingmanProcessController = controller;
-                    WINGMAN_SERVICE_PROCESS_MAP.set(`PID_${controller.pid}`, wingmanProcessController);
+                    WINGMAN_SERVICE_PROCESS_MAP.set(`PID_${controller.pid}`, controller);
                     dtell(`(start-wingman): WINGMAN_SERVICE_PROCESS_MAP has : ${WINGMAN_SERVICE_PROCESS_MAP.size} entries after adding PID_${controller.pid}`);
                     dtell(`(start-wingman): Firing 'start-nextjs' event...`);
                     ipcMain.emit("start-nextjs", WINGMAN_UI_PORT, nextDir);
@@ -865,18 +816,6 @@ if (!gotTheLock)
                 etell(`Error terminating Next.js server: ${error}`);
             }
         }
-
-        // if (wingmanProcessController)
-        // {
-        //     try
-        //     {
-        //         await wingmanProcessController.terminate();
-        //         // 
-        //     } catch (error)
-        //     {
-        //         etell(`Error terminating Wingman server: ${error}`);
-        //     }
-        // }
         dtell(`(shutdownApp): Ensuring no other Wingman processes are running...`);
         await ensureNoOtherWingmanProcesses();
         tell('All windows closed. Clean up complete.');
