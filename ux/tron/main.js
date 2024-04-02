@@ -742,6 +742,9 @@ if (!gotTheLock)
             }
             WINGMAN_SERVICE_PROCESS_MAP.clear();
             dtell(`(start-wingman): WINGMAN_SERVICE_PROCESS_MAP has : ${WINGMAN_SERVICE_PROCESS_MAP.size} entries after terminating all services`);
+        } else
+        {
+            dtell(`(start-wingman): WINGMAN_SERVICE_PROCESS_MAP has : ${WINGMAN_SERVICE_PROCESS_MAP.size} entries. No need to terminate services.`);
         }
     };
 
@@ -874,7 +877,8 @@ if (!gotTheLock)
         //         etell(`Error terminating Wingman server: ${error}`);
         //     }
         // }
-        ensureNoOtherWingmanProcesses();
+        dtell(`(shutdownApp): Ensuring no other Wingman processes are running...`);
+        await ensureNoOtherWingmanProcesses();
         tell('All windows closed. Clean up complete.');
     };
 
