@@ -31,10 +31,12 @@ if (!gotTheLock)
     // set WINGMAN_UI_PORT to -1 to use a random port
     let WINGMAN_UI_PORT = 49152;
     const WINGMAN_KILL_FILE_NAME = "wingman.die";
+    const WINGMAN_EXIT_FILE_NAME = "wingman.exit";
     const WINGMAN_EXIT_MESSAGES = [
         "***Wingman Exit***",
         "***Wingman Error Exit***"
     ];
+    const WINGMAN_SERVICE_PROCESS_MAP = new Map();
 
     const logger = winston.createLogger({
         level: "silly",
@@ -158,6 +160,15 @@ if (!gotTheLock)
         return killFilePath;
     };
 
+    const createExitFile = () =>
+    {
+        const exitFilePath = path.join(APP_DIR, WINGMAN_EXIT_FILE_NAME);
+        tell(`Creating exit file: ${exitFilePath}`);
+        fs.writeFileSync(exitFilePath, `[${Date.now}] This file is used to signal the Wingman process to exit cleanly.`, { encoding: "utf-8" });
+        dtell(`Created exit file: ${exitFilePath}`);
+        return exitFilePath;
+    };
+
     // check if `app.asar` is in the __dirname
     const isPackaged = __dirname.includes('app.asar');
 
@@ -178,111 +189,33 @@ if (!gotTheLock)
         return baseDir;
     };
 
-    const waitForTimer = (timeout) =>
-    {
-        return new Promise((resolve) =>
-        {
-            setTimeout(() =>
-            {
-                resolve();
-            }, timeout);
-        });
-    };
-
-    const waitForFunctionResult = async (func, timeout, interval) =>
-    {
-        return new Promise(async (resolve, reject) =>
-        {
-            let timeLeft = timeout;
-            while (timeLeft > 0)
-            {
-                try
-                {
-                    const result = await func();
-                    if (result)
-                    {
-                        resolve(result);
-                        return;
-                    }
-                } catch (error)
-                {
-                    etell(`Error waiting for function result: ${error}`);
-                    reject(error);
-                    return;
-                }
-                await waitForTimer(interval);
-                timeLeft -= interval;
-            }
-            reject(new Error(`Timeout waiting for function result`));
-        });
-    };
-
-    const executeWingmanReset = (exeDir) =>
-    {
-        return new Promise((resolve) =>
-        {
-            // Determine the wingman_reset executable name based on platform
-            let resetExecutableName = 'wingman_reset';
-            if (process.platform === 'win32')
-            {
-                resetExecutableName += '.exe';
-            }
-
-            // Construct the path to the wingman_reset executable
-            const resetExecutablePath = path.join(exeDir, resetExecutableName);
-
-            // Launch wingman_reset executable
-            tell(`[W] (handleAIModelLoadingError): Launching Wingman Reset executable: ${resetExecutablePath}`);
-            const resetSubprocess = child_process.spawn(resetExecutablePath, [], {
-                cwd: exeDir,
-                windowsHide: true,
-            });
-
-            resetSubprocess.stdout.on('data', (data) =>
-            {
-                tell(`[WR] stdout: ${data.toString()}`);
-            });
-
-            resetSubprocess.stderr.on('data', (data) =>
-            {
-                etell(`[WR] stderr: ${data.toString()}`);
-            });
-
-            resetSubprocess.on('close', (code) =>
-            {
-                if (code !== 0)
-                {
-                    etell(`[WR] close: process exited with code ${code}`);
-                } else
-                {
-                    tell(`[WR] close: process exited successfully`);
-                }
-                resolve();
-            });
-        });
-    };
-
-    const handleWingmanResetAndRestart = async (exeDir, wingmanDir, nextDir, waitForExitFirst = true) =>
-    {
-        return new Promise(async (resolve) =>
-        {
-            try
-            {
-                etell('[W] (handleAIModelLoadingError): Terminating Wingman server process...');
-                // Ensure the termination of the wingman process
-                await wingmanProcessController.terminate(true);
-                dtell('[W] (handleAIModelLoadingError): Wingman server process terminated.');
-                // After reset is complete, attempt to restart wingman
-                dtell(`[W] (handleAIModelLoadingError): Firing 'start-wingman' event...`);
-                ipcMain.emit("start-wingman", wingmanDir, nextDir);
-                resolve();
-            } catch (error)
-            {
-                etell(`[W] (handleAIModelLoadingError): Error handling Wingman reset and restart: ${error}`);
-                reject(error);
-            }
-        });
-    };
+    // const handleWingmanResetAndRestart = async (exeDir, wingmanDir, nextDir, waitForExitFirst = true) =>
+    // {
+    //     return new Promise(async (resolve) =>
+    //     {
+    //         try
+    //         {
+    //             etell('[W] (handleAIModelLoadingError): Terminating Wingman server process...');
+    //             // Ensure the termination of the wingman process
+    //             if (!wingmanProcessController)
+    //             {
+    //                 etell(`[W] (handleAIModelLoadingError): Wingman process controller is not available`);
+    //                 reject(new Error('Wingman process controller is not available'));
+    //                 return;
+    //             }
+    //             await wingmanProcessController.terminate();
+    //             dtell('[W] (handleAIModelLoadingError): Wingman server process terminated.');
+    //             // After reset is complete, attempt to restart wingman
+    //             dtell(`[W] (handleAIModelLoadingError): Firing 'start-wingman' event...`);
+    //             ipcMain.emit("start-wingman", wingmanDir, nextDir);
+    //             resolve();
+    //         } catch (error)
+    //         {
+    //             etell(`[W] (handleAIModelLoadingError): Error handling Wingman reset and restart: ${error}`);
+    //             reject(error);
+    //         }
+    //     });
+    // };
 
     const getWingmanExecutableInfo = async (wingmanDir) =>
     {
@@ -348,6 +281,7 @@ if (!gotTheLock)
             {
                 let forceShutdown = false;
                 let hasModelLoadingError = false;
+                let isServerRestarting = false;
                 let executablePath = "";
                 let [cwd = exeDir, executableName] = await getWingmanExecutableInfo(wingmanDir);
 
@@ -362,22 +296,55 @@ if (!gotTheLock)
                     windowsHide: true,
                 });
 
-                const terminateWingman = async () =>
+                const removeProcessFromMap = (pid) =>
+                {
+                    if (WINGMAN_SERVICE_PROCESS_MAP.has(`PID_${pid}`))
+                    {
+                        WINGMAN_SERVICE_PROCESS_MAP.delete(`PID_${pid}`);
+                        dtell(`(removeProcessFromMap): WINGMAN_SERVICE_PROCESS_MAP has : ${WINGMAN_SERVICE_PROCESS_MAP.size} entries after removing PID_${pid}`);
+                    }
+                };
+
+                let isClosingWingman = false;
+                const closeWingman = async (force = false) =>
                 {
                     return new Promise(async (resolve) =>
                     {
+                        if (isClosingWingman)
+                        {
+                            etell(`[W] (closeWingman): already closing`);
+                            // reject(new Error('Already closing'));
+                            return;
+                        }
+                        isClosingWingman = true;
+                        if (force)
+                        {
+                            etell(`[W] (closeWingman): Forcefully closing Wingman process...`);
+                            createKillFile();
+                        } else
+                        {
+                            etell(`[W] (closeWingman): Closing Wingman process...`);
+                            createExitFile();
+                        }
                         subprocess.on('close', () =>
                         {
-                            tell(`[W] (terminate): Wingman process has cleanly exited.`);
+                            tell(`[W] (terminateWingman): Wingman process closed.`);
+                            removeProcessFromMap(subprocess.pid);
                             resolve();
                         });
-                        dtell(`[W] (terminate): Terminating Wingman process using a kill file...`);
-                        createKillFile();
-                        dtell(`[W] (terminate): Wingman process termination initiated.`);
                     });
                 };
 
-                let isServerRestarting = false;
+                const terminateWingman = async () =>
+                {
+                    return closeWingman(true);
+                };
+
+                const shutdownWingman = async () =>
+                {
+                    return closeWingman(false);
+                };
+
                 const terminateAndRestartWingman = async () =>
                 {
                     return new Promise(async (resolve) =>
@@ -385,15 +352,15 @@ if (!gotTheLock)
                         if (isServerRestarting)
                         {
                             etell(`[W] (terminateAndRestartWingman): already terminating`);
-                            reject(new Error('Already terminating'));
+                            // reject(new Error('Already terminating'));
                             return;
                         }
                         isServerRestarting = true;
 
                         tell(`[W] (terminateAndRestartWingman): Terminating Wingman process...`);
-                        await terminateWingman(true);
+                        await terminateWingman();
                         tell(`[W] (terminateAndRestartWingman): Wingman process terminated.`);
-                        tell(`[W] (terminateAndRestartWingman): Restarting Wingman process...`);
+                        tell(`[W] (terminateAndRestartWingman): Emit 'start-wingman'...`);
                         ipcMain.emit("start-wingman", wingmanDir, nextDir);
                         resolve();
                     });
@@ -477,24 +444,14 @@ if (!gotTheLock)
                         {
                             isServerReady = true;
                             resolve({
-                                terminate: terminateWingman
+                                terminate: terminateWingman,
+                                shutdown: shutdownWingman,
+                                pid: subprocess.pid,
                             });
                         }
 
                         if (!isServerReady)
                         {
-                            // dyld error: `dyld: Symbol not found`
-                            if (output.includes("dyld: Symbol not found"))
-                            {
-                                etell(`[W] stdout: ${output}`);
-                                reject(new Error('dyld: Symbol not found'));
-                            }
-                            // bad image error: `illegal hardware instruction`
-                            if (output.includes("illegal hardware instruction"))
-                            {
-                                etell(`[W] stdout: ${output}`);
-                                reject(new Error('illegal hardware instruction'));
-                            }
                         }
                         else
                         {
@@ -542,7 +499,6 @@ if (!gotTheLock)
                     reject(err);
                 });
 
-                // 'close' event is emitted after 'exit' event
                 subprocess.on('close', async (code) =>
                 {
                     // if code is null, it means the process was killed, or did not exit on its own
@@ -559,6 +515,7 @@ if (!gotTheLock)
                         tell(`[W] close: process exited with code ${code}`);
                     }
                     wingmanProcessController = null;
+                    removeProcessFromMap(subprocess.pid);
                 });
 
             } catch (error)
@@ -709,12 +666,12 @@ if (!gotTheLock)
                 };
                 const onRestartWingmanService = async () =>
                 {
-                    await handleWingmanResetAndRestart(exeDir, wingmanDir, nextDir, false, false);
-                    if (APP_WINDOW)
-                    {
-                        // refresh the main window after restarting Wingman
-                        APP_WINDOW.reload();
-                    }
+                    // await handleWingmanResetAndRestart(exeDir, wingmanDir, nextDir, false, false);
+                    // if (APP_WINDOW)
+                    // {
+                    //     // refresh the main window after restarting Wingman
+                    //     APP_WINDOW.reload();
+                    // }
                 };
                 createMenu(onShowLogViewer, onRestartWingmanService);
 
@@ -760,23 +717,54 @@ if (!gotTheLock)
         APP_WINDOW.loadURL(`error.html?error=${encodeURIComponent(error)}`);
     });
 
+    const ensureNoOtherWingmanProcesses = async (force = false) =>
+    {
+        if (WINGMAN_SERVICE_PROCESS_MAP.size > 0)
+        {
+            dtell(`(start-wingman): WINGMAN_SERVICE_PROCESS_MAP has : ${WINGMAN_SERVICE_PROCESS_MAP.size} entries before terminating all services`);
+            for (const [key, value] of WINGMAN_SERVICE_PROCESS_MAP)
+            {
+                try
+                {
+                    if (force)
+                    {
+                        dtell(`(start-wingman): Terminating Wingman server: ${key}`);
+                        await value.terminate();
+                    } else
+                    {
+                        dtell(`(start-wingman): Shutting down Wingman server: ${key}`);
+                        await value.shutdown();
+                    }
+                } catch (error)
+                {
+                    etell(`(start-wingman): Error terminating Wingman server: ${error}`);
+                }
+            }
+            WINGMAN_SERVICE_PROCESS_MAP.clear();
+            dtell(`(start-wingman): WINGMAN_SERVICE_PROCESS_MAP has : ${WINGMAN_SERVICE_PROCESS_MAP.size} entries after terminating all services`);
+        }
+    };
+
     let firstTimeStartingWingman = true;
     ipcMain.on("start-wingman", async (wingmanDir, nextDir) =>
     {
-        dtell(`[W] (start-wingman): Starting Wingman services...`);
-        if (wingmanProcessController)
-        {
-            etell('Wingman is already running... terminating existing process...');
-            await wingmanProcessController.terminate();
-        }
-        await launchWingmanExecutable(wingmanDir, nextDir)
-            .then(async (controller) =>
+        dtell(`(start-wingman): Starting Wingman services...`);
+        ensureNoOtherWingmanProcesses(true);
+        // if (wingmanProcessController)
+        // {
+        //     etell('Wingman is already running... terminating existing process...');
+        //     await wingmanProcessController.terminate();
+        // }
+        launchWingmanExecutable(wingmanDir, nextDir)
+            .then((controller) =>
             {
-                dtell(`[W] (start-wingman): Wingman services started.`);
+                dtell(`(start-wingman): Wingman services started.`);
                 if (firstTimeStartingWingman)
                 {
-                    dtell(`[W] (start-wingman): Firing 'start-nextjs' event...`);
                     wingmanProcessController = controller;
+                    WINGMAN_SERVICE_PROCESS_MAP.set(`PID_${controller.pid}`, wingmanProcessController);
+                    dtell(`(start-wingman): WINGMAN_SERVICE_PROCESS_MAP has : ${WINGMAN_SERVICE_PROCESS_MAP.size} entries after adding PID_${controller.pid}`);
+                    dtell(`(start-wingman): Firing 'start-nextjs' event...`);
                     ipcMain.emit("start-nextjs", WINGMAN_UI_PORT, nextDir);
                     firstTimeStartingWingman = false;
                 }
@@ -859,6 +847,7 @@ if (!gotTheLock)
         if (LOGGER_WINDOW)
         {
             LOGGER_WINDOW.close();
+            LOGGER_WINDOW = null;
         }
 
         if (process.platform !== "darwin") app.quit();
@@ -874,16 +863,18 @@ if (!gotTheLock)
             }
         }
 
-        if (wingmanProcessController)
-        {
-            try
-            {
-                await wingmanProcessController.terminate();
-            } catch (error)
-            {
-                etell(`Error terminating Wingman server: ${error}`);
-            }
-        }
+        // if (wingmanProcessController)
+        // {
+        //     try
+        //     {
+        //         await wingmanProcessController.terminate();
+        //         // 
+        //     } catch (error)
+        //     {
+        //         etell(`Error terminating Wingman server: ${error}`);
+        //     }
+        // }
+        ensureNoOtherWingmanProcesses();
         tell('All windows closed. Clean up complete.');
     };
 

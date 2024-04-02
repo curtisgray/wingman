@@ -23,16 +23,16 @@ exports.createMenu = (onShowLogViewer, onRestartService) =>
         {
             label: 'File',
             submenu: [
-                {
-                    label: 'Restart Wingman Service',
-                    click()
-                    {
-                        if (onRestartService)
-                        {
-                            onRestartService();
-                        }
-                    }
-                },
+                // {
+                //     label: 'Restart Wingman Service',
+                //     click()
+                //     {
+                //         if (onRestartService)
+                //         {
+                //             onRestartService();
+                //         }
+                //     }
+                // },
                 isMac ? { role: 'close' } : { role: 'quit' }
             ]
         },
