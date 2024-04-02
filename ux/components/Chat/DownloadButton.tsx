@@ -30,7 +30,7 @@ const DownloadButton = ({ modelRepo, filePath,
     const [downloadCompleted, setDownloadCompleted] = useState<boolean>(false);
     const [progress, setProgress] = useState<number>(0);
     const [progressText, setProgressText] = useState<string>("");
-    const [downloadLabel, setDownloadLabel] = useState<React.ReactNode>("Download AI Model");
+    const [downloadLabel, setDownloadLabel] = useState<React.ReactNode>("Download AI");
     const [downloadStatus, setDownloadStatus] = useState<string>("Docked");
     const [disabled, setDisabled] = useState<boolean>(true);
     const [isInitialized, setIsInitialized] = useState<boolean>(false);
@@ -40,7 +40,7 @@ const DownloadButton = ({ modelRepo, filePath,
  
     const handleInitializeButton = () => {
         setDisabled(false);
-        setDownloadLabel("Download AI Model");
+        setDownloadLabel("Download AI");
         setDownloadStatus("Docked");
         setDownloadStarted(false);
         setDownloadCompleted(false);
@@ -94,7 +94,7 @@ const DownloadButton = ({ modelRepo, filePath,
             if (downloadItem !== undefined) {
                 switch (downloadItem.status) {
                     case "complete":
-                        setDownloadLabel("AI Model Downloaded");
+                        setDownloadLabel("AI Downloaded");
                         setDownloadStatus("Aircraft Landed");
                         setDisabled(true);
                         if (isDownloading && !downloadCompleted){
@@ -141,7 +141,7 @@ const DownloadButton = ({ modelRepo, filePath,
                         setDownloadStatus("Failure to Takeoff");
                         break;
                     case "idle":
-                        setDownloadLabel("AI Model Available");
+                        setDownloadLabel("AI Available");
                         setDownloadStatus("Aircraft Docked");
                         setDisabled(true);
                         setDownloadStarted(false);
@@ -171,7 +171,7 @@ const DownloadButton = ({ modelRepo, filePath,
             if (downloadItem !== undefined) {
                 if (downloadItem.status === "complete") {
                     setIsDownloading(false);
-                    setDownloadLabel("AI Model Downloaded");
+                    setDownloadLabel("AI Downloaded");
                     setDownloadStatus("Aircraft Landed");
                     setDisabled(true);
                 }

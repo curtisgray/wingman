@@ -18,11 +18,11 @@ interface Props {
 }
 
 interface ModelCategories {
-    'Starting AI Model': AIModel[];
+    'Starting AI': AIModel[];
 }
 
 export default function InitialModelListing({ onSelect = () => { }, isDisabled: disabled = false, iconSize = 20, initialModelId = "TheBloke/phi-2-dpo" }: Props) {
-    const [categories, setCategories] = useState<ModelCategories>({ 'Starting AI Model': [] });
+    const [categories, setCategories] = useState<ModelCategories>({ 'Starting AI': [] });
     const [selectedTabIndex, setSelectedTabIndex] = useState(0)
     const [startingInference, setStartingInference] = useState(false);
     const [aliasBeingReset, setAliasBeingReset] = useState<string | undefined>(undefined)
@@ -55,7 +55,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
         }
 
         return {
-            'Starting AI Model': startingModels,
+            'Starting AI': startingModels,
         }
     }, [initialModelId, currentWingmanInferenceItem]);
 
@@ -183,7 +183,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                             >
                                 {displayDownloadInferringButton(
                                     <div className="flex flex-col">
-                                        <div>Chosen AI Model</div>
+                                        <div>Chosen AI</div>
                                     </div>
                                 )}
                             </button>
@@ -196,7 +196,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                             >
                                 {displayDownloadInferringButton(
                                     <div className="flex flex-col">
-                                        <div>Choose AI Model</div>
+                                        <div>Choose AI</div>
                                     </div>
                                 )}
                             </button>
@@ -220,7 +220,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                             onClick={() => handleStartInference(latestModel, latestItem)}
                         >
                             <div className="flex flex-col">
-                                <div>Activate AI Model</div>
+                                <div>Activate AI</div>
                             </div>
                         </button>
                     </div>;

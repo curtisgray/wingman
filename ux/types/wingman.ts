@@ -31,6 +31,14 @@ export type WingmanItem = WingmanProps & {
     created: number;
     updated: number;
 };
+export type WingmanLogLevel = "info" | "warn" | "error" | "debug";
+export type WingmanLogItem = {
+    isa: "WingmanLogItem";
+    level: WingmanLogLevel;
+    message: string;
+    timestamp: number;
+};
+
 export const hasActiveStatus = (item: WingmanItem) =>
 {
     switch (item.status) {
@@ -137,31 +145,31 @@ export const getWingmanItemStatusMessage = (wi: WingmanItem | undefined) =>
     if (wi !== undefined) {
         switch (wi.status) {
             case "queued":
-                return "Loading AI Model"; // The item is queued and ready to start, like an aircraft taxiing to the runway for takeoff
+                return "Loading AI"; // The item is queued and ready to start, like an aircraft taxiing to the runway for takeoff
                 // return "Mission Briefing"; // The item is queued and ready to start, like an aircraft taxiing to the runway for takeoff
             case "preparing":
-                return "Activating AI Model"; // The item is in the final preparation stages, similar to an aircraft cleared for takeoff
+                return "Activating AI"; // The item is in the final preparation stages, similar to an aircraft cleared for takeoff
                 // return "Final Checks"; // The item is in the final preparation stages, similar to an aircraft cleared for takeoff
             case "inferring":
-                return "AI Model is Active"; // The item is actively being processed, akin to a plane that has taken off and is in flight
+                return "AI is Active"; // The item is actively being processed, akin to a plane that has taken off and is in flight
                 // return "Engaged"; // The item is actively being processed, akin to a plane that has taken off and is in flight
             case "complete":
-                return "AI Model is Inactive"; // Signifies the successful completion of the task, like a plane safely landing
+                return "AI is Inactive"; // Signifies the successful completion of the task, like a plane safely landing
                 // return "Mission Complete"; // Signifies the successful completion of the task, like a plane safely landing
             case "error":
-                return "Error Loading AI Model"; // Communicates a problem or error, as in distress signals
+                return "Error Loading AI"; // Communicates a problem or error, as in distress signals
                 // return "Mission Compromised"; // Communicates a problem or error, as in distress signals
             case "cancelling":
-                return "AI Model Unloading"; // Indicates aborting the current task and returning, similar to a plane returning to base
+                return "AI Unloading"; // Indicates aborting the current task and returning, similar to a plane returning to base
                 // return "Mission Aborted"; // Indicates aborting the current task and returning, similar to a plane returning to base
             case "unknown":
-                return "AI Model Status Unknown"; // Reflects uncertainty or lack of information about the status
+                return "AI Status Unknown"; // Reflects uncertainty or lack of information about the status
                 // return "Mission Status Unknown"; // Reflects uncertainty or lack of information about the status
             default:
                 throw new Error(`Unknown WingmanItem status: ${wi.status}`);
         }
     } else {
-        return "AI Model is Offline";
+        return "AI is Offline";
     }
 };
 

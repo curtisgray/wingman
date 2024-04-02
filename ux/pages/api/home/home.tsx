@@ -36,11 +36,12 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 import { useWingman } from "@/hooks/useWingman";
-import { WingmanStateProps } from "@/types/wingman";
+import { WingmanLogItem, WingmanLogLevel, WingmanStateProps } from "@/types/wingman";
 import { initialWingmanState } from "./wingman.state";
 import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 import toast from "react-hot-toast";
 import { StripFormatFromModelRepo } from "@/types/download";
+import { useRequestUtilsAction } from "@/hooks/useRequestUtilsAction";
 
 interface Props
 {
@@ -423,6 +424,24 @@ const Home = ({
         }
     }, [selectedConversation]);
 
+    const { requestWriteToLog } = useRequestUtilsAction();
+
+    const handleRequestWriteToLog = (level: WingmanLogLevel, message: string) =>
+    {
+        const logMessage: WingmanLogItem = {
+            isa: "WingmanLogItem",
+            level,
+            message,
+            timestamp:Date.now(),
+        }
+        requestWriteToLog(logMessage);
+    };
+
+    const handleWriteToLogDebug = (message: string) =>
+    {
+        handleRequestWriteToLog("debug", message);
+    };
+
     useEffect(() =>
     {
         // Rules for when to set the isSwitchingModel flag
@@ -431,16 +450,39 @@ const Home = ({
         // 3. Or, the globalModel is Downloadable, and globalModel.item.filePath is the same as the current inferringAlias
         // 4. If any of the above conditions are not met, then set isSwitchingModel to true
 
+        const logDebugInfo = () =>
+        {
+            handleWriteToLogDebug("===========================================");
+            handleWriteToLogDebug("isOnline: " + isOnline);
+            handleWriteToLogDebug("isSwitchingModel: " + isSwitchingModel);
+            handleWriteToLogDebug("isSwitchingConversationModel: " + isSwitchingConversationModel);
+            handleWriteToLogDebug("isSwitchingGlobalModel: " + isSwitchingGlobalModel);
+            handleWriteToLogDebug("userMustSelectModel: " + userMustSelectModel);
+            handleWriteToLogDebug("isModelSelected: " + isModelSelected);
+            handleWriteToLogDebug("hasReceivedWingmanItems: " + hasReceivedWingmanItems);
+            // handleWriteToLogDebug("models: " + JSON.stringify(models));
+            handleWriteToLogDebug("inferringAlias: " + inferringAlias);
+            // handleWriteToLogDebug("selectedConversation: " + JSON.stringify(selectedConversation));
+            handleWriteToLogDebug("selectedConversation.model.id: " + selectedConversation?.model?.id);
+            // handleWriteToLogDebug("globalModel: " + JSON.stringify(globalModel));
+            handleWriteToLogDebug("globalModel.id: " + globalModel?.id);
+            handleWriteToLogDebug("===========================================");
+        };
+
         const enableSwitching = () =>
         {
-            if (!isSwitchingModel)
+            if (!isSwitchingModel) {
                 homeDispatch({ field: "isSwitchingModel", value: true });
+                logDebugInfo();
+            }
         };
 
         const disableSwitching = () =>
         {
-            if (isSwitchingModel)
+            if (isSwitchingModel) {
                 homeDispatch({ field: "isSwitchingModel", value: false });
+                logDebugInfo();
+            }
         };
 
         if (!isOnline) {

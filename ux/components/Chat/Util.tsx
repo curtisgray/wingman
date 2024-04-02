@@ -55,27 +55,36 @@ export const displayMemoryRequired = (model: AIModel) =>
     if (model.availableMemory === 0) return <></>;
     const memoryRequired = (model.normalizedQuantizedMemRequired / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     const memoryAvailable = (model.availableMemory / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    const tooltipString = `${memoryRequired} GB of memory is required, ${model.isInferable ? 'and ' : 'but only '}${memoryAvailable} GB is available. ${model.isInferable ? 'Model is ready to run.' : 'Model does not have enough memory to run.'}`;
+    const memoryDelta = ((model.normalizedQuantizedMemRequired - model.availableMemory) / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const tooltipString = `${memoryRequired} GB of memory is required to run this model, ${model.isInferable ? 'and ' : 'but only '}${memoryAvailable} GB is available. ${model.isInferable ? 'Model is ready to run.' : 'Model does not have enough memory to run.'}`;
+    // const memoryFootprint = `${memoryRequired} / ${memoryAvailable} GB`;
+    const memoryFootprint = `${model.isInferable ? `${memoryRequired}GB AI will run` : `${memoryDelta}GB needed`}`;
     // calculate the percentage of memory required for the progress bar
     const progress = Math.round((model.normalizedQuantizedMemRequired / model.availableMemory) * 100);
     if (model.isInferable) {
-        return <><progress
+        return <div className="flex flex-col w-40 cursor-default justify-center items-center text-xs space-y-1 text-gray-950"
+            data-tooltip-id="memory-status"
+            data-tooltip-content={`${tooltipString}`}>
+            <progress
                     value={progress}
                     max="100"
-                    className={`flex w-16 rounded [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-green-800 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500`}
-                    data-tooltip-id="memory-status"
-                    data-tooltip-content={`${tooltipString}`}></progress>
+                    className={`flex w-16 h-2 rounded [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-green-800 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500`}
+                    ></progress>
                 <Tooltip id="memory-status" />
-            </>;
+            <p>{memoryFootprint}</p>
+            </div>;
     } else {
-        return <><progress
+        return <div className="flex flex-col w-40 cursor-default justify-center items-center space-y-1 text-xs text-gray-950"
+            data-tooltip-id="memory-status"
+            data-tooltip-content={`${tooltipString}`}>
+            <progress
             value={progress}
             max="100"
-            className={`flex w-16 rounded [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-red-800 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500`}
-            data-tooltip-id="memory-status"
-            data-tooltip-content={`${tooltipString}`}></progress>
+            className={`flex w-16 h-2 rounded [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-red-800 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500`}
+            ></progress>
+            <p>{memoryFootprint}</p>
             <Tooltip id="memory-status" />
-        </>;
+        </div>;
     }
 };
 
