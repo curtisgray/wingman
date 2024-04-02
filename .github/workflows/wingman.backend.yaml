@@ -1,4 +1,4 @@
-name: Wingman App Build and Release
+name: Wingman App Build for Testing
 
 defaults:
   run:
