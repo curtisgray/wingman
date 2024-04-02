@@ -3,6 +3,8 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import { MemoizedReactMarkdown } from "../Markdown/MemoizedReactMarkdown";
 import { CodeBlock } from "../Markdown/CodeBlock";
+import { useRequestUtilsAction } from "@/hooks/useRequestUtilsAction";
+import { WingmanLogLevel, WingmanLogItem } from "@/types/wingman";
 
 interface Props
 {
@@ -13,16 +15,34 @@ interface Props
 export const MarkdownView: FC<Props> = ({ fileName, text }) =>
 {
     const [content, setContent] = useState("");
+    const { requestWriteToLog } = useRequestUtilsAction();
+
+    const handleRequestWriteToLog = (level: WingmanLogLevel, message: string) =>
+    {
+        const logMessage: WingmanLogItem = {
+            isa: "WingmanLogItem",
+            level,
+            message,
+            timestamp: Date.now(),
+        };
+        requestWriteToLog(logMessage);
+    };
+
+    const handleWriteToLogDebug = (message: string) =>
+    {
+        handleRequestWriteToLog("debug", message);
+    };
 
     useEffect(() =>
     {
         if (text) {
             setContent(text);
         } else {
+            handleWriteToLogDebug(`(MarkdownView) Fetching file: ${fileName}`);
             fetch(fileName)
                 .then((res) => res.text())
                 .then((text) => setContent(text))
-                .catch((err) => console.error(err));
+                .catch((err) => handleWriteToLogDebug(`(MarkdownView) Error fetching file: ${err}`));
         }
     }, []);
 
