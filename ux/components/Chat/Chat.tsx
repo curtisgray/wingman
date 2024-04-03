@@ -478,7 +478,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                         <>
                             <div className="mb-2">
                                 {t(
-                                    "To get started using Wingman, we have pre-selected a small, highly-capable Meta Llama AI that can run on most PC's. Download and activate the Meta compatible AI below. To download, select the 'Download' button. Once the model download is completed, select 'Engage' to begin using the model."
+                                    "To get started using Wingman, we have pre-selected a small, highly-capable Meta Llama AI that can run on most PC's. Download and activate the Meta compatible AI below. To download, select the 'Download' button. Once the model download is completed, select 'Activate AI' to begin using the model."
                                 )}
                             </div>
                             <div className="w-full">

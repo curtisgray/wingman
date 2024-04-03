@@ -381,7 +381,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                 </div>;
             }
         } else {
-            // if the global model is the same as the current model display 'Engaged', otherwise display 'Engage'
+            // if the global model is the same as the current model display 'Engaged', otherwise display 'Activate AI'
             if (globalModel?.id === model.id) {
                 return <div className="self-center m-4">
                     <button type="button"
