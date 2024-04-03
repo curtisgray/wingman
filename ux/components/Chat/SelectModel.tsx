@@ -1,8 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { memo, useContext, useEffect, useState } from "react";
 import { AIModel, AIModelID, DownloadableItem, Vendors } from "@/types/ai";
-import { IconCircleCheck, IconExclamationCircle, IconExternalLink, IconPlaneTilt, IconRefresh, IconRefreshDot, IconPlaneOff, IconApi, IconCrown } from "@tabler/icons-react";
-import Select, { ActionMeta, GroupBase, SingleValue } from "react-select";
+import { IconCircleCheck, IconExclamationCircle, IconExternalLink, IconPlaneTilt, IconRefresh, IconRefreshDot } from "@tabler/icons-react";
+import Select, { ActionMeta, SingleValue } from "react-select";
 import DownloadButton from "./DownloadButton";
 import { DownloadItem, DownloadProps } from "@/types/download";
 import { useTranslation } from "next-i18next";
@@ -13,7 +13,7 @@ import { Tooltip } from "react-tooltip";
 import { getSettings, saveSettings } from "@/utils/app/settings";
 import { Settings } from "@/types/settings";
 import WingmanContext from "@/pages/api/home/wingman.context";
-import { displayClearedForTakeoff, displayModelVendor } from "./Util";
+import { displayModelInfo, displayModelVendor } from "./Util";
 
 export type ModelOption = {
     value: string;
@@ -204,27 +204,9 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
         }
     };
 
-    const displayModelName = (model: AIModel | undefined) => {
-        if (!model) return <></>;
-        const vendor = Vendors[model.vendor];
-        if (vendor.isDownloadable) {
-            // split the repo owner and name and return 'name (repo owner)'
-            const [owner, repo] = model.name.split('/')
-            return (
-                <div className='flex space-x-1'>
-                    {displayClearedForTakeoff(model)}
-                    <span>{repo}</span>
-                    <span className="text-xs">{owner}</span>
-                </div>
-            )
-        } else {
-            return <span>{model.name}</span>
-        }
-    }
-
     const displayModel = (model: AIModel | undefined) => {
         if (model === undefined) return "";
-        let name = displayModelName(model);
+        let name = displayModelInfo(model);
         if (model.items && model.items.length > 0) {
             const hasDownloadedItem = model.items.some((item) => item.isDownloaded);
             const hasErrorItem = model.items.some((item) => item.hasError);
@@ -235,7 +217,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                             width={iconSize}
                             className="text-red-700"
                         />
-                        <span className="font-bold">{displayModelName(model)}</span>
+                        <span className="font-bold">{displayModelInfo(model)}</span>
                     </div>
                 );
             } else if (hasDownloadedItem) {
@@ -245,7 +227,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                             width={iconSize}
                             className="text-green-700"
                         />
-                        <span className="font-bold">{displayModelName(model)}</span>
+                        <span className="font-bold">{displayModelInfo(model)}</span>
                     </div>
                 );
             }
@@ -480,7 +462,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                             //     control: (state) =>
                             //         state.isFocused ? 'border-red-600' : 'border-grey-300',
                             // }}
-                            placeholder="Search for an AI model ..."
+                            placeholder="Search for an AI ..."
                             options={optionsGroupedModels}
                             value={{
                                 label: displayModel(model),

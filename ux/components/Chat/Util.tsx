@@ -44,11 +44,27 @@ export const displayModelName = (model: AIModel) =>
         // split the repo owner and name and return 'name (repo owner)'
         const [owner, repo] = model.name.split('/');
         const cleanName = repo.replace(/-/g, ' ');
-        return <div className="flex space-x-1"><span>{cleanName}</span></div>;
+        return <div className="flex"><span>{cleanName}</span></div>;
     } else {
-        return <div className="flex space-x-1"><span>{model.name}</span></div>;
+        return <div className="flex"><span>{model.name}</span></div>;
     }
 };
+
+export const displayModelInfo = (model: AIModel | undefined) =>
+{
+    if (!model) return <></>;
+    const vendor = Vendors[model.vendor];
+    if (vendor.isDownloadable) {
+        return (
+            <div className='flex space-x-1'>
+                {displayClearedForTakeoff(model)}
+                {displayModelName(model)}
+            </div>
+        );
+    } else {
+        return <span>{model.name}</span>;
+    }
+}
 
 export const displayMemoryRequired = (model: AIModel) =>
 {
@@ -58,7 +74,7 @@ export const displayMemoryRequired = (model: AIModel) =>
     const memoryDelta = ((model.normalizedQuantizedMemRequired - model.availableMemory) / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     const tooltipString = `${memoryRequired} GB of memory is required to run this model, ${model.isInferable ? 'and ' : 'but only '}${memoryAvailable} GB is available. ${model.isInferable ? 'Model is ready to run.' : 'Model does not have enough memory to run.'}`;
     // const memoryFootprint = `${memoryRequired} / ${memoryAvailable} GB`;
-    const memoryFootprint = `${model.isInferable ? `${memoryRequired}GB AI will run` : `${memoryDelta}GB needed`}`;
+    const memoryFootprint = `${model.isInferable ? `${memoryRequired}GB AI may run` : `${memoryDelta}GB needed`}`;
     // calculate the percentage of memory required for the progress bar
     const progress = Math.round((model.normalizedQuantizedMemRequired / model.availableMemory) * 100);
     if (model.isInferable) {
