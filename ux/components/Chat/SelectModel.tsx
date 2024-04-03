@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { memo, useContext, useEffect, useState } from "react";
 import { AIModel, AIModelID, DownloadableItem, Vendors } from "@/types/ai";
-import { IconCircleCheck, IconExclamationCircle, IconExternalLink, IconPlaneTilt, IconRefresh, IconRefreshDot } from "@tabler/icons-react";
+import { IconCircleCheck, IconExclamationCircle, IconExternalLink, IconGhost, IconPlaneTilt, IconRefresh, IconRefreshDot } from "@tabler/icons-react";
 import Select, { ActionMeta, SingleValue } from "react-select";
 import DownloadButton from "./DownloadButton";
 import { DownloadItem, DownloadProps } from "@/types/download";
@@ -226,6 +226,16 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                         <IconCircleCheck
                             width={iconSize}
                             className="text-green-700"
+                        />
+                        <span className="font-bold">{displayModelInfo(model)}</span>
+                    </div>
+                );
+            } else {
+                name = (
+                    <div className="flex space-x-1">
+                        <IconGhost
+                            width={iconSize}
+                            className="text-gray-950 dark:text-gray-50"
                         />
                         <span className="font-bold">{displayModelInfo(model)}</span>
                     </div>

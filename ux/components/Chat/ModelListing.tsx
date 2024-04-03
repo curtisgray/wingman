@@ -307,7 +307,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                     if (isSelectedModelItem(latestModel, latestItem)) {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-48 bg-orange-800 disabled:shadow-none disabled:cursor-default text-white py-2 rounded"
+                                className="w-40 bg-orange-800 disabled:shadow-none disabled:cursor-default text-white py-2 rounded"
                                 disabled
                             >
                                 {displayDownloadInferringButton(
@@ -320,7 +320,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                     } else {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-48 bg-emerald-800 hover:bg-emerald-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                                className="w-40 bg-emerald-800 hover:bg-emerald-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                                 onClick={() => handleStartInference(latestModel, latestItem)}
                                 disabled={isSwitchingModel}
                             >
@@ -335,7 +335,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                 } else if (itemHasError(latestItem)) {
                     return <div className="self-center m-4">
                         <button type="button"
-                            className="w-48 bg-rose-800 hover:bg-rose-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                            className="w-40 bg-rose-800 hover:bg-rose-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                             onClick={() => handleReset(latestItem.filePath)}
                                 disabled={isSwitchingModel}
                         >
@@ -347,7 +347,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                 } else {
                     return <div className="self-center m-4">
                         <button type="button"
-                            className="w-48 bg-gray-800 hover:bg-sky-800 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                            className="w-40 bg-gray-800 hover:bg-sky-800 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                             onClick={() => handleStartInference(latestModel, latestItem)}
                             disabled={isSwitchingModel}
                         >
@@ -374,7 +374,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
             if (globalModel?.id === model.id) {
                 return <div className="self-center m-4">
                     <button type="button"
-                        className="w-48 bg-orange-800 disabled:shadow-none disabled:cursor-default text-white py-2 rounded"
+                        className="w-40 bg-orange-800 disabled:shadow-none disabled:cursor-default text-white py-2 rounded"
                         disabled
                     >
                         {displayDownloadInferringButton(
@@ -387,7 +387,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
             } else {
                 return <div className="self-center m-4" style={disabled ? { pointerEvents: "none", opacity: "0.4" } : {}}>
                     <button type="button" disabled={disabled}
-                        className="w-48 bg-stone-800 hover:bg-stone-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                        className="w-40 bg-stone-800 hover:bg-stone-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                         onClick={() => handleStartInference(model, undefined)}
                     >
                         <div className="flex flex-col">
@@ -483,7 +483,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                                             key={item.id}
                                             className='flex items-center justify-between hover:bg-gray-100'
                                         >
-                                            <div className = 'relative rounded-md p-2'>
+                                            <div className = 'relative rounded p-2'>
                                                 <h3 className='text-base font-medium leading-5 dark:text-gray-700 text-gray-400'>
                                                     {displayModelName(item)}
                                                 </h3>

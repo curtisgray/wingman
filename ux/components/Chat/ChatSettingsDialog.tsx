@@ -93,7 +93,7 @@ export const ChatSettingsDialog: FC<Props> = ({ open, onClose }) => {
                         <div className="text-center">
                             <button
                                 type="button"
-                                className="w-48 px-4 py-2 mt-6 border rounded shadow border-gray-500 text-gray-900 hover:bg-gray-100 focus:outline-none dark:border-gray-800 dark:border-opacity-50 dark:bg-white dark:text-black dark:hover:bg-gray-300"
+                                className="w-40 px-4 py-2 mt-6 border rounded shadow border-gray-500 text-gray-900 hover:bg-gray-100 focus:outline-none dark:border-gray-800 dark:border-opacity-50 dark:bg-white dark:text-black dark:hover:bg-gray-300"
                                 onClick={() => {
                                     onClose();
                                 }}

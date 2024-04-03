@@ -452,21 +452,21 @@ const Home = ({
 
         const logDebugInfo = () =>
         {
-            handleWriteToLogDebug("===========================================");
-            handleWriteToLogDebug("isOnline: " + isOnline);
-            handleWriteToLogDebug("isSwitchingModel: " + isSwitchingModel);
-            handleWriteToLogDebug("isSwitchingConversationModel: " + isSwitchingConversationModel);
-            handleWriteToLogDebug("isSwitchingGlobalModel: " + isSwitchingGlobalModel);
-            handleWriteToLogDebug("userMustSelectModel: " + userMustSelectModel);
-            handleWriteToLogDebug("isModelSelected: " + isModelSelected);
-            handleWriteToLogDebug("hasReceivedWingmanItems: " + hasReceivedWingmanItems);
-            // handleWriteToLogDebug("models: " + JSON.stringify(models));
-            handleWriteToLogDebug("inferringAlias: " + inferringAlias);
-            // handleWriteToLogDebug("selectedConversation: " + JSON.stringify(selectedConversation));
-            handleWriteToLogDebug("selectedConversation.model.id: " + selectedConversation?.model?.id);
-            // handleWriteToLogDebug("globalModel: " + JSON.stringify(globalModel));
-            handleWriteToLogDebug("globalModel.id: " + globalModel?.id);
-            handleWriteToLogDebug("===========================================");
+            // handleWriteToLogDebug("===========================================");
+            // handleWriteToLogDebug("isOnline: " + isOnline);
+            // handleWriteToLogDebug("isSwitchingModel: " + isSwitchingModel);
+            // handleWriteToLogDebug("isSwitchingConversationModel: " + isSwitchingConversationModel);
+            // handleWriteToLogDebug("isSwitchingGlobalModel: " + isSwitchingGlobalModel);
+            // handleWriteToLogDebug("userMustSelectModel: " + userMustSelectModel);
+            // handleWriteToLogDebug("isModelSelected: " + isModelSelected);
+            // handleWriteToLogDebug("hasReceivedWingmanItems: " + hasReceivedWingmanItems);
+            // // handleWriteToLogDebug("models: " + JSON.stringify(models));
+            // handleWriteToLogDebug("inferringAlias: " + inferringAlias);
+            // // handleWriteToLogDebug("selectedConversation: " + JSON.stringify(selectedConversation));
+            // handleWriteToLogDebug("selectedConversation.model.id: " + selectedConversation?.model?.id);
+            // // handleWriteToLogDebug("globalModel: " + JSON.stringify(globalModel));
+            // handleWriteToLogDebug("globalModel.id: " + globalModel?.id);
+            // handleWriteToLogDebug("===========================================");
         };
 
         const enableSwitching = () =>

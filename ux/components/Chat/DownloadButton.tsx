@@ -219,7 +219,7 @@ const DownloadButton = ({ modelRepo, filePath,
             onClick={handleRequestOrCancelDownload}
             data-tooltip-id="download-status"
             data-tooltip-content={`${tooltipString}`}
-            className={className == undefined ? "relative flex flex-col w-48 bg-sky-700 hover:bg-sky-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 px-4 rounded" : `relative ${className}`}>
+            className={className == undefined ? "relative flex flex-col w-40 bg-sky-700 hover:bg-sky-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 px-4 rounded" : `relative ${className}`}>
             {
                 children == undefined ?
                     (
@@ -231,7 +231,7 @@ const DownloadButton = ({ modelRepo, filePath,
                             {showProgress && isDownloading && <progress
                                 value={progress}
                                 max="100"
-                                className="w-48 h-full absolute top-0 left-0 [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-amber-500 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500"
+                                className="w-40 h-full absolute top-0 left-0 [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-amber-500 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500"
                             ></progress>}
                             <Tooltip id="download-status" />
                         </>
