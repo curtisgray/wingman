@@ -652,12 +652,12 @@ if (!gotTheLock)
         APP_WINDOW.on('will-navigate', (event, url) =>
         {
             event.preventDefault();
-            shell.openExternal(url);
+            // shell.openExternal(url);
         });
         APP_WINDOW.webContents.on('will-navigate', (event, url) =>
         {
             event.preventDefault();
-            shell.openExternal(url);
+            // shell.openExternal(url);
         });
         APP_WINDOW.on("closed", () =>
         {

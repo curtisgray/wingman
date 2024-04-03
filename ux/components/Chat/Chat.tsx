@@ -354,7 +354,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
             });
         }
     };
-    
+
     const scrollDown = () =>
     {
         if (autoScrollEnabled) {
@@ -363,10 +363,8 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
             // handleScrollBottom();
             messagesEndRef.current?.scrollIntoView({
                 behavior: "smooth",
-                block: "nearest",
-                inline: "start"
             });
-            textareaRef.current?.focus();
+            // textareaRef.current?.focus();
         }
     };
     const throttledScrollDown = throttle(scrollDown, 250);

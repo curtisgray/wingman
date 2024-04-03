@@ -100,8 +100,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
                 let vram = toNumber(controller.vram);
                 if (vram > 0
                     && (controller.vendor.toLowerCase().includes('nvidia')
-                        || controller.vendor.toLowerCase().includes('amd')
-                        || controller.vendor.toLowerCase().includes('advanced micro devices'))
+                        /*|| controller.vendor.toLowerCase().includes('amd')
+                        || controller.vendor.toLowerCase().includes('advanced micro devices')*/)
                 ) {
                     if (vram > toNumber(bestController.vram)) {
                         bestController = controller;
@@ -111,7 +111,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
             totalMemory = toNumber(bestController.vram);
             availableMemory = toNumber(bestController.vram);
             // if we couldn't find a controller with non-zero VRAM, use the system memory
-            if (availableMemory <= 0) {
+            const minVRAM = 0;
+            if (availableMemory <= minVRAM) {
                 totalMemory = os.totalmem() / memoryAdjustment;
                 availableMemory = os.totalmem() / memoryAdjustment;
             }
@@ -179,6 +180,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
                 if (inferability)
                     inferrables++;
                 models[i].isInferable = inferability.isInferable;
+                models[i].totalMemory = inferability.totalMemory;
                 models[i].availableMemory = inferability.availableMemory;
                 models[i].normalizedQuantizedMemRequired = inferability.normalizedQuantizedMemRequired;
             }
