@@ -193,7 +193,7 @@ const WingmanDownloadStatus = ({
         <div className={className === undefined ? "relative flex text-xs justify-center align-middle bg-gray-600 rounded" : `relative ${className}`}
             data-tooltip-id="download-status"
             data-tooltip-content={`${tooltipString}`}>
-            <div className="w-40 flex rounded-l">
+            <div className="w-36 flex rounded-l">
                 <div className="flex flex-col justify-center align-middle space-x-2 px-2 truncate overflow-x-clip z-10">
                     {showRepoName && <p>{StripFormatFromModelRepo(downloadItem.modelRepo)}</p>}
                     {showFileName && <p className="text-gray-300">{downloadItem.filePath}</p>}
@@ -205,7 +205,7 @@ const WingmanDownloadStatus = ({
                     <progress
                         value={progress}
                         max="100"
-                        className="w-40 h-full absolute rounded-l [&::-webkit-progress-bar]:rounded-l [&::-webkit-progress-value]:rounded-l [&::-webkit-progress-value]:bg-amber-700 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500"
+                        className="w-36 h-full absolute rounded-l [&::-webkit-progress-bar]:rounded-l [&::-webkit-progress-value]:rounded-l [&::-webkit-progress-value]:bg-amber-700 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500"
                     ></progress>
                 )}
             </div>

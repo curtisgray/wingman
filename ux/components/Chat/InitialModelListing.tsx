@@ -85,6 +85,17 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
         handleRefreshModels();
     };
 
+    const getInferringModel = (): AIModel | undefined =>
+    {
+        if (currentWingmanInferenceItem?.status === "inferring") {
+            return models.find((model) =>
+            {
+                return model.id === currentWingmanInferenceItem.modelRepo && currentWingmanInferenceItem.filePath === inferringAlias;
+            });
+        }
+        return undefined;
+    };
+
     useEffect(() =>
     {
         if (startingInference) {
@@ -178,7 +189,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                     if (isSelectedModelItem(latestModel, latestItem)) {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-40 bg-orange-800 disabled:shadow-none disabled:cursor-default text-white py-2 rounded"
+                                className="w-36 bg-orange-800 disabled:shadow-none disabled:cursor-default text-white py-2 rounded"
                                 disabled
                             >
                                 {displayDownloadInferringButton(
@@ -191,7 +202,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                     } else {
                         return <div className="self-center m-4">
                             <button type="button"
-                                className="w-40 bg-emerald-800 hover:bg-emerald-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                                className="w-36 bg-emerald-800 hover:bg-emerald-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                                 onClick={() => handleStartInference(latestModel, latestItem)}
                             >
                                 {displayDownloadInferringButton(
@@ -205,7 +216,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                 } else if (latestItem.hasError) {
                     return <div className="self-center m-4">
                         <button type="button"
-                            className="w-40 bg-rose-800 hover:bg-rose-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                            className="w-36 bg-rose-800 hover:bg-rose-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                             onClick={() => handleReset(latestItem.filePath)}
                         >
                             <div className="flex flex-col">
@@ -216,7 +227,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                 } else {
                     return <div className="self-center m-4">
                         <button type="button"
-                            className="w-40 bg-gray-800 hover:bg-sky-800 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                            className="w-36 bg-gray-800 hover:bg-sky-800 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                             onClick={() => handleStartInference(latestModel, latestItem)}
                         >
                             <div className="flex flex-col">
@@ -241,7 +252,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
             // if the global model is the same as the current model display 'Engaged', otherwise display 'Engage'
             if (globalModel?.id === model.id) {
                 return <div className="self-center m-4">
-                    <div className="w-40 bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
+                    <div className="w-36 bg-orange-600 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
                         {displayDownloadInferringButton(
                             <div className="flex flex-col">
                                 <div>Activate API</div>
@@ -252,7 +263,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
             } else {
                 return <div className="self-center m-4" style={disabled ? { pointerEvents: "none", opacity: "0.4" } : {}}>
                     <button type="button" disabled={disabled}
-                        className="w-40 bg-stone-800 hover:bg-stone-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+                        className="w-36 bg-stone-800 hover:bg-stone-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
                         onClick={() => handleStartInference(model, undefined)}
                     >
                         <div className="flex flex-col">
@@ -264,6 +275,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
         }
     };
 
+    const inferringModel = getInferringModel();
     return (
         <div className='w-full px-2 py-4 sm:px-0 mt-4 mb-4'>
             <Tab.Group selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
@@ -298,9 +310,9 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                                                     {displayModelName(item)}
                                                 </h3>
 
-                                                {displayModelMetrics(item)}
+                                                {/* {displayModelMetrics(item)} */}
                                             </div>
-                                            {displayClearedForTakeoff(item, "ml-auto")}
+                                            {displayClearedForTakeoff(item, "ml-auto", false, inferringModel)}
                                             {displayDownloadInference(item)}
                                         </li>
                                     ))}

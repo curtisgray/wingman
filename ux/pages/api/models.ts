@@ -62,17 +62,19 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
     interface Inferability
     {
         isInferable: boolean;
+        totalMemory: number;
         availableMemory: number;
         normalizedQuantizedMemRequired: number;
     }
 
     const checkInferability = (model: AIModel): Inferability =>
     {
-        if (!Vendors[model.vendor].isDownloadable) return {isInferable: false, availableMemory: -1, normalizedQuantizedMemRequired: -1};
+        if (!Vendors[model.vendor].isDownloadable) return { isInferable: false, totalMemory: -1, availableMemory: -1, normalizedQuantizedMemRequired: -1};
         if (!model.size) {
             logger.debug(`Model '${model.name}' has EMPTY size. Will not be analyzed to see if it is inferable.`);
-            return {isInferable: false, availableMemory: -1, normalizedQuantizedMemRequired: -1};
+            return { isInferable: false, totalMemory: -1, availableMemory: -1, normalizedQuantizedMemRequired: -1};
         }
+        let totalMemory = -1;
         let availableMemory = -1;
         // check if the model can be run on the current gpu and memory
         //   by comparing the model size to the amount of gpu, or memory if
@@ -85,6 +87,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
             //    on what the user is doing, so we add a percentage of the
             //    total memory to the free memory to get a more stable value
             // availableMemory = (os.totalmem() / memoryAdjustment) * (1 - memoryPressure) + os.freemem() / memoryAdjustment;
+            totalMemory = os.totalmem() / memoryAdjustment;
             availableMemory = os.freemem() / memoryAdjustment;
         } else {
             // Search the list of controllers for the first one that:
@@ -105,14 +108,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
                     }
                 }
             }
+            totalMemory = toNumber(bestController.vram);
             availableMemory = toNumber(bestController.vram);
             // if we couldn't find a controller with non-zero VRAM, use the system memory
             if (availableMemory <= 0) {
+                totalMemory = os.totalmem() / memoryAdjustment;
                 availableMemory = os.totalmem() / memoryAdjustment;
             }
         }
         logger.silly(`Available Memory to run ${model.name} (${model.size}): ${availableMemory}`);
-        if (availableMemory === -1) return {isInferable: false, availableMemory: -1, normalizedQuantizedMemRequired: -1};
+        if (availableMemory === -1) return { isInferable: false, totalMemory: totalMemory, availableMemory: -1, normalizedQuantizedMemRequired: -1};
 
         // paramSize is the last character of the model size
         const parameterSizeIndicator = model.size.slice(-1);
@@ -136,7 +141,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
                 sizeMultiplier = 1000000000000000;
                 break;
         }
-        if (sizeMultiplier === -1) return { isInferable: false, availableMemory: availableMemory, normalizedQuantizedMemRequired: -1};
+        if (sizeMultiplier === -1) return { isInferable: false, totalMemory: totalMemory, availableMemory: availableMemory, normalizedQuantizedMemRequired: -1};
         let moeMultiplier = 1;
         let parameterValue = 0;
         if (isMoe) {
@@ -160,8 +165,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         // logger.info(`Memory Delta to Run '${model.name}': ${memoryDelta}`);
         logger.debug(`Model '${model.name}' (${model.size}) ${normalizedQuantizedMemRequired <= availableMemory ? 'is' : 'is not'} inferable. Available Memory: ${availableMemory} Quantized Need: ${normalizedQuantizedMemRequired} Delta: ${memoryDelta}`);
         // logger.info(`Model ${normalizedQuantizedMemRequired <= availableMemory ? 'is' : 'is not'} inferable`);
-        if (normalizedQuantizedMemRequired <= availableMemory) return {isInferable: true, availableMemory: availableMemory, normalizedQuantizedMemRequired: normalizedQuantizedMemRequired};
-        return {isInferable: false, availableMemory: availableMemory, normalizedQuantizedMemRequired: normalizedQuantizedMemRequired};
+        if (normalizedQuantizedMemRequired <= availableMemory) return { isInferable: true, totalMemory: totalMemory, availableMemory: availableMemory, normalizedQuantizedMemRequired: normalizedQuantizedMemRequired};
+        return { isInferable: false, totalMemory: totalMemory, availableMemory: availableMemory, normalizedQuantizedMemRequired: normalizedQuantizedMemRequired};
     };
 
     const setIsInferables = (models: AIModel[]) =>

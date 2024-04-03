@@ -649,7 +649,16 @@ if (!gotTheLock)
                 ipcMain.emit('report-error', null, error.toString());
             });
 
-        APP_WINDOW.on("will-navigate", (e) => e.preventDefault());
+        APP_WINDOW.on('will-navigate', (event, url) =>
+        {
+            event.preventDefault();
+            shell.openExternal(url);
+        });
+        APP_WINDOW.webContents.on('will-navigate', (event, url) =>
+        {
+            event.preventDefault();
+            shell.openExternal(url);
+        });
         APP_WINDOW.on("closed", () =>
         {
             APP_WINDOW = null;

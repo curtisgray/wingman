@@ -423,12 +423,12 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                     <div className="flex flex-col space-y-4">
                         <div className="flex pb-2">
                             <label className="text-left text-gray-700 dark:text-gray-400">
-                                {t("To activate any available AI model, use the search box below.")}
+                                {t("To activate any available AI, use the search box below.")}
                             </label>
                             <span className="flex-grow"></span>
                         </div>
                         <div className="flex space-x-2">
-                            <div className="flex items-center" data-tooltip-id="show-downloaded-only" data-tooltip-content="Show only AI models that have already been downloaded">
+                            <div className="flex items-center" data-tooltip-id="show-downloaded-only" data-tooltip-content="Show only AI's that have already been downloaded">
                                 <label htmlFor="showDownloadedItemsOnly">
                                     <div className="text-green-700">
                                         <IconCircleCheck size={iconSize} />
@@ -437,7 +437,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                                 </label>
                                 <input id="showDownloadedItemsOnly" type="checkbox" className="w-8 h-5" checked={showDownloadedItemsOnly} onChange={(e) => setShowDownloadedItemsOnly(e.target.checked)} />
                             </div>
-                            <div className="flex items-center" data-tooltip-id="ready-for-takeoff" data-tooltip-content="Show only AI models that are likely to run">
+                            <div className="flex items-center" data-tooltip-id="ready-for-takeoff" data-tooltip-content="Show only AI's that are likely to run">
                                 <label htmlFor="showReadyForTakeoffOnly">
                                     <div className="text-sky-400">
                                         <IconPlaneTilt size={iconSize} />
@@ -467,7 +467,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                     <>
                         <Select
                             isLoading={isChangingModel || isSwitchingModel}
-                            // placeholder={(t("Search for an AI model").length > 0) || ""}
+                            // placeholder={(t("Search for an AI").length > 0) || ""}
                             // classNames={{
                             //     control: (state) =>
                             //         state.isFocused ? 'border-red-600' : 'border-grey-300',
@@ -491,7 +491,7 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                             instanceId={"model-select"}
                             isDisabled={disabled || !isOnline || isSwitchingModel}
                             data-tooltip-id="model-select"
-                            data-tooltip-content="Select or search for an AI model"
+                            data-tooltip-content="Select or search for an AI"
                         />
                         <Tooltip id="model-select" />
                     </>
@@ -523,14 +523,14 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
                         {!miniMode && !isChangingModel && (
                             <>
                                 <IconRefresh size={28} className="rounded-sm cursor-pointer" onClick={handleRefreshModels}
-                                    data-tooltip-id="refresh-models-list" data-tooltip-content="Refresh list of AI models" />
+                                    data-tooltip-id="refresh-models-list" data-tooltip-content="Refresh list of AI's" />
                                 <Tooltip id="refresh-models-list" />
                             </>
                         )}
                         {!miniMode && model?.item?.hasError && (
                             <>
                                 <IconRefreshDot size={28} className="rounded-sm cursor-pointer" onClick={handleResetSelectedModel}
-                                    data-tooltip-id="reset-selected-model" data-tooltip-content="Clear error to try running the AI model again" />
+                                    data-tooltip-id="reset-selected-model" data-tooltip-content="Clear error to try running the AI again" />
                                 <Tooltip id="reset-selected-model" />
                             </>
                         )}

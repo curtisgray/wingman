@@ -9,7 +9,7 @@ import { WINGMAN_OFFLINE_MESSAGE, displayVendorIcon } from "./Util";
 
 const SelectedConversationModelStatus = ({ showModel = true, showQuantization = true, showAlias = false, className = "" }) =>
 {
-    const NO_MODEL_SELECTED = "Choose AI model";
+    const NO_MODEL_SELECTED = "Choose an AI";
     const {
         state: { isOnline, wingmanItems },
     } = useContext(WingmanContext);

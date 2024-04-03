@@ -47,7 +47,7 @@ export const ChatInput = ({
     const { t } = useTranslation("chat");
 
     const {
-        state: { selectedConversation, messageIsStreaming, prompts, isReady, isSwitchingModel, isModelSelected },
+        state: { selectedConversation, isMessageStreaming, prompts, isReady, isSwitchingModel, isModelSelected },
     } = useContext(HomeContext);
 
     const [content, setContent] = useState<string>();
@@ -68,7 +68,7 @@ export const ChatInput = ({
 
     const canUsePrompt = () =>
     {
-        // return !messageIsStreaming && !isSwitchingModel && isModelSelected;
+        // return !isMessageStreaming && !isSwitchingModel && isModelSelected;
         return isReady;
     };
 
@@ -271,7 +271,7 @@ export const ChatInput = ({
         // <div className="absolute bottom-0 left-0 w-full border-transparent bg-gradient-to-b from-transparent via-white to-white pt-6 dark:border-white/20 dark:via-gray-800 dark:to-gray-800 md:pt-2">
         <div className="absolute bottom-0 left-0 w-full bg-inherit">
             <div className="stretch mx-2 mt-4 flex flex-row gap-3 last:mb-2 md:mx-4 md:mt-[52px] md:last:mb-6 lg:mx-auto lg:max-w-3xl">
-                {messageIsStreaming && (
+                {isMessageStreaming && (
                     <button
                         className="absolute top-0 left-0 right-0 mx-auto mb-3 flex w-fit items-center gap-3 rounded border border-gray-200 bg-white py-2 px-4 text-black hover:opacity-50 dark:border-gray-600 dark:bg-gray-900 dark:text-white md:mb-0 md:mt-2"
                         onClick={handleStopConversation}
@@ -358,7 +358,7 @@ export const ChatInput = ({
                         className="absolute right-2 top-2 rounded-sm p-1 text-gray-800 opacity-60 hover:bg-gray-200 hover:text-gray-900 dark:bg-opacity-50 dark:text-gray-100 dark:hover:text-gray-200"
                         onClick={handleSendInput}
                     >
-                        {(messageIsStreaming) ? (
+                        {(isMessageStreaming) ? (
                             <div className="h-4 w-4 animate-spin rounded-full border-t-2 border-gray-800 opacity-60 dark:border-gray-100"></div>
                         ) : (
                             (canUsePrompt() ? (
@@ -414,7 +414,7 @@ export const ChatInput = ({
                 </a>
                 {" "}
                 {t(
-                    "is the best way to run AI models locally."
+                    "is the best way to run AI locally."
                 )}
             </div>
         </div>

@@ -32,7 +32,7 @@ export const Chatbar = () => {
             defaultModelId,
             folders,
             pluginKeys,
-            messageIsStreaming,
+            isMessageStreaming,
             isSwitchingModel,
         },
         dispatch: homeDispatch,
@@ -238,7 +238,7 @@ export const Chatbar = () => {
             }}
         >
             <Sidebar<Conversation>
-                disabled={messageIsStreaming || isSwitchingModel}
+                disabled={isMessageStreaming || isSwitchingModel}
                 side={"left"}
                 isOpen={showChatbar}
                 addItemButtonTitle={t("New chat")}

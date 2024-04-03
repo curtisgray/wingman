@@ -53,13 +53,13 @@ const DownloadButton = ({ modelRepo, filePath,
         setDisabled(true);
         downloadActions.requestDownload(modelRepo, filePath);
         setIsDownloading(true);
-        setDownloadLabel("Waiting to Download");
+        setDownloadLabel("Download waiting");
     };
 
     const handleCancelDownload = () => {
         setDisabled(false);
         downloadActions.requestCancelDownload(modelRepo, filePath);
-        setDownloadLabel("Download Cancelled");
+        setDownloadLabel("Download cancelled");
     };
 
     const handleRequestOrCancelDownload = () => {
@@ -71,7 +71,7 @@ const DownloadButton = ({ modelRepo, filePath,
     };
 
     const handleError = () => {
-        setDownloadLabel("Download Error");
+        setDownloadLabel("Download error");
         setDownloadStatus("Failure to Takeoff");
         setDisabled(true);
         setDownloadStarted(false);
@@ -123,7 +123,7 @@ const DownloadButton = ({ modelRepo, filePath,
                         break;
                     case "cancelled":
                         if (isDownloading && !downloadCompleted){
-                            setDownloadLabel("Download Cancelled");
+                            setDownloadLabel("Download cancelled");
                             setDownloadStatus("Flight Aborted");
                             setDisabled(false);
                             setProgress(downloadItem.progress);
@@ -137,7 +137,7 @@ const DownloadButton = ({ modelRepo, filePath,
                         }
                         break;
                     case "error":
-                        setDownloadLabel("Download Error");
+                        setDownloadLabel("Download error");
                         setDownloadStatus("Failure to Takeoff");
                         break;
                     case "idle":
@@ -147,7 +147,7 @@ const DownloadButton = ({ modelRepo, filePath,
                         setDownloadStarted(false);
                         break;
                     case "queued":
-                        setDownloadLabel("Waiting to Download");
+                        setDownloadLabel("Download waiting");
                         setDownloadStatus("Ready for Takeoff");
                         setDisabled(true);
                         setDownloadStarted(false);
@@ -171,7 +171,7 @@ const DownloadButton = ({ modelRepo, filePath,
             if (downloadItem !== undefined) {
                 if (downloadItem.status === "complete") {
                     setIsDownloading(false);
-                    setDownloadLabel("AI Downloaded");
+                    setDownloadLabel("AI downloaded");
                     setDownloadStatus("Aircraft Landed");
                     setDisabled(true);
                 }
@@ -219,7 +219,7 @@ const DownloadButton = ({ modelRepo, filePath,
             onClick={handleRequestOrCancelDownload}
             data-tooltip-id="download-status"
             data-tooltip-content={`${tooltipString}`}
-            className={className == undefined ? "relative flex flex-col w-40 bg-sky-700 hover:bg-sky-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 px-4 rounded" : `relative ${className}`}>
+            className={className == undefined ? "relative flex flex-col w-36 bg-sky-700 hover:bg-sky-600 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 px-4 rounded" : `relative ${className}`}>
             {
                 children == undefined ?
                     (
@@ -231,7 +231,7 @@ const DownloadButton = ({ modelRepo, filePath,
                             {showProgress && isDownloading && <progress
                                 value={progress}
                                 max="100"
-                                className="w-40 h-full absolute top-0 left-0 [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-amber-500 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500"
+                                className="w-36 h-full absolute top-0 left-0 [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-amber-500 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500"
                             ></progress>}
                             <Tooltip id="download-status" />
                         </>

@@ -1,5 +1,5 @@
 import React from "react";
-import { AIModel } from "@/types/ai";
+import { AIModel, AIModelID } from "@/types/ai";
 import { SelectModel } from "./SelectModel";
 import { t } from "i18next";
 import { SystemPrompt } from "./SystemPrompt";
@@ -30,16 +30,16 @@ const ChatSettings = ({ models, conversation, prompts, onChangeSystemPrompt, onC
                         <ModelListing />
                         <SelectModel autoDownload={true} />
 
-                        <SystemPrompt
+                        {conversation?.model?.id !== AIModelID.NO_MODEL_SELECTED && <SystemPrompt
                             conversation={conversation}
                             prompts={prompts}
                             onChangePrompt={onChangeSystemPrompt}
-                        />
+                        />}
 
-                        <TemperatureSlider
+                        {conversation?.model?.id !== AIModelID.NO_MODEL_SELECTED && <TemperatureSlider
                             label={t("Temperature")}
                             onChangeTemperature={onChangeTemperature}
-                        />
+                        />}
                         </div>
                     </div>
                 )}

@@ -23,7 +23,7 @@ export const ChatbarSettings = () =>
             serverSideApiKeyIsSet,
             serverSidePluginKeysSet,
             conversations,
-            messageIsStreaming,
+            isMessageStreaming,
             isSwitchingModel,
         },
     } = useContext(HomeContext);
@@ -38,42 +38,42 @@ export const ChatbarSettings = () =>
     return (
         <div className="flex flex-col items-center space-y-1 border-t border-white/20 pt-1 text-sm">
             <SidebarButton
-                disabled={(messageIsStreaming || isSwitchingModel)}
-                text={t("Choose AI model")}
+                disabled={(isMessageStreaming || isSwitchingModel)}
+                text={t("Choose AI")}
                 icon={<IconRobot size={18} />}
                 onClick={() => setIsChatSettingsDialogOpen(true)} />
 
             {conversations.length > 0 ? (
                 <ClearConversations
-                    disabled={(messageIsStreaming || isSwitchingModel)}
+                    disabled={(isMessageStreaming || isSwitchingModel)}
                     onClearConversations={handleClearConversations}
                 />
             ) : null}
 
-            <Import disabled={(messageIsStreaming || isSwitchingModel)}
+            <Import disabled={(isMessageStreaming || isSwitchingModel)}
                 onImport={handleImportConversations} />
 
             <SidebarButton
-                disabled={(messageIsStreaming || isSwitchingModel)}
+                disabled={(isMessageStreaming || isSwitchingModel)}
                 text={t("Export data")}
                 icon={<IconFileExport size={18} />}
                 onClick={() => handleExportData()}
             />
 
             <SidebarButton
-                disabled={(messageIsStreaming || isSwitchingModel)}
+                disabled={(isMessageStreaming || isSwitchingModel)}
                 text={t("Theme")}
                 icon={<IconBrush size={18} />}
                 onClick={() => setIsSettingDialog(true)}
             />
 
-            {(!serverSideApiKeyIsSet || (messageIsStreaming || isSwitchingModel)) ? (
+            {(!serverSideApiKeyIsSet || (isMessageStreaming || isSwitchingModel)) ? (
                 <Key apiKey={apiKey} onApiKeyChange={handleApiKeyChange} />
             ) : null}
 
             {/* <HostAddress value={wingmanHostAddress} onChange={setWingmanHostAddress} /> */}
 
-            {(!serverSideApiKeyIsSet || (messageIsStreaming || isSwitchingModel)) ? <PluginKeys /> : null}
+            {(!serverSideApiKeyIsSet || (isMessageStreaming || isSwitchingModel)) ? <PluginKeys /> : null}
 
             <ChatSettingsDialog open={isChatSettingsDialogOpen} onClose={() => setIsChatSettingsDialogOpen(false)} />
             <SettingDialog open={isSettingDialogOpen} onClose={() => setIsSettingDialog(false)} />

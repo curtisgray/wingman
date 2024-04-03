@@ -12,16 +12,16 @@ export const PromptbarSettings: FC<Props> = () => {
     const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState<boolean>(false);
     const {
         state: {
-            messageIsStreaming,
+            isMessageStreaming,
         },
     } = useContext(HomeContext);
     return (
         <div className="flex flex-col items-center space-y-1 border-t border-white/20 pt-1 text-sm">
-            <SidebarButton
-                disabled={messageIsStreaming}
+            {/* <SidebarButton
+                disabled={isMessageStreaming}
                 text={t("Release notes")}
                 icon={<IconCircleLetterR size={18} />}
-                onClick={() => setIsSettingsDialogOpen(true)} />
+                onClick={() => setIsSettingsDialogOpen(true)} /> */}
 
             <WingmanReleaseNotesDialog open={isSettingsDialogOpen} onClose={() => setIsSettingsDialogOpen(false)} />
         </div>

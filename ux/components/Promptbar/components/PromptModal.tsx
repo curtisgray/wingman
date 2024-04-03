@@ -2,13 +2,15 @@ import { Prompt } from "@/types/prompt";
 import { useTranslation } from "next-i18next";
 import { FC, KeyboardEvent, useEffect, useRef, useState } from "react";
 
-interface Props {
+interface Props
+{
     prompt: Prompt;
     onClose: () => void;
     onUpdatePrompt: (prompt: Prompt) => void;
 }
 
-export const PromptModal: FC<Props> = ({ prompt, onClose, onUpdatePrompt }) => {
+export const PromptModal: FC<Props> = ({ prompt, onClose, onUpdatePrompt }) =>
+{
     const { t } = useTranslation("promptbar");
     const [name, setName] = useState(prompt.name);
     const [description, setDescription] = useState(prompt.description);
@@ -17,7 +19,8 @@ export const PromptModal: FC<Props> = ({ prompt, onClose, onUpdatePrompt }) => {
     const modalRef = useRef<HTMLDivElement>(null);
     const nameInputRef = useRef<HTMLInputElement>(null);
 
-    const handleEnter = (e: KeyboardEvent<HTMLDivElement>) => {
+    const handleEnter = (e: KeyboardEvent<HTMLDivElement>) =>
+    {
         if (e.key === "Enter" && !e.shiftKey) {
             onUpdatePrompt({
                 ...prompt,
@@ -29,8 +32,10 @@ export const PromptModal: FC<Props> = ({ prompt, onClose, onUpdatePrompt }) => {
         }
     };
 
-    useEffect(() => {
-        const handleMouseDown = (e: MouseEvent) => {
+    useEffect(() =>
+    {
+        const handleMouseDown = (e: MouseEvent) =>
+        {
             if (
                 modalRef.current &&
                 !modalRef.current.contains(e.target as Node)
@@ -39,19 +44,22 @@ export const PromptModal: FC<Props> = ({ prompt, onClose, onUpdatePrompt }) => {
             }
         };
 
-        const handleMouseUp = (e: MouseEvent) => {
+        const handleMouseUp = (e: MouseEvent) =>
+        {
             window.removeEventListener("mouseup", handleMouseUp);
             onClose();
         };
 
         window.addEventListener("mousedown", handleMouseDown);
 
-        return () => {
+        return () =>
+        {
             window.removeEventListener("mousedown", handleMouseDown);
         };
     }, [onClose]);
 
-    useEffect(() => {
+    useEffect(() =>
+    {
         nameInputRef.current?.focus();
     }, []);
 
@@ -104,8 +112,11 @@ export const PromptModal: FC<Props> = ({ prompt, onClose, onUpdatePrompt }) => {
                             className="mt-2 w-full rounded border border-gray-500 px-4 py-2 text-gray-900 shadow focus:outline-none dark:border-gray-800 dark:border-opacity-50 dark:bg-gray-700 dark:text-gray-100"
                             style={{ resize: "none" }}
                             placeholder={
+                                // t(
+                                //     "Prompt content. Use {{}} to denote a variable. Ex: {{name}} is a {{adjective}} {{noun}}"
+                                // ) || ""
                                 t(
-                                    "Prompt content. Use {{}} to denote a variable. Ex: {{name}} is a {{adjective}} {{noun}}"
+                                    "Enter your reusable prompt here."
                                 ) || ""
                             }
                             value={content}
@@ -116,7 +127,8 @@ export const PromptModal: FC<Props> = ({ prompt, onClose, onUpdatePrompt }) => {
                         <button
                             type="button"
                             className="w-full px-4 py-2 mt-6 border rounded shadow border-gray-500 text-gray-900 hover:bg-gray-100 focus:outline-none dark:border-gray-800 dark:border-opacity-50 dark:bg-white dark:text-black dark:hover:bg-gray-300"
-                            onClick={() => {
+                            onClick={() =>
+                            {
                                 const updatedPrompt = {
                                     ...prompt,
                                     name,

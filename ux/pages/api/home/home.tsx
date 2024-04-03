@@ -80,7 +80,7 @@ const Home = ({
             prompts,
             globalModel,
             isSwitchingModel,
-            messageIsStreaming,
+            isMessageStreaming,
             isModelSelected,
             isReady,
         },
@@ -869,8 +869,8 @@ const Home = ({
 
     useEffect(() =>
     {
-        homeDispatch({ field: "isReady", value: !messageIsStreaming && !isSwitchingModel && isModelSelected });
-    }, [messageIsStreaming, isSwitchingModel, isModelSelected]);
+        homeDispatch({ field: "isReady", value: !isMessageStreaming && !isSwitchingModel && isModelSelected });
+    }, [isMessageStreaming, isSwitchingModel, isModelSelected]);
 
     return (
         <WingmanContext.Provider

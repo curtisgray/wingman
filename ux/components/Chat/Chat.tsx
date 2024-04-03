@@ -53,7 +53,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
             serverSideApiKeyIsSet,
             modelError,
             globalModel,
-            messageIsStreaming,
+            isMessageStreaming,
             isSwitchingModel,
         },
         handleUpdateConversation,
@@ -113,7 +113,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                     value: updatedConversation,
                 });
                 homeDispatch({ field: "loading", value: true });
-                homeDispatch({ field: "messageIsStreaming", value: true });
+                homeDispatch({ field: "isMessageStreaming", value: true });
                 const chatBody: ChatBody = {
                     model: updatedConversation.model,
                     messages: updatedConversation.messages,
@@ -152,14 +152,14 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                 });
                 if (!response.ok) {
                     homeDispatch({ field: "loading", value: false });
-                    homeDispatch({ field: "messageIsStreaming", value: false });
+                    homeDispatch({ field: "isMessageStreaming", value: false });
                     toast.error(response.statusText);
                     return;
                 }
                 const data = response.body;
                 if (!data) {
                     homeDispatch({ field: "loading", value: false });
-                    homeDispatch({ field: "messageIsStreaming", value: false });
+                    homeDispatch({ field: "isMessageStreaming", value: false });
                     return;
                 }
                 if (!plugin) {
@@ -251,7 +251,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                         value: updatedConversations,
                     });
                     saveConversations(updatedConversations);
-                    homeDispatch({ field: "messageIsStreaming", value: false });
+                    homeDispatch({ field: "isMessageStreaming", value: false });
                 } else {
                     const { answer } = await response.json();
                     const updatedMessages: Message[] = [
@@ -284,18 +284,25 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                     });
                     saveConversations(updatedConversations);
                     homeDispatch({ field: "loading", value: false });
-                    homeDispatch({ field: "messageIsStreaming", value: false });
+                    homeDispatch({ field: "isMessageStreaming", value: false });
                 }
             }
         },
         [apiKey, conversations, homeDispatch, pluginKeys, selectedConversation, stopConversationRef, globalModel, t]
     );
 
+    const scrollToBottom = useCallback(() =>
+    {
+        if (autoScrollEnabled) {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            textareaRef.current?.focus();
+        }
+    }, [autoScrollEnabled]);
+
     const handleScroll = () =>
     {
         if (chatContainerRef.current) {
-            const { scrollTop, scrollHeight, clientHeight } =
-                chatContainerRef.current;
+            const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
             const bottomTolerance = 30;
 
             if (scrollTop + clientHeight < scrollHeight - bottomTolerance) {
@@ -347,16 +354,25 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
             });
         }
     };
+    
+    const scrollDown = () =>
+    {
+        if (autoScrollEnabled) {
+            // messagesEndRef.current?.scrollIntoView(true);
+            // scrollToBottom();
+            // handleScrollBottom();
+            messagesEndRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+                inline: "start"
+            });
+            textareaRef.current?.focus();
+        }
+    };
+    const throttledScrollDown = throttle(scrollDown, 250);
 
     useEffect(() =>
     {
-        const scrollDown = () =>
-        {
-            if (autoScrollEnabled) {
-                messagesEndRef.current?.scrollIntoView(true);
-            }
-        };
-        const throttledScrollDown = throttle(scrollDown, 250);
         throttledScrollDown();
         selectedConversation &&
             setCurrentMessage(
@@ -368,11 +384,11 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
 
     useEffect(() =>
     {
-        if (messageIsStreaming || !isOnline) {
+        if (isMessageStreaming || !isOnline) {
             // if the message is streaming ensure the settings are closed
             setShowSettings(false);
         }
-    }, [messageIsStreaming, isOnline]);
+    }, [isMessageStreaming, isOnline]);
 
     useEffect(() =>
     {
@@ -464,7 +480,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                         <>
                             <div className="mb-2">
                                 {t(
-                                    "To get started using Wingman, we have pre-selected a small, highly-capable Meta Llama AI model that can run on most PC's. Download and activate the Meta compatible AI model below. To download, select the 'Download' button. Once the model download is completed, select 'Engage' to begin using the model."
+                                    "To get started using Wingman, we have pre-selected a small, highly-capable Meta Llama AI that can run on most PC's. Download and activate the Meta compatible AI below. To download, select the 'Download' button. Once the model download is completed, select 'Engage' to begin using the model."
                                 )}
                             </div>
                             <div className="w-full">
@@ -472,7 +488,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                             </div>
                             <div className='mb-4'>
                                 {t(
-                                    "To activate any available AI model, use the search box below."
+                                    "To activate any available AI, use the search box below."
                                 )}
                             </div>
                             <div className="w-full">
@@ -517,9 +533,8 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                 <ErrorMessageDiv error={modelError} />
             ) : (   // models available so display chat
                 <>
-                    <div className={`h-full overflow-y-auto overflow-x-hidden flex flex-col space-y-2 dark:bg-gray-800 dark:text-gray-200`}
-                        ref={chatContainerRef} onScroll={handleScroll}>
-                        <ChatStatus onSettings={handleSettings} onClearConversation={onClearAll} showStatus={!showSettings} disabled={isSwitchingModel} />
+                    <div className={`h-full overflow-x-hidden flex flex-col space-y-2 dark:bg-gray-800 dark:text-gray-200`}>
+                        <ChatStatus onSettings={handleSettings} onClearConversation={onClearAll} showStatus={!showSettings} disabled={isSwitchingModel || isMessageStreaming} />
 
                         {isSwitchingModel && (
                             <div className={`flex space-x-2 justify-center items-center h-full`}>
@@ -529,7 +544,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
 
                         {!isSwitchingModel && (
                             // Add padding here, adjust "px-6" as needed for more or less padding
-                            <div className={`flex flex-col space-y-2 px-6 h-full overflow-y-auto`}>
+                                    <div className={`flex flex-col space-y-2 px-6 h-full overflow-y-auto`} ref={chatContainerRef} onScroll={handleScroll}>
                                 {selectedConversation?.messages.map(
                                     (message, index) => (
                                         <MemoizedChatMessage
@@ -550,7 +565,8 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                         )}
 
                         {/* add a buffer at the bottom of the messages list */}
-                        <div ref={messagesEndRef} className="h-[153.333px]" />
+                        {/* <div ref={messagesEndRef} className="h-[153.333px]" /> */}
+                        <div ref={messagesEndRef} className="h-[162px]" />
                     </div>
 
                     <ChatInput

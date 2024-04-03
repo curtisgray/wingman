@@ -47,6 +47,7 @@ export interface AIModel
     iQScore: number;
     eQScore: number;
     isInferable: boolean;
+    totalMemory: number;
     availableMemory: number;
     normalizedQuantizedMemRequired: number;
 }
@@ -111,8 +112,8 @@ export const AIModels: Record<AIModelID, AIModel> = {
         isa: "AIModel",
         id: AIModelID.NO_MODEL_SELECTED,
         name: "No Model Selected",
-        maxLength: 0,
-        tokenLimit: 0,
+        maxLength: 65536,
+        tokenLimit: 65536,
         vendor: Vendors.openai.name,
         downloads: -1,
         likes: -1,
@@ -122,6 +123,7 @@ export const AIModels: Record<AIModelID, AIModel> = {
         iQScore: 0,
         eQScore: 0,
         isInferable: true,
+        totalMemory: -1,
         availableMemory: -1,
         normalizedQuantizedMemRequired: -1,
     },
@@ -140,6 +142,7 @@ export const AIModels: Record<AIModelID, AIModel> = {
         iQScore: 0,
         eQScore: 0,
         isInferable: true,
+        totalMemory: -1,
         availableMemory: -1,
         normalizedQuantizedMemRequired: -1,
    },
@@ -158,6 +161,7 @@ export const AIModels: Record<AIModelID, AIModel> = {
         iQScore: 0,
         eQScore: 0,
         isInferable: true,
+        totalMemory: -1,
         availableMemory: -1,
         normalizedQuantizedMemRequired: -1,
     },
@@ -176,6 +180,7 @@ export const AIModels: Record<AIModelID, AIModel> = {
         iQScore: 0,
         eQScore: 0,
         isInferable: true,
+        totalMemory: -1,
         availableMemory: -1,
         normalizedQuantizedMemRequired: -1,
     },
@@ -194,6 +199,7 @@ export const AIModels: Record<AIModelID, AIModel> = {
         iQScore: 0,
         eQScore: 0,
         isInferable: true,
+        totalMemory: -1,
         availableMemory: -1,
         normalizedQuantizedMemRequired: -1,
     },
@@ -212,6 +218,7 @@ export const AIModels: Record<AIModelID, AIModel> = {
         iQScore: 0,
         eQScore: 0,
         isInferable: true,
+        totalMemory: -1,
         availableMemory: -1,
         normalizedQuantizedMemRequired: -1,
     },
@@ -230,6 +237,7 @@ export const AIModels: Record<AIModelID, AIModel> = {
         iQScore: 0,
         eQScore: 0,
         isInferable: true,
+        totalMemory: -1,
         availableMemory: -1,
         normalizedQuantizedMemRequired: -1,
     },
@@ -248,6 +256,7 @@ export const AIModels: Record<AIModelID, AIModel> = {
         iQScore: 0,
         eQScore: 0,
         isInferable: true,
+        totalMemory: -1,
         availableMemory: -1,
         normalizedQuantizedMemRequired: -1,
     },

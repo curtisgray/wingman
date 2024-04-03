@@ -66,19 +66,33 @@ export const displayModelInfo = (model: AIModel | undefined) =>
     }
 }
 
-export const displayMemoryRequired = (model: AIModel) =>
+export const displayAIMemoryInfo = (model: AIModel, inferringModel: AIModel | undefined) =>
 {
     if (model.availableMemory === 0) return <></>;
+    let availableMemory = model.availableMemory;
+    // recalculate available memory if the model is different from the inferring model by
+    //    adding the memory required by the inferring model
+    //  1. Get the inferring model
+    //  2. Get the memory required by the inferring model
+    //  3. Add the memory required by the inferring model to the available memory
+    if (inferringModel) {
+        if (model.totalMemory === model.availableMemory) {
+            // probably running on vram. TODO: add a boolean which indicates if the model is running on vram
+            availableMemory = model.availableMemory;
+        } else {
+            availableMemory += inferringModel.normalizedQuantizedMemRequired;
+        }
+    }
     const memoryRequired = (model.normalizedQuantizedMemRequired / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     const memoryAvailable = (model.availableMemory / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     const memoryDelta = ((model.normalizedQuantizedMemRequired - model.availableMemory) / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     const tooltipString = `${memoryRequired} GB of memory is required to run this model, ${model.isInferable ? 'and ' : 'but only '}${memoryAvailable} GB is available. ${model.isInferable ? 'Model is ready to run.' : 'Model does not have enough memory to run.'}`;
     // const memoryFootprint = `${memoryRequired} / ${memoryAvailable} GB`;
-    const memoryFootprint = `${model.isInferable ? `${memoryRequired}GB AI may run` : `${memoryDelta}GB needed`}`;
+    const memoryFootprint = `${model.isInferable ? `${memoryRequired}GB AI may run` : `${memoryRequired}GB AI is too big`}`;
     // calculate the percentage of memory required for the progress bar
     const progress = Math.round((model.normalizedQuantizedMemRequired / model.availableMemory) * 100);
     if (model.isInferable) {
-        return <div className="flex flex-col w-40 cursor-default justify-center items-center text-xs space-y-1 text-gray-950"
+        return <div className="flex flex-col w-36 cursor-default justify-center items-center text-xs space-y-1 text-gray-950"
             data-tooltip-id="memory-status"
             data-tooltip-content={`${tooltipString}`}>
             <progress
@@ -90,7 +104,7 @@ export const displayMemoryRequired = (model: AIModel) =>
             <p>{memoryFootprint}</p>
             </div>;
     } else {
-        return <div className="flex flex-col w-40 cursor-default justify-center items-center space-y-1 text-xs text-gray-950"
+        return <div className="flex flex-col w-36 cursor-default justify-center items-center space-y-1 text-xs text-gray-950"
             data-tooltip-id="memory-status"
             data-tooltip-content={`${tooltipString}`}>
             <progress
@@ -104,26 +118,29 @@ export const displayMemoryRequired = (model: AIModel) =>
     }
 };
 
-export const displayClearedForTakeoff = (model: AIModel, className = "") =>
+export const displayClearedForTakeoff = (model: AIModel, className = "", showMemoryInfo = true, inferringModel: AIModel | undefined = undefined) =>
 {
     if (Vendors[model.vendor].isDownloadable) {
-        const memoryRequiredView = displayMemoryRequired(model);
+        let memoryInfoView = <></>;
+        if (showMemoryInfo) {
+            memoryInfoView = displayAIMemoryInfo(model, inferringModel);
+        }
         if (model.isInferable) {
             return <div className={`${className} text-sky-400 flex space-x-2`}>
-                {memoryRequiredView}
-                <IconPlaneTilt size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-inferable" data-tooltip-content="This AI model should run well on your PC" />
+                {memoryInfoView}
+                <IconPlaneTilt size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-inferable" data-tooltip-content="This AI should run well on your PC" />
                 <Tooltip id="is-inferable" />
             </div>;
         } else {
             return <div className={`${className} text-gray-400 flex space-x-2`}>
-                {memoryRequiredView}
-                <IconPlaneOff size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-not-inferable" data-tooltip-content="This AI model is unlikely to run well on your PC" />
+                {memoryInfoView}
+                <IconPlaneOff size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-not-inferable" data-tooltip-content="This AI is unlikely to run well on your PC" />
                 <Tooltip id="is-not-inferable" />
             </div>;
         }
     } else {
         return <div className={`${className} text-green-800`}>
-            <IconApi size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-api-inferred" data-tooltip-content="API model will run well on your PC" />
+            <IconApi size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-api-inferred" data-tooltip-content="API AI will run well on your PC" />
             <Tooltip id="is-api-inferred" />
         </div>;
     }
@@ -132,7 +149,7 @@ export const displayClearedForTakeoff = (model: AIModel, className = "") =>
 export const displayDownloadInferringButton = (label: ReactNode, showPropeller: boolean = true) =>
 {
     return <div className="flex items-center">
-        {showPropeller && <IconPropeller className="w-8 animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="AI model is active" />}
+        {showPropeller && <IconPropeller className="w-8 animate-spin" size={10} data-tooltip-id="is-inflight" data-tooltip-content="AI is active" />}
         <span className="w-8/12" >{label}</span>
     </div>;
 };
@@ -140,7 +157,7 @@ export const displayDownloadInferringButton = (label: ReactNode, showPropeller: 
 export const displayWaitButton = () =>
 {
     return <div className="self-center m-4">
-        <div className="w-40 bg-yellow-950 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
+        <div className="w-36 bg-yellow-950 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded">
             <div className="flex space-x-1 items-center justify-center">
                 <IconAperture className="animate-spin" size={10} />
                 <span>Please wait...</span>
@@ -153,7 +170,7 @@ export const displayErrorButton = (label: string) =>
 {
     return <div className="self-center m-4">
         <button type="button"
-            className="w-32 bg-yellow-500 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
+            className="w-36 bg-yellow-500 disabled:shadow-none disabled:cursor-not-allowed text-white py-2 rounded"
             disabled
         >
             {label}
@@ -200,6 +217,6 @@ export const displayLoadingMessage = () =>
 {
     return <>
         {displayActivityIndicator()}
-        <p>Loading AI model...</p>
+        <p>Loading AI...</p>
     </>;
 };

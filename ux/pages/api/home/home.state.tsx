@@ -10,7 +10,7 @@ export interface HomeStateProps {
     pluginKeys: PluginKey[];
     loading: boolean;
     lightMode: "light" | "dark";
-    messageIsStreaming: boolean;
+    isMessageStreaming: boolean;
     modelError: ErrorMessage | null;
     models: AIModel[];
     defaultModel: AIModel | undefined;
@@ -41,7 +41,7 @@ export const initialState: HomeStateProps = {
     loading: false,
     pluginKeys: [],
     lightMode: "dark",
-    messageIsStreaming: false,
+    isMessageStreaming: false,
     modelError: null,
     models: [],
     defaultModel: undefined,

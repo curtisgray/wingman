@@ -32,7 +32,7 @@ export const ChatMessage: FC<Props> = memo(
                 selectedConversation,
                 conversations,
                 currentMessage,
-                messageIsStreaming,
+                isMessageStreaming,
             },
             dispatch: homeDispatch,
         } = useContext(HomeContext);
@@ -308,7 +308,7 @@ export const ChatMessage: FC<Props> = memo(
                                     }}
                                 >
                                     {`${message.content}${
-                                        messageIsStreaming &&
+                                        isMessageStreaming &&
                                         messageIndex ==
                                             (selectedConversation?.messages
                                                 .length ?? 0) -

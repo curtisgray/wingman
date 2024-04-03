@@ -30,7 +30,7 @@ interface Props {
 
 export const ConversationComponent = ({ conversation}: Props) => {
     const {
-        state: { selectedConversation, messageIsStreaming, isSwitchingModel },
+        state: { selectedConversation, isMessageStreaming, isSwitchingModel },
         handleSelectConversation,
         handleUpdateConversation,
         handleDuplicateConversation,
@@ -151,13 +151,13 @@ export const ConversationComponent = ({ conversation}: Props) => {
             ) : (
                 <button
                         className={`flex w-full cursor-pointer items-center gap-3 rounded px-2 py-3 text-sm transition-colors duration-200 hover:bg-gray-300 dark:hover:bg-gray-700
-                         ${(messageIsStreaming || isSwitchingModel) ? "disabled:cursor-not-allowed" : ""}
+                         ${(isMessageStreaming || isSwitchingModel) ? "disabled:cursor-not-allowed" : ""}
                          ${selectedConversation?.id === conversation.id
                             ? "bg-gray-300 dark:bg-gray-700"
                             : "bg-gray-100 dark:bg-gray-800"
                     }`}
                     onClick={() => handleSelectConversation(conversation)}
-                    disabled={(messageIsStreaming || isSwitchingModel)}
+                    disabled={(isMessageStreaming || isSwitchingModel)}
                     draggable="true"
                     onDragStart={(e) => handleDragStart(e, conversation)}
                 >
