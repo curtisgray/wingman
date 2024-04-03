@@ -84,13 +84,13 @@ export const displayAIMemoryInfo = (model: AIModel, inferringModel: AIModel | un
         }
     }
     const memoryRequired = (model.normalizedQuantizedMemRequired / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    const memoryAvailable = (model.availableMemory / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    const memoryDelta = ((model.normalizedQuantizedMemRequired - model.availableMemory) / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const memoryAvailable = (availableMemory / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const memoryDelta = ((model.normalizedQuantizedMemRequired - availableMemory) / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     const tooltipString = `${memoryRequired} GB of memory is required to run this model, ${model.isInferable ? 'and ' : 'but only '}${memoryAvailable} GB is available. ${model.isInferable ? 'Model is ready to run.' : 'Model does not have enough memory to run.'}`;
     // const memoryFootprint = `${memoryRequired} / ${memoryAvailable} GB`;
     const memoryFootprint = `${model.isInferable ? `${memoryRequired}GB AI may run` : `${memoryRequired}GB AI is too big`}`;
     // calculate the percentage of memory required for the progress bar
-    const progress = Math.round((model.normalizedQuantizedMemRequired / model.availableMemory) * 100);
+    const progress = Math.round((model.normalizedQuantizedMemRequired / availableMemory) * 100);
     if (model.isInferable) {
         return <div className="flex flex-col w-36 cursor-default justify-center items-center text-xs space-y-1 text-gray-950"
             data-tooltip-id="memory-status"
