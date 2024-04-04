@@ -92,7 +92,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20' # Specify the Node.js version to use, ensure it matches your project requirements
+          node-version: '21' # Specify the Node.js version to use, ensure it matches your project requirements
 
       - uses: actions/github-script@v6
         with:
