@@ -91,7 +91,8 @@ export const displayAIMemoryInfo = (model: AIModel, inferringModel: AIModel | un
     const memoryFootprint = `${model.isInferable ? `${memoryRequired}GB AI may run` : `${memoryRequired}GB AI is too big`}`;
     // calculate the percentage of memory required for the progress bar
     const progress = Math.round((model.normalizedQuantizedMemRequired / availableMemory) * 100);
-    if (model.isInferable) {
+    const isInferable = model.normalizedQuantizedMemRequired <= availableMemory;
+    if (isInferable) {
         return <div className="flex flex-col w-36 cursor-default justify-center items-center text-xs space-y-1 text-gray-950"
             data-tooltip-id="memory-status"
             data-tooltip-content={`${tooltipString}`}>
