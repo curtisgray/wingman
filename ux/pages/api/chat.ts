@@ -39,7 +39,12 @@ const handler = async (req: Request): Promise<Response | ReadableStream> => {
 
         for (let i = messages.length - 1; i >= 0; i--) {
             const message = messages[i];
-            const tokens = encoding.encode(message.content);
+            let content = message.content;
+            if (message.role === "assistant" && message?.rating) {
+                content = `${content}\n{{User Rating: ${message.rating}}}`;
+            }
+
+            const tokens = encoding.encode(content);
 
             if (tokenCount + tokens.length + TOKEN_BUFFER > model.tokenLimit) {
                 break;

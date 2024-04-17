@@ -1,4 +1,6 @@
+import { Vendors } from "@/types/ai";
 import { Message } from "@/types/chat";
+import { safeDownloadItemName } from "@/types/download";
 import { GoogleBody, GoogleSource } from "@/types/google";
 import { OPENAI_API_HOST } from "@/utils/app/const";
 import { cleanSourceText } from "@/utils/server/google";
@@ -9,8 +11,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
     try {
-        const { messages, key, model, googleAPIKey, googleCSEId } =
-            req.body as GoogleBody;
+        const { messages, key, model, googleAPIKey, googleCSEId } = req.body as GoogleBody;
 
         const userMessage = messages[messages.length - 1];
         const query = encodeURIComponent(userMessage.content.trim());
@@ -114,7 +115,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
     Response:
     `;
 
-        const answerMessage: Message = { role: "user", content: answerPrompt };
+        let modelAlias = model.id;
+        if (Vendors[model.vendor].isDownloadable) {
+            modelAlias = safeDownloadItemName(model!.item!.modelRepo, model!.item!.filePath);
+        }
+        const answerMessage: Message = { role: "user", content: answerPrompt, timestamp: (new Date()).getTime() };
 
         const answerRes = await fetch(
             `${OPENAI_API_HOST}/v1/chat/completions`,

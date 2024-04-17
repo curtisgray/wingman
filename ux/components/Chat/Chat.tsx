@@ -27,11 +27,12 @@ import
 import toast from "react-hot-toast";
 import ChatStatus from "./ChatStatus";
 import { SelectModel } from "./SelectModel";
-import { AIModel, AIModelID } from "@/types/ai";
+import { AIModel, AIModelID, Vendors } from "@/types/ai";
 import InitialModelListing from "./InitialModelListing";
 import { Settings } from "@/types/settings";
 import { getSettings, saveSettings } from "@/utils/app/settings";
 import { displayLoadingMessage } from "./Util";
+import { safeDownloadItemName } from "@/types/download";
 
 export const runtime = 'edge'; // 'nodejs' (default) | 'edge'
 
@@ -61,7 +62,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
     } = useContext(HomeContext);
 
     const {
-        state: { downloadItems, isOnline, currentWingmanInferenceItem },
+        state: { isOnline, currentWingmanInferenceItem },
     } = useContext(WingmanContext);
 
     const settings: Settings = getSettings();
@@ -180,14 +181,17 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                     let done = false;
                     let isFirst = true;
                     let text = "";
+                    let modelAlias = globalModel.id;
+                    if (Vendors[globalModel.vendor].isDownloadable) {
+                        modelAlias = safeDownloadItemName(globalModel!.item!.modelRepo, globalModel!.item!.filePath);
+                    }
                     while (!done) {
                         if (stopConversationRef.current === true) {
                             controller.abort();
                             done = true;
                             break;
                         }
-                        const { value, done: doneReading } =
-                            await reader.read();
+                        const { value, done: doneReading } = await reader.read();
                         done = doneReading;
                         const chunkValue = decoder.decode(value);
                         text += chunkValue;
@@ -195,7 +199,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                             isFirst = false;
                             const updatedMessages: Message[] = [
                                 ...updatedConversation.messages,
-                                { role: "assistant", content: chunkValue },
+                                { role: "assistant", content: chunkValue, timestamp: (new Date()).getTime(), rating: undefined, modelAlias: modelAlias },
                             ];
                             updatedConversation = {
                                 ...updatedConversation,
@@ -210,15 +214,13 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                                 updatedConversation.messages.map(
                                     (message, index) =>
                                     {
-                                        if (
-                                            index ===
-                                            updatedConversation.messages
-                                                .length -
-                                            1
-                                        ) {
+                                        if (index === updatedConversation.messages.length - 1) {
                                             return {
                                                 ...message,
                                                 content: text,
+                                                timestamp: (new Date()).getTime(),
+                                                rating: undefined,
+                                                modelAlias: modelAlias
                                             };
                                         }
                                         return message;
@@ -256,7 +258,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                     const { answer } = await response.json();
                     const updatedMessages: Message[] = [
                         ...updatedConversation.messages,
-                        { role: "assistant", content: answer },
+                        { role: "assistant", content: answer, timestamp: (new Date()).getTime(), rating: undefined },
                     ];
                     updatedConversation = {
                         ...updatedConversation,
@@ -415,6 +417,17 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
         };
     }, []);
 
+    useEffect(() =>
+    {
+        if (isMessageStreaming) {
+            handleScroll();
+        }
+        if (isMessageStreaming && autoScrollEnabled) {
+            // scrollToBottom();
+            handleScrollBottom();
+        }
+    });
+
     const handleOnboardingDownloadStart = () =>
     {
         // handleSwitchingModel(true);
@@ -436,8 +449,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
         }
         return false;
     };
-
-
+     
     const hasModelBeenSelected = () =>
     {
         if (selectedConversation?.model) {
@@ -542,7 +554,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
 
                         {!isSwitchingModel && (
                             // Add padding here, adjust "px-6" as needed for more or less padding
-                                    <div className={`flex flex-col space-y-2 px-6 h-full overflow-y-auto`} ref={chatContainerRef} onScroll={handleScroll}>
+                            <div className={`flex flex-col space-y-2 px-6 h-full overflow-y-auto`} ref={chatContainerRef} onScroll={handleScroll}>
                                 {selectedConversation?.messages.map(
                                     (message, index) => (
                                         <MemoizedChatMessage
@@ -557,6 +569,23 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                                                     editedMessage,
                                                     selectedConversation!.messages.length - index
                                                 );
+                                            }}
+                                            onSetRating={(rating) =>
+                                            {
+                                                const updatedMessage = { ...message };
+                                                updatedMessage.rating = rating;
+                                                const updatedMessages = [...selectedConversation!.messages];
+                                                updatedMessages[index] = updatedMessage;
+                                                const updatedConversation = {
+                                                    ...selectedConversation!,
+                                                    messages: updatedMessages,
+                                                };
+                                                homeDispatch({
+                                                    field: "selectedConversation",
+                                                    value: updatedConversation,
+                                                });
+                                                saveConversation(updatedConversation);
+                                                message.rating = rating;
                                             }}
                                         />))}
                             </div>

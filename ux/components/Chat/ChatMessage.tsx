@@ -1,7 +1,7 @@
 import { CodeBlock } from "../Markdown/CodeBlock";
 import { MemoizedReactMarkdown } from "../Markdown/MemoizedReactMarkdown";
 import HomeContext from "@/pages/api/home/home.context";
-import { Message } from "@/types/chat";
+import { Message, MessageRating } from "@/types/chat";
 import { updateConversation } from "@/utils/app/conversation";
 import {
     IconCheck,
@@ -16,22 +16,23 @@ import { FC, memo, useContext, useEffect, useRef, useState } from "react";
 import rehypeMathjax from "rehype-mathjax";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
+import { ChatMessageRating } from "./ChatMessageRating";
 
 export interface Props {
     message: Message;
     messageIndex: number;
     onEdit?: (editedMessage: Message) => void;
+    onSetRating?: (rating: MessageRating | undefined) => void;
 }
 
 export const ChatMessage: FC<Props> = memo(
-    ({ message, messageIndex, onEdit }) => {
+    ({ message, messageIndex, onEdit, onSetRating }) => {
         const { t } = useTranslation("chat");
 
         const {
             state: {
                 selectedConversation,
                 conversations,
-                currentMessage,
                 isMessageStreaming,
             },
             dispatch: homeDispatch,
@@ -335,6 +336,14 @@ export const ChatMessage: FC<Props> = memo(
                                 </div>
                             </div>
                         )}
+                        
+                        {message.role === "assistant" &&
+                            <div className="flex flex-col text-xs mt-2 px-2 py-2">
+                                <>
+                                    <ChatMessageRating rating={message.rating} onSetRating={onSetRating} />
+                                </>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>

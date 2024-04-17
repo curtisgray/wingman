@@ -100,7 +100,7 @@ export const ChatInput = ({
             return;
         }
 
-        onSend({ role: "user", content }, plugin);
+        onSend({ role: "user", content, timestamp: (new Date()).getTime(), rating: undefined }, plugin);
         setContent("");
         setPlugin(null);
 
