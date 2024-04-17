@@ -24,6 +24,13 @@ Wingman - Rooster is the first release of Wingman. Future releases will be named
 - 1GB free disk space (for app)
 
 ---
+## :bell: KNOWN ISSUES - FIXES ON THE WAY :bell:
+<span id="known-issues"></span>
+- If you run a model that is too large on an Apple Silicon mac, the app may crash and get into an unrecoverable state. Relaunch the app. If it hangs on the "Ready for takeoff!" screen, you must reboot your computer to relaunch the app. 
+- If you run an AI model that is just slightly too large on Windows, the AI model will crash. Wingman will attempt to recover anyway. If Wingman hangs on, "Connecting to the Wingman Service," restarting the app will fix the problem.
+- On Apple Silicon Macs, the "Ready for Takeoff" feature that detects if AI models work on your machine is too aggressive. The algorithm is not tuned for newer Macs, so some AI models may erroneously state that they can be run on your machine. It's pretty accurate, but it needs more adjustments.
+
+---
 
 <p align="center">
 <h4 align="center">Click below to watch the video</h4>

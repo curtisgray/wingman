@@ -88,7 +88,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
             //    total memory to the free memory to get a more stable value
             // availableMemory = (os.totalmem() / memoryAdjustment) * (1 - memoryPressure) + os.freemem() / memoryAdjustment;
             totalMemory = os.totalmem() / memoryAdjustment;
-            availableMemory = os.freemem() / memoryAdjustment;
+            availableMemory = os.totalmem() / memoryAdjustment;
         } else {
             // Search the list of controllers for the first one that:
             //  - Has nvidia or amd in the name

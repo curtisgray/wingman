@@ -75,14 +75,14 @@ export const displayAIMemoryInfo = (model: AIModel, inferringModel: AIModel | un
     //  1. Get the inferring model
     //  2. Get the memory required by the inferring model
     //  3. Add the memory required by the inferring model to the available memory
-    if (inferringModel) {
-        if (model.totalMemory === model.availableMemory) {
-            // probably running on vram. TODO: add a boolean which indicates if the model is running on vram
-            availableMemory = model.availableMemory;
-        } else {
-            availableMemory += inferringModel.normalizedQuantizedMemRequired;
-        }
-    }
+    // if (inferringModel) {
+    //     if (model.totalMemory === model.availableMemory) {
+    //         // probably running on vram. TODO: add a boolean which indicates if the model is running on vram
+    //         availableMemory = model.availableMemory;
+    //     } else {
+    //         availableMemory += inferringModel.normalizedQuantizedMemRequired;
+    //     }
+    // }
     const memoryRequired = (model.normalizedQuantizedMemRequired / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     const memoryAvailable = (availableMemory / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
     const memoryDelta = ((model.normalizedQuantizedMemRequired - availableMemory) / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -91,7 +91,9 @@ export const displayAIMemoryInfo = (model: AIModel, inferringModel: AIModel | un
     const memoryFootprint = `${model.isInferable ? `${memoryRequired}GB AI may run` : `${memoryRequired}GB AI is too big`}`;
     // calculate the percentage of memory required for the progress bar
     const progress = Math.round((model.normalizedQuantizedMemRequired / availableMemory) * 100);
-    if (model.isInferable) {
+    const isInferable = model.isInferable;
+    // const isInferable = model.normalizedQuantizedMemRequired <= availableMemory;
+    if (isInferable) {
         return <div className="flex flex-col w-36 cursor-default justify-center items-center text-xs space-y-1 text-gray-950"
             data-tooltip-id="memory-status"
             data-tooltip-content={`${tooltipString}`}>
