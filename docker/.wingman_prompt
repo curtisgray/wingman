@@ -1,0 +1,55 @@
+#!/bin/sh
+#original
+# export PS1="\[\033[38;5;27m\]\u\[$(tput sgr0)\]\[\033[38;5;15m\] @ \[$(tput bold)\]\[$(tput sgr0)\]\[\033[38;5;39m\]\h\[$(tput sgr0)\]\[$(tput sgr0)\]\[\033[38;5;15m\] : \[$(tput sgr0)\]\[\033[38;5;69m\]\d\[$(tput sgr0)\]\[\033[38;5;15m\] \[$(tput sgr0)\]\[\033[38;5;33m\]\@\[$(tput sgr0)\]\[\033[38;5;15m\]\n[\[$(tput sgr0)\]\[\033[38;5;41m\]\w\[$(tput sgr0)\]\[\033[38;5;15m\]]\n{\[$(tput sgr0)\]\[\033[38;5;11m\]\$?\[$(tput sgr0)\]\[\033[38;5;15m\]} \\$ \[$(tput sgr0)\]"
+
+#didn't work
+# PS1='' read -r -d '' String <<"EOF"
+# "\[\033[38;5;27m\]\u\[$(tput sgr0)\]\[\033[38;5;15m\] @ \[$(tput bold)\]\[$(tput sgr0)\]\[\033[38;5;39m\]\h\[$(tput sgr0)\]\[$(tput sgr0)\]\[\033[38;5;15m\] : \[$(tput sgr0)\]\[\033[38;5;69m\]\d\[$(tput sgr0)\]\[\033[38;5;15m\] \[$(tput sgr0)\]\[\033[38;5;33m\]\@\[$(tput sgr0)\]\[\033[38;5;15m\]\n[\[$(tput sgr0)\]\[\033[38;5;41m\]\w\[$(tput sgr0)\]\[\033[38;5;15m\]]\n{\[$(tput sgr0)\]\[\033[38;5;11m\]\$?\[$(tput sgr0)\]\[\033[38;5;15m\]} \\$ \[$(tput sgr0)\]"
+# EOF
+# Set the base PS1
+
+#original with natural newlines
+# PS1=`cat <<EOF
+# \[\033[38;5;27m\]\u\[$(tput sgr0)\]\[\033[38;5;15m\] @ \[$(tput bold)\]\[$(tput sgr0)\]\[\033[38;5;39m\]\h\[$(tput sgr0)\]\[$(tput sgr0)\]\[\033[38;5;15m\] : \[$(tput sgr0)\]\[\033[38;5;69m\]\d\[$(tput sgr0)\]\[\033[38;5;15m\] \[$(tput sgr0)\]\[\033[38;5;33m\]\@\[$(tput sgr0)\]\[\033[38;5;15m\]
+# [\[$(tput sgr0)\]\[\033[38;5;41m\]\w\[$(tput sgr0)\]\[\033[38;5;15m\]]
+# {\[$(tput sgr0)\]\[\033[38;5;11m\]\$?\[$(tput sgr0)\]\[\033[38;5;15m\]} \\$ \[$(tput sgr0)\]
+# EOF
+# `
+# export PS1
+
+#fancy __git_ps1
+
+# for non-git repo prompt
+PS1=`cat <<EOF
+\[\033[38;5;27m\]\u\[$(tput sgr0)\]\[\033[38;5;15m\] @ \[$(tput bold)\]\[$(tput sgr0)\]\[\033[38;5;39m\]\h\[$(tput sgr0)\]\[$(tput sgr0)\]\[\033[38;5;15m\] : \[$(tput sgr0)\]\[\033[38;5;69m\]\d\[$(tput sgr0)\]\[\033[38;5;15m\] \[$(tput sgr0)\]\[\033[38;5;33m\]\@\[$(tput sgr0)\]\[\033[38;5;15m\]
+[\[$(tput sgr0)\]\[\033[38;5;41m\]\w\[$(tput sgr0)\]\[\033[38;5;15m\]]
+{\[$(tput sgr0)\]\[\033[38;5;11m\]\$?\[$(tput sgr0)\]\[\033[38;5;15m\]} \\$ \[$(tput sgr0)\]
+EOF
+`
+# export PS1
+
+# for git repo prompt
+if [ -f ~/.git-completion.bash ]; then
+    source ~/.git-completion.bash
+    GIT_PS1_SHOWDIRTYSTATE=true
+    GIT_PS1_SHOWSTASHSTATE=true
+    # GIT_PS1_SHOWUPSTREAM="verbose legacy git"
+    GIT_PS1_SHOWUPSTREAM="auto"
+	GIT_PS1_SHOWCOLORHINTS=true
+	GIT_PS1_SHOWUNTRACKEDFILES=true
+	# GIT_PS1_DESCRIBE_STYLE="branch"
+	PROMPT_PRE=`cat <<EOF
+
+\[\033[38;5;27m\]\u\[$(tput sgr0)\]\[\033[38;5;15m\] @ \[$(tput bold)\]\[$(tput sgr0)\]\[\033[38;5;39m\]\h\[$(tput sgr0)\]\[$(tput sgr0)\]\[\033[38;5;15m\] : \[$(tput sgr0)\]\[\033[38;5;69m\]\d\[$(tput sgr0)\]\[\033[38;5;15m\] \[$(tput sgr0)\]\[\033[38;5;33m\]\@\[$(tput sgr0)\]\[\033[38;5;15m\]
+[\[$(tput sgr0)\]\[\033[38;5;41m\]\w\[$(tput sgr0)\]\[\033[38;5;15m\]]
+EOF
+`
+	PROMPT_POST=`cat <<EOF
+
+{\[$(tput sgr0)\]\[\033[38;5;11m\]\$?\[$(tput sgr0)\]\[\033[38;5;15m\]} \\$ \[$(tput sgr0)\]
+EOF
+`
+	PROMPT_COMMAND='__git_ps1 "$PROMPT_PRE" "$PROMPT_POST"'
+fi
+
+# export PS1

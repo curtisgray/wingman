@@ -1,0 +1,16 @@
+[Unit]
+Description=Wingman backend server providing AI inference services
+After=network.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/opt/wingman/bin/wingman
+# WorkingDirectory=/opt/wingman
+# Restart=always
+# RestartSec=5
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=%n

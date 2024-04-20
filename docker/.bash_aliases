@@ -1,0 +1,7 @@
+# alias df='pydf -ah'
+alias dog='highlight -O ansi'
+alias ls='ls -lah --color=auto'
+alias grep='grep --color=auto'
+alias k='kubectl'
+alias sudow='sudo -u www-data'
+alias nano='nano --mouse'
