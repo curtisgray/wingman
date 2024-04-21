@@ -78,6 +78,6 @@ RUN touch /root/.no_auto_tmux
 # Modify .bashrc
 RUN sed -i "s|alias ls='ls --color=auto'|alias ls='ls -la --color=auto'|" ~/.bashrc
 
-RUN /root/initialize_server.sh
+# RUN /root/initialize_server.sh
 EXPOSE 6567
 EXPOSE 6568

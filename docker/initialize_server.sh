@@ -74,15 +74,12 @@ main() {
     clone_or_update_repository "https://github.com/curtisgray/wingman" "wingman"
     pushd wingman >/dev/null
     log "Building Wingman..."
-    # export VCPKG_ROOT=/opt/microsoft/vcpkg
-    # export VCPKG_INSTALLATION_ROOT=${VCPKG_ROOT}
-    # export VCPKG_DEFAULT_TRIPLET=x64-linux
-    # export CMAKE_TOOLCHAIN_FILE='${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake'
-    # # add cmake to path
-    # export PATH=$PATH:/opt/kitware/cmake/bin
-
-    # Use environment created by ~/.bashrc
-    source /root/.bashrc
+    export VCPKG_ROOT=/opt/microsoft/vcpkg
+    export VCPKG_INSTALLATION_ROOT=${VCPKG_ROOT}
+    export VCPKG_DEFAULT_TRIPLET=x64-linux
+    export CMAKE_TOOLCHAIN_FILE='${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake'
+    # add cmake to path
+    export PATH=$PATH:/opt/kitware/cmake/bin
     pwsh -File ./build.ps1 -BuildPlatform linux -SkipDeployment
 
     log "Installing Wingman..."
