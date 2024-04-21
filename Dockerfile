@@ -4,6 +4,7 @@ FROM nvidia/cuda:12.4.1-devel-ubuntu22.04
 
 # Optional build arguments to enable/disable features
 ARG INSTALL_CPP_DEV_ENV=true
+ARG INSTALL_NODEJS=true
 ARG INSTALL_PYTHON=false
 ARG INSTALL_PYTHON_3_10=true
 ARG INSTALL_POWERSHELL=true
