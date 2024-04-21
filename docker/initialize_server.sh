@@ -80,38 +80,40 @@ main() {
     export CMAKE_TOOLCHAIN_FILE='${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake'
     # add cmake to path
     export PATH=$PATH:/opt/kitware/cmake/bin
-    pwsh -File ./build.ps1 -BuildPlatform linux-cublas -SkipDeployment
+    # pwsh -File ./build.ps1 -BuildPlatform linux-cublas -SkipDeployment
+    pushd /root/wingman/services/wingman.cpp >/dev/null
+    pwsh -File ./build-wingman-ci.ps1 -BuildPlatform linux-cublas -Destination /root/wingman-service
 
-    log "Installing Wingman..."
-    # Define path to the executable
-    EXECUTABLE_PATH="/root/wingman/services/wingman.cpp/out/build/linux-cublas/bin/wingman"
+#     log "Installing Wingman..."
+#     # Define path to the executable
+#     EXECUTABLE_PATH="/root/wingman/services/wingman.cpp/out/build/linux-cublas/bin/wingman"
 
-    # Create systemd service file
-    cat <<EOF | sudo tee /etc/systemd/system/wingman.service
-[Unit]
-Description=Wingman Service
-After=network.target
+#     # Create systemd service file
+#     cat <<EOF | sudo tee /etc/systemd/system/wingman.service
+# [Unit]
+# Description=Wingman Service
+# After=network.target
 
-[Service]
-Type=simple
-ExecStart=$EXECUTABLE_PATH
-WorkingDirectory=$(dirname $EXECUTABLE_PATH)
-#Restart=on-failure
+# [Service]
+# Type=simple
+# ExecStart=$EXECUTABLE_PATH
+# WorkingDirectory=$(dirname $EXECUTABLE_PATH)
+# #Restart=on-failure
 
-[Install]
-WantedBy=multi-user.target
-EOF
+# [Install]
+# WantedBy=multi-user.target
+# EOF
 
-    # Reload systemd to recognize the new service
-    sudo systemctl daemon-reload
+#     # Reload systemd to recognize the new service
+#     sudo systemctl daemon-reload
 
-    # Enable the service
-    sudo systemctl enable wingman.service
+#     # Enable the service
+#     sudo systemctl enable wingman.service
 
-    # Start the service
-    sudo systemctl start wingman.service
+#     # Start the service
+#     sudo systemctl start wingman.service
 
-    echo "Service wingman has been installed and started."
+#     echo "Service wingman has been installed and started."
 
     popd >/dev/null
     popd >/dev/null

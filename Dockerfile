@@ -1,6 +1,7 @@
 # Use a specific version for the base image for better reproducibility.
 # FROM ubuntu:22.04
-FROM nvidia/cuda:12.4.1-devel-ubuntu22.04
+# FROM nvidia/cuda:12.4.1-devel-ubuntu22.04
+FROM nvidia/cuda:12.2.2-devel-ubuntu22.04
 
 # Optional build arguments to enable/disable features
 ARG INSTALL_CPP_DEV_ENV=true
@@ -13,7 +14,7 @@ ARG CLONE_GIT_REPOS=true
 # Label metadata to describe the image.
 LABEL maintainer="Electric Pipelines <mailbox@electricpipelines.com>" \
     version="1.0" \
-    description="Docker image with optional C/C++ development environment, Python 3.10, CUDA 12.4.1 and PowerShell."
+    description="Docker image with optional C/C++ development environment, Python 3.10, CUDA 12.2.2 and PowerShell."
 
 # Update the package list and install some basic utilities.
 RUN apt-get update
@@ -91,6 +92,12 @@ RUN touch /root/.no_auto_tmux
 # Modify .bashrc
 RUN sed -i "s|alias ls='ls --color=auto'|alias ls='ls -la --color=auto'|" ~/.bashrc
 
-# RUN /root/initialize_server.sh
+# Build the wingman service
+RUN /root/initialize_server.sh
+
+# Run the wingman service
+# CMD ["/root/wingman/ux/service/wingman/linux-cublas/bin/wingman"]
+# CMD ["/root/wingman-service/linux-cublas/bin/wingman"]
+
 EXPOSE 6567
 EXPOSE 6568
