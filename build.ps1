@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet("windows", "linux", "macos", "macos-metal")]
+    [ValidateSet("windows", "windows-cublas", "linux", "linux-cublas", "macos", "macos-metal")]
     [string]$BuildPlatform,
 
     [Parameter(Mandatory = $false)]

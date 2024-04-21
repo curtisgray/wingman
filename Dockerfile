@@ -36,6 +36,14 @@ RUN if [ "${INSTALL_CPP_DEV_ENV}" = "true" ]; then \
     rm -rf /var/lib/apt/lists/*; \
     fi
 
+# Install Node.js
+RUN if [ "${INSTALL_NODEJS}" = "true" ]; then \
+    # curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
+    apt-get update && \
+    apt-get install -y nodejs npm; \
+    fi
+
+# Clone git repos
 RUN if [ "${CLONE_GIT_REPOS}" = "true" ]; then \
     apt-get update && \
     apt-get install -y git ca-certificates --no-install-recommends && \

@@ -80,7 +80,7 @@ main() {
     export CMAKE_TOOLCHAIN_FILE='${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake'
     # add cmake to path
     export PATH=$PATH:/opt/kitware/cmake/bin
-    pwsh -File ./build.ps1 -BuildPlatform linux -SkipDeployment
+    pwsh -File ./build.ps1 -BuildPlatform linux-cublas -SkipDeployment
 
     log "Installing Wingman..."
     # Define path to the executable
