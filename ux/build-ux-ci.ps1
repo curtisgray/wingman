@@ -20,34 +20,6 @@ try {
         Remove-Item -Recurse -Force -ErrorAction SilentlyContinue .next
     }
 
-    # Install dependencies
-    Write-Host "Installing Node dependencies..."
-    # npm ci --cache .npm --prefer-offline
-    npm install
-    if ($LASTEXITCODE -ne 0) {
-        throw "npm install failed" 
-    }
-    # Conditional appdmg installation for macOS builds
-    # if ($BuildPlatform -eq "macos" -or $BuildPlatform -eq "macos-metal") {
-    if ($BuildPlatform -eq "macos-metal") {
-        Write-Host "Installing appdmg for macOS..."
-        npm install appdmg --save-dev
-        if ($LASTEXITCODE -ne 0) {
-            throw "npm install appdmg failed"
-        }
-    }
-
-    # Build the project
-    Write-Host "Building the project..."
-    npm run build
-    if ($LASTEXITCODE -ne 0) {
-        throw "npm run build failed" 
-    }
-
-    # Copy static files needed by Electron
-    Write-Host "Copying static files for Electron..."
-    Copy-Item ".next/static" ".next/standalone/.next" -Recurse -Force
-
     # Determine architecture based on platform
     $arch = "x64"
     $platform = ""
@@ -73,9 +45,42 @@ try {
         }
     }
 
+    # Install dependencies
+    Write-Host "Installing Node dependencies..."
+    # npm ci --cache .npm --prefer-offline
+    # skip dev dependencies on linux platform
+    if ($platform -eq "linux") {
+        npm ci --cache .npm --prefer-offline --production
+    } else {
+        npm ci --cache .npm --prefer-offline
+    }
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "npm install failed" 
+    }
+    # Conditional appdmg installation for macOS builds
+    # if ($BuildPlatform -eq "macos" -or $BuildPlatform -eq "macos-metal") {
+    if ($BuildPlatform -eq "macos-metal") {
+        Write-Host "Installing appdmg for macOS..."
+        npm install appdmg --save-dev
+        if ($LASTEXITCODE -ne 0) {
+            throw "npm install appdmg failed"
+        }
+    }
+
+    # Build the project
+    Write-Host "Building the project..."
+    npm run build
+    if ($LASTEXITCODE -ne 0) {
+        throw "npm run build failed" 
+    }
+
+    # Copy static files needed by Electron
+    Write-Host "Copying static files for Electron..."
+    Copy-Item ".next/static" ".next/standalone/.next" -Recurse -Force
+
     # Do not build the Electron app if platform is linux
     if ($platform -ne "linux") {
-
         # Build the Electron app
         Write-Host "Build and Publish Electron app..."
         # set environment variable DEBUG=* to see verbose output
@@ -101,6 +106,8 @@ try {
         if ($LASTEXITCODE -ne 0) {
             throw "electron-forge $command failed" 
         }
+    } else {
+        Write-Host "Skipping Electron app build for Linux platform..."
     }
 
     Write-Host "UX $command completed successfully."
