@@ -73,28 +73,34 @@ try {
         }
     }
 
-    # Build the Electron app
-    Write-Host "Build and Publish Electron app..."
-    # set environment variable DEBUG=* to see verbose output
-    $oldDebug = $env:DEBUG
-    $command = "publish"
+    # Do not build the Electron app if platform is linux
+    if ($platform -ne "linux") {
 
-    if ($SkipDeployment) {
-        $command = "make"
-    }
+        # Build the Electron app
+        Write-Host "Build and Publish Electron app..."
+        # set environment variable DEBUG=* to see verbose output
+        $oldDebug = $env:DEBUG
+        $command = "publish"
 
-    # $env:DEBUG="*"
-    # $env:DEBUG="electron-packager,squirrel"
-    if ($BuildPlatform -eq "macos") {
-        ./node_modules/.bin/electron-forge $command --platform=darwin --arch=x64
-    } elseif ($BuildPlatform -eq "macos-metal") {
-        ./node_modules/.bin/electron-forge $command --platform=darwin --arch=arm64
-    } else {
-        ./node_modules/.bin/electron-forge $command --platform=$platform --arch=$arch 
-    }
-    $env:DEBUG = $oldDebug
-    if ($LASTEXITCODE -ne 0) {
-        throw "electron-forge $command failed" 
+        if ($SkipDeployment) {
+            $command = "make"
+        }
+
+        # $env:DEBUG="*"
+        # $env:DEBUG="electron-packager,squirrel"
+        if ($BuildPlatform -eq "macos") {
+            ./node_modules/.bin/electron-forge $command --platform=darwin --arch=x64
+        }
+        elseif ($BuildPlatform -eq "macos-metal") {
+            ./node_modules/.bin/electron-forge $command --platform=darwin --arch=arm64
+        }
+        else {
+            ./node_modules/.bin/electron-forge $command --platform=$platform --arch=$arch 
+        }
+        $env:DEBUG = $oldDebug
+        if ($LASTEXITCODE -ne 0) {
+            throw "electron-forge $command failed" 
+        }
     }
 
     Write-Host "UX $command completed successfully."
