@@ -1,5 +1,4 @@
 import { AIModel, AIModelID, AIModels, Vendors } from "@/types/ai";
-import { WINGMAN_CONTROL_SERVER_URL } from "@/types/wingman";
 import
 {
     OPENAI_API_HOST,
@@ -11,6 +10,7 @@ import * as si from 'systeminformation';
 import os from 'os';
 import { NextApiRequest, NextApiResponse } from "next";
 import { default as logger } from "@/utils/logger.winston";
+import { GetWingmanControlServerUrl } from "@/types/wingman";
 
 export const config = {
     api: {
@@ -298,7 +298,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
                 .filter(Boolean));
         }
 
-        const ores = await fetchWithRetry(`${WINGMAN_CONTROL_SERVER_URL}/api/models`);
+        const ores = await fetchWithRetry(`${GetWingmanControlServerUrl()}/api/models`);
         if (ores.ok) {
             const res = await ores.json();
             models.push(...res.models);

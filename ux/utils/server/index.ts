@@ -9,7 +9,7 @@ import {
 import { Message } from "@/types/chat";
 import { AIModel, VendorName } from "@/types/ai";
 import { ParsedEvent, ReconnectInterval, createParser } from "eventsource-parser";
-import { WINGMAN_INFERENCE_SERVER_URL } from "@/types/wingman";
+import { GetWingmanInferenceServerUrl } from "@/types/wingman";
 
 export class OpenAIError extends Error {
     type: string;
@@ -41,7 +41,7 @@ export const OpenAIStream = async (
             vendorDisplayName = "OpenAI API";
             break;
         case "meta":
-            host = WINGMAN_INFERENCE_SERVER_URL;
+            host = GetWingmanInferenceServerUrl();
             vendorDisplayName = "Wingman";
             break;
         default:

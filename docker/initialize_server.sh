@@ -12,6 +12,7 @@ log_file="/var/log/initialize_server.log"
 completion_file="/tmp/initialize_server_complete"
 
 install_cuda=false
+activate_python=false
 
 log() {
     local message="$(date +'%Y-%m-%d %H:%M:%S') - $1"
@@ -41,80 +42,48 @@ main() {
         log "Completion file found at ${completion_file}. Script has already been run."
         exit 0
     fi
-    
+
     pushd /root >/dev/null
 
     if $install_cuda; then
         install_cuda_env
     fi
 
-    # tar -xvzf cmake.tar.gz
+    if $activate_python; then
+        log "Create and activate .venv environment..."
+        python3 -m venv .venv
+        source .venv/bin/activate
+        log "Installing python packages..."
 
-    # log "Create and activate .venv environment..."
-    # python3 -m venv .venv
-    # source .venv/bin/activate
-    # log "Installing python packages..."
+        pip install transformers torch einops accelerate bitsandbytes xformers
 
-    # pip install transformers torch einops accelerate bitsandbytes xformers
-
-    # log "Deactivate .venv environment..."
-    # deactivate
+        # log "Deactivate .venv environment..."
+        # deactivate
+    fi
 
     # log "Cloning or updating repositories..."
-    # pushd ~ >/dev/null
-    # clone_or_update_repository "git@ssh.dev.azure.com:v3/carverlab/curtis/cassk"
-    # clone_or_update_repository "git@ssh.dev.azure.com:v3/carverlab/curtis/chatgpt"
-    # clone_or_update_repository "git@ssh.dev.azure.com:v3/carverlab/curtis/gamestory"
-    # clone_or_update_repository "https://github.com/ggerganov/llama.cpp"
-    # clone_or_update_repository "https://github.com/ggerganov/llama.cpp"
-    # popd >/dev/null
-    # log "Downloading Stable Diffusion..."
-    # bash <(wget -qO- https://raw.githubusercontent.com/AUTOMATIC1111/stable-diffusion-webui/master/webui.sh)
     log "Cloning Wingman..."
     clone_or_update_repository "https://github.com/curtisgray/wingman" "wingman"
+
+    # installs NVM (Node Version Manager)
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+    # download and install Node.js
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" # This loads nvm bash_completion
+    nvm install 20
+
     pushd wingman >/dev/null
     log "Building Wingman..."
+    export NVM_DIR="$HOME/.nvm"
     export VCPKG_ROOT=/opt/microsoft/vcpkg
     export VCPKG_INSTALLATION_ROOT=${VCPKG_ROOT}
     export VCPKG_DEFAULT_TRIPLET=x64-linux
     export CMAKE_TOOLCHAIN_FILE='${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake'
     # add cmake to path
     export PATH=$PATH:/opt/kitware/cmake/bin
-    # pwsh -File ./build.ps1 -BuildPlatform linux-cublas -SkipDeployment
     pushd /root/wingman/services/wingman.cpp >/dev/null
     pwsh -File ./build-wingman-ci.ps1 -BuildPlatform linux-cublas -Destination /root/wingman-service
-
-#     log "Installing Wingman..."
-#     # Define path to the executable
-#     EXECUTABLE_PATH="/root/wingman/services/wingman.cpp/out/build/linux-cublas/bin/wingman"
-
-#     # Create systemd service file
-#     cat <<EOF | sudo tee /etc/systemd/system/wingman.service
-# [Unit]
-# Description=Wingman Service
-# After=network.target
-
-# [Service]
-# Type=simple
-# ExecStart=$EXECUTABLE_PATH
-# WorkingDirectory=$(dirname $EXECUTABLE_PATH)
-# #Restart=on-failure
-
-# [Install]
-# WantedBy=multi-user.target
-# EOF
-
-#     # Reload systemd to recognize the new service
-#     sudo systemctl daemon-reload
-
-#     # Enable the service
-#     sudo systemctl enable wingman.service
-
-#     # Start the service
-#     sudo systemctl start wingman.service
-
-#     echo "Service wingman has been installed and started."
-
     popd >/dev/null
     popd >/dev/null
 

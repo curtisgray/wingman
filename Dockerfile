@@ -5,7 +5,7 @@ FROM nvidia/cuda:12.2.2-devel-ubuntu22.04
 
 # Optional build arguments to enable/disable features
 ARG INSTALL_CPP_DEV_ENV=true
-ARG INSTALL_NODEJS=true
+ARG INSTALL_NODEJS=false
 ARG INSTALL_PYTHON=false
 ARG INSTALL_PYTHON_3_10=true
 ARG INSTALL_POWERSHELL=true
@@ -18,7 +18,7 @@ LABEL maintainer="Electric Pipelines <mailbox@electricpipelines.com>" \
 
 # Update the package list and install some basic utilities.
 RUN apt-get update
-RUN apt-get install -y wget apt-transport-https software-properties-common sudo git curl vim nano zip unzip
+RUN apt-get install -y wget apt-transport-https software-properties-common sudo git curl vim nano zip unzip net-tools iputils-ping sqlite3
 
 # Install C/C++ development environment
 RUN if [ "${INSTALL_CPP_DEV_ENV}" = "true" ]; then \
@@ -36,17 +36,6 @@ RUN if [ "${INSTALL_CPP_DEV_ENV}" = "true" ]; then \
     ln -s /opt/kitware/cmake/bin/cmake /usr/local/bin/cmake && \
     rm -rf cmake.tar.gz && \
     rm -rf /var/lib/apt/lists/*; \
-    fi
-
-# Install Node.js
-RUN if [ "${INSTALL_NODEJS}" = "true" ]; then \
-    # installs NVM (Node Version Manager)
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash && \
-    # download and install Node.js
-    nvm install 20 && \
-    export NVM_DIR="$HOME/.nvm" && \
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
-    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" \
     fi
 
 # Clone git repos
@@ -82,6 +71,7 @@ RUN if [ "${INSTALL_POWERSHELL}" = "true" ]; then \
 COPY docker/ /root/
 COPY .secrets/ /root/
 COPY .secrets/.ssh/ /root/.ssh/
+COPY ux/assets/iq/ /root/iq/
 
 RUN chmod 700 /root/.ssh
 RUN chmod 600 /root/.ssh/id_rsa
@@ -95,9 +85,10 @@ RUN sed -i "s|alias ls='ls --color=auto'|alias ls='ls -la --color=auto'|" ~/.bas
 # Build the wingman service
 RUN /root/initialize_server.sh
 
-# Run the wingman service
-# CMD ["/root/wingman/ux/service/wingman/linux-cublas/bin/wingman"]
-# CMD ["/root/wingman-service/linux-cublas/bin/wingman"]
-
 EXPOSE 6567
 EXPOSE 6568
+
+# Run the wingman service
+WORKDIR /root/wingman-service/linux-cublas/bin
+ENTRYPOINT ["/root/wingman-service/linux-cublas/bin/wingman"]
+CMD ["--port", "6567", "--websocket-port", "6568"]

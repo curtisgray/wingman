@@ -15,6 +15,8 @@ ux/server/wingman/Linux
 ux/server/wingman/Darwin
 ux/server/wingman/Native
 .secrets
+.venv
+venv
 
 # dependencies
 /node_modules

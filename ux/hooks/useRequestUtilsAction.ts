@@ -1,4 +1,4 @@
-import { WINGMAN_CONTROL_SERVER_URL, WingmanItem, WingmanLogItem, WingmanLogLevel } from "@/types/wingman";
+import { GetWingmanControlServerUrl, WingmanItem, WingmanLogItem, WingmanLogLevel } from "@/types/wingman";
 
 interface UtilsActionProps
 {
@@ -11,7 +11,7 @@ export function useRequestUtilsAction(): UtilsActionProps
     {
         try {
             const body = JSON.stringify(logItem);
-            const url = `${WINGMAN_CONTROL_SERVER_URL}/api/utils/log`;
+            const url = `${GetWingmanControlServerUrl()}/api/utils/log`;
             // post message to log as json
             const response = await fetch(url, {
                 method: "POST",
