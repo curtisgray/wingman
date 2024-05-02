@@ -1,3 +1,4 @@
+import { WINGMAN_DEFAULT_ICON_SIZE } from "@/components/Chat/Util";
 import { IconArrowBarLeft, IconArrowBarRight } from "@tabler/icons-react";
 
 interface Props {
@@ -9,17 +10,18 @@ export const CloseSidebarButton = ({ onClick, side }: Props) => {
     return (
         <>
             <button
-                className={`fixed top-5 ${
-                    side === "right" ? "right-[270px]" : "left-[270px]"
-                } z-50 h-7 w-7 hover:text-gray-400 dark:text-white dark:hover:text-gray-300 sm:top-0.5 sm:${
-                    side === "right" ? "right-[270px]" : "left-[270px]"
-                } sm:h-8 sm:w-8 sm:text-gray-700`}
+                className={`
+                    fixed top-5 ${side === "right" ? "right-[270px]" : "left-[270px]"}
+                    z-50 hover:text-gray-400 dark:text-white dark:hover:text-gray-300
+                    sm:top-0.5 sm:${side === "right" ? "right-[270px]" : "left-[270px]"}
+                     sm:text-gray-700 my-1
+                    `}
                 onClick={onClick}
             >
                 {side === "right" ? (
-                    <IconArrowBarRight />
+                    <IconArrowBarRight size={24} />
                 ) : (
-                    <IconArrowBarLeft />
+                    <IconArrowBarLeft size={24} />
                 )}
             </button>
             <div

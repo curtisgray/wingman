@@ -1,4 +1,4 @@
-import { AIModel, AIModelID, VendorInfo, Vendors } from "@/types/ai";
+import { AIModel, AIModelID, DownloadableItem, VendorInfo, Vendors } from "@/types/ai";
 import { timeAgo } from "@/types/download";
 import { precisionRound } from "@/types/wingman";
 import { IconBrandOpenai, IconBrandMeta, IconUnlink, IconApi, IconPlaneOff, IconPlaneTilt, IconPropeller, IconAperture } from "@tabler/icons-react";
@@ -13,6 +13,22 @@ export const isModelDownloadable = (model: AIModel) =>
     return Vendors[model.vendor].isDownloadable;
 };
 
+export const largestInferableItem = (items: DownloadableItem[] | undefined) =>
+{
+    const inferableItems = items?.filter(item => item.isInferable) || [];
+
+    const inferableItem = inferableItems.length > 0
+        ? inferableItems.reduce((prev, current) => (prev.normalizedQuantizedMemRequired > current.normalizedQuantizedMemRequired) ? prev : current)
+        : undefined;
+
+    return inferableItem;
+}
+
+export const largestInferableModelItem = (model: AIModel) =>
+{
+    return largestInferableItem(model.items);
+}
+
 export const displayVendorIcon = (vendor: VendorInfo, iconSize: number = WINGMAN_DEFAULT_ICON_SIZE) =>
 {
     switch (vendor.name) {
@@ -21,7 +37,7 @@ export const displayVendorIcon = (vendor: VendorInfo, iconSize: number = WINGMAN
         case "meta":
             return <div className="text-blue-600"><IconBrandMeta size={iconSize} /></div>;
         default:
-            return <IconUnlink size={iconSize} />;
+            return <IconUnlink className="" size={iconSize} />;
     }
 };
 
@@ -50,6 +66,14 @@ export const displayModelName = (model: AIModel) =>
     }
 };
 
+export const displayCleanModelName = (modelName: string) =>
+{
+    // split the repo owner and name and return 'name (repo owner)'
+    const [owner, repo] = modelName.split('/');
+    const cleanName = repo.replace(/-/g, ' ');
+    return <div className="flex"><span>{cleanName}</span></div>;
+};
+
 export const displayModelInfo = (model: AIModel | undefined) =>
 {
     if (!model) return <></>;
@@ -64,9 +88,9 @@ export const displayModelInfo = (model: AIModel | undefined) =>
     } else {
         return <span>{model.name}</span>;
     }
-}
+};
 
-export const displayAIMemoryInfo = (model: AIModel, inferringModel: AIModel | undefined) =>
+export const displayAIMemoryInfo = (model: AIModel, item: DownloadableItem | undefined = undefined) =>
 {
     if (model.availableMemory === 0) return <></>;
     let availableMemory = model.availableMemory;
@@ -75,20 +99,36 @@ export const displayAIMemoryInfo = (model: AIModel, inferringModel: AIModel | un
     //  1. Get the inferring model
     //  2. Get the memory required by the inferring model
     //  3. Add the memory required by the inferring model to the available memory
-    // if (inferringModel) {
-    //     if (model.totalMemory === model.availableMemory) {
-    //         // probably running on vram. TODO: add a boolean which indicates if the model is running on vram
-    //         availableMemory = model.availableMemory;
-    //     } else {
-    //         availableMemory += inferringModel.normalizedQuantizedMemRequired;
-    //     }
-    // }
-    const memoryRequired = (model.normalizedQuantizedMemRequired / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    const memoryAvailable = (availableMemory / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    const memoryDelta = ((model.normalizedQuantizedMemRequired - availableMemory) / 1024).toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    const tooltipString = `${memoryRequired} GB of memory is required to run this model, ${model.isInferable ? 'and ' : 'but only '}${memoryAvailable} GB is available. ${model.isInferable ? 'Model is ready to run.' : 'Model does not have enough memory to run.'}`;
-    // const memoryFootprint = `${memoryRequired} / ${memoryAvailable} GB`;
-    const memoryFootprint = `${model.isInferable ? `${memoryRequired}GB AI may run` : `${memoryRequired}GB AI is too big`}`;
+    const formatMemoryRequired = (memory: number): string =>
+    {
+        const value = memory / 1024;
+        // Check if the value is an integer
+        if (Math.floor(value) === value) {
+            // If it's an integer, show without decimal places
+            return value.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        } else {
+            // Otherwise, show with one decimal place
+            return value.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+        }
+    };
+
+    let inferableItem = largestInferableItem(model.items);
+    if (item) {
+        inferableItem = item;
+    }
+
+    let memoryRequired = model.normalizedQuantizedMemRequired;
+    if (inferableItem) {
+        memoryRequired = inferableItem.normalizedQuantizedMemRequired;
+    }
+    const memoryAvailable = availableMemory;
+    const memoryDelta = (model.normalizedQuantizedMemRequired - availableMemory);
+
+    const memoryRequiredText = formatMemoryRequired(memoryRequired);
+    const memoryAvailableText = formatMemoryRequired(memoryAvailable);
+    const memoryDeltaText = formatMemoryRequired(memoryDelta);
+    const tooltipText = `${memoryRequiredText} GB of memory is required to run this model, ${model.isInferable ? 'and ' : 'but only '}${memoryAvailableText} GB is available. ${model.isInferable ? 'Model is ready to run.' : 'Model does not have enough memory to run.'}`;
+    const memoryFootprintText = `${model.isInferable ? `${memoryRequiredText} GB AI may run` : `${memoryRequiredText} GB AI is too big`}`;
     // calculate the percentage of memory required for the progress bar
     const progress = Math.round((model.normalizedQuantizedMemRequired / availableMemory) * 100);
     const isInferable = model.isInferable;
@@ -96,39 +136,39 @@ export const displayAIMemoryInfo = (model: AIModel, inferringModel: AIModel | un
     if (isInferable) {
         return <div className="flex flex-col w-36 cursor-default justify-center items-center text-xs space-y-1 text-gray-950"
             data-tooltip-id="memory-status"
-            data-tooltip-content={`${tooltipString}`}>
+            data-tooltip-content={`${tooltipText}`}>
             <progress
-                    value={progress}
-                    max="100"
-                    className={`flex w-16 h-2 rounded [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-green-800 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500`}
-                    ></progress>
-                <Tooltip id="memory-status" />
-            <p>{memoryFootprint}</p>
-            </div>;
+                value={progress}
+                max="100"
+                className={`flex w-16 h-2 rounded [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-green-800 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500`}
+            ></progress>
+            <Tooltip id="memory-status" />
+            <p>{memoryFootprintText}</p>
+        </div>;
     } else {
         return <div className="flex flex-col w-36 cursor-default justify-center items-center space-y-1 text-xs text-gray-950"
             data-tooltip-id="memory-status"
-            data-tooltip-content={`${tooltipString}`}>
+            data-tooltip-content={`${tooltipText}`}>
             <progress
-            value={progress}
-            max="100"
-            className={`flex w-16 h-2 rounded [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-red-800 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500`}
+                value={progress}
+                max="100"
+                className={`flex w-16 h-2 rounded [&::-webkit-progress-bar]:rounded [&::-webkit-progress-value]:rounded [&::-webkit-progress-value]:bg-red-800 [&::-webkit-progress-value]:transition-all [&::-webkit-progress-value]:duration-500`}
             ></progress>
-            <p>{memoryFootprint}</p>
+            <p>{memoryFootprintText}</p>
             <Tooltip id="memory-status" />
         </div>;
     }
 };
 
-export const displayClearedForTakeoff = (model: AIModel, className = "", showMemoryInfo = true, inferringModel: AIModel | undefined = undefined) =>
+export const displayClearedForTakeoff = (model: AIModel, className = "", showMemoryInfo = true, showItem = false) =>
 {
     if (Vendors[model.vendor].isDownloadable) {
         let memoryInfoView = <></>;
         if (showMemoryInfo) {
-            memoryInfoView = displayAIMemoryInfo(model, inferringModel);
+            memoryInfoView = displayAIMemoryInfo(model, showItem ? model?.item: undefined);
         }
         if (model.isInferable) {
-            return <div className={`${className} text-sky-400 flex space-x-2`}>
+            return <div className={`${className} text-sky-400 flex space-x-2 items-center`}>
                 {memoryInfoView}
                 <IconPlaneTilt size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-inferable" data-tooltip-content="This AI should run well on your PC" />
                 <Tooltip id="is-inferable" />
@@ -145,6 +185,15 @@ export const displayClearedForTakeoff = (model: AIModel, className = "", showMem
             <IconApi size={WINGMAN_DEFAULT_ICON_SIZE} data-tooltip-id="is-api-inferred" data-tooltip-content="API AI will run well on your PC" />
             <Tooltip id="is-api-inferred" />
         </div>;
+    }
+};
+
+export const displayQuantClearedForTakeoffText = (item: DownloadableItem, className = undefined) =>
+{
+    if (item.isInferable) {
+        return "✅";
+    } else {
+        return "❌";
     }
 };
 
@@ -180,11 +229,11 @@ export const displayErrorButton = (label: string) =>
     </div>;
 };
 
-export const displayModelMetrics = (item: AIModel) =>
+export const displayModelMetrics = (item: AIModel, className: string = '') =>
 {
     const vendor = Vendors[item.vendor];
     if (isModelDownloadable(item)) {
-        return <>
+        return <div className={`${className}`}>
             <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-gray-400'>
                 {/* <li>{new Date(item.updated).toLocaleDateString()}</li> */}
                 <li>{timeAgo(new Date(item.updated))}</li>
@@ -195,16 +244,45 @@ export const displayModelMetrics = (item: AIModel) =>
                 {item.iQScore > 0 && <><li>&middot;</li><li><span className="">{precisionRound(item.iQScore, 1)}</span> <span className="">IQ</span></li></>}
                 {item.eQScore > 0 && <><li>&middot;</li><li><span className="">{precisionRound(item.eQScore, 1)}</span> <span className="">EQ</span></li></>}
             </ul>
-        </>;
+        </div>;
     } else {
         const tokenInKb = Math.round(item.tokenLimit / 1024);
-        return <>
+        return <div className={`${className}`}>
             <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-gray-400'>
                 <li>{vendor.displayName}</li>
                 <li>&middot;</li>
                 <li>context size {`${tokenInKb}K`}</li>
             </ul>
-        </>;
+        </div>;
+    }
+};
+
+
+export const displayFullModelInfo = (item: AIModel, className: string = '') =>
+{
+    const vendor = Vendors[item.vendor];
+    if (isModelDownloadable(item)) {
+        return <div className={`${className}`}>
+            <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-gray-400'>
+                {/* <li>{new Date(item.updated).toLocaleDateString()}</li> */}
+                <li>{timeAgo(new Date(item.updated))}</li>
+                <li>&middot;</li>
+                <li>{item.downloads} downloads</li>
+                <li>&middot;</li>
+                <li>{item.likes} likes</li>
+                {item.iQScore > 0 && <><li>&middot;</li><li><span className="">{precisionRound(item.iQScore, 1)}</span> <span className="">IQ</span></li></>}
+                {item.eQScore > 0 && <><li>&middot;</li><li><span className="">{precisionRound(item.eQScore, 1)}</span> <span className="">EQ</span></li></>}
+            </ul>
+        </div>;
+    } else {
+        const tokenInKb = Math.round(item.tokenLimit / 1024);
+        return <div className={`${className}`}>
+            <ul className='mt-1 flex space-x-1 text-xs font-normal leading-4 dark:text-gray-700 text-gray-400'>
+                <li>{vendor.displayName}</li>
+                <li>&middot;</li>
+                <li>context size {`${tokenInKb}K`}</li>
+            </ul>
+        </div>;
     }
 };
 
@@ -220,5 +298,13 @@ export const displayLoadingMessage = () =>
     return <>
         {displayActivityIndicator()}
         <p>Loading AI...</p>
+    </>;
+};
+
+export const displayLoadingDataMessage = () =>
+{
+    return <>
+        {displayActivityIndicator()}
+        <p>Loading data...</p>
     </>;
 };

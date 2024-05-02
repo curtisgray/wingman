@@ -22,23 +22,24 @@ interface ModelCategories {
     'Recently Added': AIModel[];
     // Popular: AIModel[];
     Trending: AIModel[];
-    IQ: AIModel[];
-    'Emotion IQ': AIModel[];
+    // IQ: AIModel[];
+    // 'Emotion IQ': AIModel[];
 }
 
 export default function ModelListing({ onSelect = () => { }, isDisabled: disabled = false, iconSize = 20 }: Props) {
-    const listSize = 10;
+    const listSize = 20;
     // const [categories, setCategories] = useState<ModelCategories>({ 'My Models': [], 'Recently Added': [], Popular: [], Trending: [] });
-    const [categories, setCategories] = useState<ModelCategories>(
-        {
-            'My Models': [],
-            'Recently Added': [],
-            // Popular: [],
-            Trending: [],
-            IQ: [],
-            'Emotion IQ': []
-        }
-    );
+    const [categories, setCategories] = useState<ModelCategories>({ 'My Models': [], 'Recently Added': [], Trending: [] });
+    // const [categories, setCategories] = useState<ModelCategories>(
+    //     {
+    //         'My Models': [],
+    //         'Recently Added': [],
+    //         // Popular: [],
+    //         Trending: [],
+    //         IQ: [],
+    //         'Emotion IQ': []
+    //     }
+    // );
     const [selectedTabIndex, setSelectedTabIndex] = useState(0);
     const [aliasBeingReset, setAliasBeingReset] = useState<string | undefined>(undefined);
     const [startingInference, setStartingInference] = useState<boolean>(false);
@@ -98,8 +99,8 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                 'Recently Added': [],
                 // Popular: [],
                 Trending: [],
-                IQ: [],
-                'Emotion IQ': []
+                // IQ: [],
+                // 'Emotion IQ': []
             };
 
             // filter the models to get the downloaded and OpenAI models
@@ -175,28 +176,28 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
             const trendingModels = sortedModelsByLikes.slice(0, listSize);
 
             // sort models by IQ score descending, and remove models with a score less than or equal to 0
-            const sortedModelsByIQ = models.filter((model) => model.iQScore > 0).sort((a, b) =>
-            {
-                return b.iQScore - a.iQScore;
-            });
+            // const sortedModelsByIQ = models.filter((model) => model.iQScore > 0).sort((a, b) =>
+            // {
+            //     return b.iQScore - a.iQScore;
+            // });
 
-            const modelsByIQ = sortedModelsByIQ.slice(0, listSize);
+            // const modelsByIQ = sortedModelsByIQ.slice(0, listSize);
 
-            // sort models by 'Emotion IQ' score descending, and remove models with a score less than or equal to 0
-            const sortedModelsByEQ = models.filter((model) => model.eQScore > 0).sort((a, b) =>
-            {
-                return b.eQScore - a.eQScore;
-            });
+            // // sort models by 'Emotion IQ' score descending, and remove models with a score less than or equal to 0
+            // const sortedModelsByEQ = models.filter((model) => model.eQScore > 0).sort((a, b) =>
+            // {
+            //     return b.eQScore - a.eQScore;
+            // });
 
-            const modelsByEQ = sortedModelsByEQ.slice(0, listSize);
+            // const modelsByEQ = sortedModelsByEQ.slice(0, listSize);
 
             return {
                 'My Models': downloadedModels,
                 'Recently Added': recentModels,
                 // Popular: popularModels,
                 Trending: trendingModels,
-                IQ: modelsByIQ,
-                'Emotion IQ': modelsByEQ,
+                // IQ: modelsByIQ,
+                // 'Emotion IQ': modelsByEQ,
             };
         };
         setCategories(createCategories(models));
@@ -323,7 +324,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
                             >
                                 {displayDownloadInferringButton(
                                     <div className="flex flex-col">
-                                        <div>Chosen AI</div>
+                                        <div>AI is Active</div>
                                     </div>
                                 )}
                             </button>
@@ -435,8 +436,6 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
         }
     };
 
-    const inferringModel = getInferringModel();
-
     return (
         <div className='w-full px-2 py-4 sm:px-0 mt-4 mb-4'>
             <Tab.Group selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
@@ -503,7 +502,7 @@ export default function ModelListing({ onSelect = () => { }, isDisabled: disable
 
                                                 {displayModelMetrics(item)}
                                             </div>
-                                            {displayClearedForTakeoff(item, "ml-auto", true, inferringModel)}
+                                            {displayClearedForTakeoff(item, "ml-auto", true)}
                                             {displayDownloadInference(item)}
                                         </li>
                                     ))}

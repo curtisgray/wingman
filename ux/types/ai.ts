@@ -21,10 +21,8 @@ export interface DownloadableItem
     available: boolean;
     hasError: boolean;
     location: string;
-    downloads: number;
-    likes: number;
-    created: string;
-    updated: string;
+    isInferable: boolean;
+    normalizedQuantizedMemRequired: number;
 }
 
 export interface AIModel

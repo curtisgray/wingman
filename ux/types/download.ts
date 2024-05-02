@@ -236,19 +236,25 @@ export const quantizationFromFilePath = (filePath: string): Quantization =>
     } as Quantization;
 };
 
-export const prettyBytes = (bytes: number): string =>
+export const prettyBytes = (bytes: number, precision: number = 1): string =>
 {
-    if (bytes < 1024)
-        return bytes + " B";
+    if (bytes < 1024) {
+        return bytes + " B"; // Display in bytes if less than 1024 bytes
+    }
 
     const suffixes: string[] = ["KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-    let s: number = 0; // which suffix to use
+    let index: number = 0; // Start with the first suffix (KB)
     let count: number = bytes;
-    while (count >= 1024 && s < suffixes.length - 1) {
-        s++;
+
+    // Divide the count by 1024 until it is less than 1024, but stop before it goes below 1 KB
+    while (count >= 1024 && index < suffixes.length - 1) {
         count /= 1024;
+        if (count >= 1024) {
+            index++;
+        }
     }
-    return count.toFixed(1) + " " + suffixes[s];
+
+    return count.toFixed(precision) + " " + suffixes[index];
 }
 
 export const timeAgo = (date: Date): string =>

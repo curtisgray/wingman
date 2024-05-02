@@ -494,7 +494,7 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
                                 )}
                             </div>
                             <div className="w-full">
-                                <InitialModelListing initialModelId="TheBloke/phi-2-dpo-GGUF" />
+                                <InitialModelListing initialModelId="QuantFactory/Phi-3-mini-128k-instruct-GGUF" />
                             </div>
                             <div className='mb-4'>
                                 {t(

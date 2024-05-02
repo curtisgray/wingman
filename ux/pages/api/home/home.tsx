@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import HomeContext from "./home.context";
+import HomeContext, { VisiblePage } from "./home.context";
 import WingmanContext from "./wingman.context";
 import { HomeStateProps, initialState } from "./home.state";
 import { Chat } from "@/components/Chat/Chat";
@@ -42,6 +42,7 @@ import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 import toast from "react-hot-toast";
 import { StripFormatFromModelRepo } from "@/types/download";
 import { useRequestUtilsAction } from "@/hooks/useRequestUtilsAction";
+import { ChooseModelPage } from "@/components/ChooseModel/ChooseModelPage";
 
 interface Props
 {
@@ -65,6 +66,7 @@ const Home = ({
     const [isSwitchingConversationModel, setIsSwitchingConversationModel] = useState<boolean>(false);
     const [isSwitchingGlobalModel, setIsSwitchingGlobalModel] = useState<boolean>(false);
     const [userMustSelectModel, setUserMustSelectModel] = useState<boolean>(false);
+    const [visiblePage, setVisiblePage] = useState<VisiblePage>("chat");
 
     const homeContextValue = useCreateReducer<HomeStateProps>({
         initialState,
@@ -405,6 +407,11 @@ const Home = ({
     const handleUpdateWingmanStatusMessage = (statusMessage: string) =>
     {
         wingmanDispatch({ field: "wingmanStatusMessage", value: statusMessage });
+    };
+
+    const handleSetVisiblePage = (page: VisiblePage) =>
+    {
+        setVisiblePage(page);
     };
 
     useEffect(() =>
@@ -872,6 +879,18 @@ const Home = ({
         homeDispatch({ field: "isReady", value: !isMessageStreaming && !isSwitchingModel && isModelSelected });
     }, [isMessageStreaming, isSwitchingModel, isModelSelected]);
 
+    const displayPage = (page: VisiblePage) =>
+    {
+        switch (page) {
+            case "chat":
+                return <Chat stopConversationRef={stopConversationRef} />;
+            case "settings":
+                return <div>Settings</div>;
+            case "chooseModel":
+                return <ChooseModelPage onClose={() => setVisiblePage("chat")} />;
+        }
+    }
+
     return (
         <WingmanContext.Provider
             value={{
@@ -893,6 +912,7 @@ const Home = ({
                     handleChangeModel,
                     handleResetInferenceError,
                     handleRefreshModels,
+                    handleSetVisiblePage,
                 }}
             >
                 <Head>
@@ -906,13 +926,13 @@ const Home = ({
                 </Head>
                 {selectedConversation && (
                     <main
-                        className={`flex flex-col h-screen w-screen ${lightMode}`}
+                        className={`flex flex-col h-screen w-screen min-w-96 ${lightMode}`}
                     >
                         <div className="flex h-full w-full bg-white text-black dark:text-white dark:bg-gray-900">
                             <Chatbar />
 
                             <div className="flex flex-1">
-                                <Chat stopConversationRef={stopConversationRef} />
+                                {displayPage(visiblePage)}
                             </div>
 
                             <Promptbar />

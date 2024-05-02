@@ -26,6 +26,7 @@ export const ChatbarSettings = () =>
             isMessageStreaming,
             isSwitchingModel,
         },
+        handleSetVisiblePage,
     } = useContext(HomeContext);
 
     const {
@@ -39,9 +40,17 @@ export const ChatbarSettings = () =>
         <div className="flex flex-col items-center space-y-1 border-t border-white/20 pt-1 text-sm">
             <SidebarButton
                 disabled={(isMessageStreaming || isSwitchingModel)}
-                text={t("Choose AI")}
-                icon={<IconRobot size={18} />}
+                text={t("Edit chat settings")}
+                icon={<IconSettings size={18} />}
                 onClick={() => setIsChatSettingsDialogOpen(true)} />
+
+            <div className="w-full border-b border-white/20"></div>
+
+            <SidebarButton
+                disabled={(isMessageStreaming || isSwitchingModel)}
+                text={t("Activate an AI")}
+                icon={<IconRobot size={18} />}
+                onClick={() => handleSetVisiblePage('chooseModel')} />
 
             {conversations.length > 0 ? (
                 <ClearConversations

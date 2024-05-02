@@ -16,7 +16,7 @@ interface Props
 const ChatStatus = ({ onSettings, onClearConversation, iconSize = 18, showStatus = true, disabled = false }: Props) =>
 {
     const {
-        state: { globalModel },
+        handleSetVisiblePage
     } = useContext(HomeContext);
     const [isChatSettingsDialogOpen, setIsChatSettingsDialogOpen] = useState<boolean>(false);
 
@@ -28,7 +28,7 @@ const ChatStatus = ({ onSettings, onClearConversation, iconSize = 18, showStatus
         <div className="sticky top-0 z-10 flex justify-center border border-b-gray-300 bg-gray-100 py-2 text-sm text-gray-500 dark:border-none dark:bg-gray-700 dark:text-gray-200">
             {showStatus && (
                 <div className="flex space-x-16">
-                    <button disabled={disabled} onClick={() => setIsChatSettingsDialogOpen(true)} className="text-left w-full disabled:cursor-not-allowed">
+                    <button disabled={disabled} onClick={() => handleSetVisiblePage('chooseModel')} className="text-left w-full disabled:cursor-not-allowed">
                         <SelectedConversationModelStatus showQuantization={false} />
                     </button>
                     

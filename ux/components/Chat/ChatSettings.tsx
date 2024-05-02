@@ -27,8 +27,8 @@ const ChatSettings = ({ models, conversation, prompts, onChangeSystemPrompt, onC
                             <SelectedConversationModelStatus showQuantization={false} />
                         </div>
                         <div className="flex flex-col space-y-4 p-4">
-                        <ModelListing />
-                        <SelectModel autoDownload={true} />
+                        {/* <ModelListing /> */}
+                        {/* <SelectModel autoDownload={true} /> */}
 
                         {conversation?.model?.id !== AIModelID.NO_MODEL_SELECTED && <SystemPrompt
                             conversation={conversation}

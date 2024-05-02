@@ -21,7 +21,7 @@ interface ModelCategories {
     'Starting AI': AIModel[];
 }
 
-export default function InitialModelListing({ onSelect = () => { }, isDisabled: disabled = false, iconSize = 20, initialModelId = "TheBloke/phi-2-dpo" }: Props) {
+export default function InitialModelListing({ onSelect = () => { }, isDisabled: disabled = false, iconSize = 20, initialModelId = "QuantFactory/Phi-3-mini-128k-instruct-GGUF" }: Props) {
     const [categories, setCategories] = useState<ModelCategories>({ 'Starting AI': [] });
     const [selectedTabIndex, setSelectedTabIndex] = useState(0)
     const [startingInference, setStartingInference] = useState(false);
@@ -95,12 +95,6 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
         }
         return undefined;
     };
-
-    useEffect(() =>
-    {
-        if (startingInference) {
-        }
-    }, [startingInference]);
 
     useEffect(() => {
         setCategories(createCategories(models));
@@ -194,7 +188,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
                             >
                                 {displayDownloadInferringButton(
                                     <div className="flex flex-col">
-                                        <div>Chosen AI</div>
+                                        <div>AI is Active</div>
                                     </div>
                                 )}
                             </button>
@@ -312,7 +306,7 @@ export default function InitialModelListing({ onSelect = () => { }, isDisabled: 
 
                                                 {/* {displayModelMetrics(item)} */}
                                             </div>
-                                            {displayClearedForTakeoff(item, "ml-auto", false, inferringModel)}
+                                            {displayClearedForTakeoff(item, "ml-auto", false)}
                                             {displayDownloadInference(item)}
                                         </li>
                                     ))}

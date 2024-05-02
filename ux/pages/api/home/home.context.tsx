@@ -6,6 +6,8 @@ import { KeyValuePair } from "@/types/data";
 import { FolderType } from "@/types/folder";
 import { Dispatch, createContext } from "react";
 
+export type VisiblePage = "chat" | "settings" | "chooseModel";
+
 export interface HomeContextProps {
     state: HomeStateProps;
     dispatch: Dispatch<ActionType<HomeStateProps>>;
@@ -23,6 +25,7 @@ export interface HomeContextProps {
     handleChangeModel: (model: AIModel | undefined) => void;
     handleResetInferenceError: (alias: string) => void;
     handleRefreshModels: () => void;
+    handleSetVisiblePage: (page: VisiblePage) => void;
 }
 
 const HomeContext = createContext<HomeContextProps>(undefined!);

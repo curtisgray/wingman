@@ -194,24 +194,33 @@ const DownloadButton = ({ modelRepo, filePath,
         setDownloadLabel(<span className="animate-pulse inline-flex h-2 w-2 mx-1 rounded-full bg-orange-400"></span>);
         setDisabled(true);
         // request download status to set initial state of the control
-        const response = downloadActions.requestDownloadItems(modelRepo, filePath);
-        if (response !== undefined) {
-            response.then((items) => {
-                if (items.length > 0)
-                    setDownloadItem(items[0]);
-                setIsInitialized(true);
-                onInitialized(true);
-            });
-            response.catch(() => {
-                setIsInitialized(true);
-                handleError();
-                onInitialized(false);
-            });
-        } else {
-            setIsInitialized(true);
-            handleError();
-            onInitialized(false);
+        // const response = downloadActions.requestDownloadItems(modelRepo, filePath);
+        // if (response !== undefined) {
+        //     response.then((items) => {
+        //         if (items.length > 0)
+        //             setDownloadItem(items[0]);
+        //         setIsInitialized(true);
+        //         onInitialized(true);
+        //     });
+        //     response.catch(() => {
+        //         setIsInitialized(true);
+        //         handleError();
+        //         onInitialized(false);
+        //     });
+        // } else {
+        //     setIsInitialized(true);
+        //     handleError();
+        //     onInitialized(false);
+        // }
+
+        if (downloadItems !== undefined && downloadItems.length > 0) {
+            const di = downloadItems.find((item) => item.modelRepo === modelRepo && item.filePath === filePath);
+            if (di !== undefined) {
+                setDownloadItem(di);
+            }
         }
+        setIsInitialized(true);
+        onInitialized(true);
     }, []);
 
     return (

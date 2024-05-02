@@ -56,7 +56,7 @@ const Sidebar = <T,>({
     };
 
     return isOpen ? (
-        <div>
+        <>
             <div
                 className={`fixed top-0 ${side}-0 flex flex-col space-y-2 h-full w-[260px] p-2 text-sm transition-all sm:relative sm:top-0`}
             >
@@ -119,7 +119,7 @@ const Sidebar = <T,>({
 
             <CloseSidebarButton onClick={toggleOpen} side={side} data-tooltip-id="close-sidebar" data-tooltip-content="Hide sidebar" />
             <Tooltip id="close-sidebar" />
-        </div>
+        </>
     ) : (
         <>
             <OpenSidebarButton onClick={toggleOpen} side={side} data-tooltip-id="open-sidebar" data-tooltip-content="Show sidebar" />

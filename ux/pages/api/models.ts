@@ -6,8 +6,8 @@ import
     OPENAI_API_VERSION,
     OPENAI_ORGANIZATION,
 } from "@/utils/app/const";
-import * as si from 'systeminformation';
-import os from 'os';
+// import * as si from 'systeminformation';
+// import os from 'os';
 import { NextApiRequest, NextApiResponse } from "next";
 import { default as logger } from "@/utils/logger.winston";
 import { GetWingmanControlServerUrl } from "@/types/wingman";
@@ -20,174 +20,6 @@ export const config = {
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) =>
 {
-    let controllers: si.Systeminformation.GraphicsControllerData[] = [];
-    const memoryAdjustment = 1024 * 1024;
-    const memoryPressure = 0.8;
-    try {
-        const gpuInfo = await si.graphics();
-        controllers = gpuInfo.controllers;
-        try {
-            logger.debug(`OS Platform: ${JSON.stringify(os.platform())}`);
-            logger.debug(`OS Arch: ${JSON.stringify(os.arch())}`);
-            logger.debug(`Free Memory: ${JSON.stringify(os.freemem())}`);
-            logger.debug(`Total Memory: ${JSON.stringify(os.totalmem())}`);
-            logger.debug(`Adjusted Free Memory: ${JSON.stringify(os.freemem() / memoryAdjustment)}`);
-            logger.debug(`Adjusted Total Memory: ${JSON.stringify(os.totalmem() / memoryAdjustment)}`);
-            logger.debug(`GPU Info: ${JSON.stringify(controllers)}`);
-            logger.debug(`GPU VRAM: ${JSON.stringify(controllers.map((controller) => controller.vram))}`);
-        } catch (error) {
-            logger.error(`Error logging GPU info: ${error}`);
-        }
-    } catch (error) {
-        logger.error(`Error getting GPU info: ${error}`);
-        throw new Error(`${error}`);
-    }
-
-    function isNumber(value?: string | number | null | undefined): boolean
-    {
-        if (value === null || value === undefined) return false;
-        return ((value != null) &&
-            (value !== '') &&
-            !isNaN(Number(value.toString())));
-    }
-
-    function toNumber(value?: string | number | null | undefined): number
-    {
-        if (isNumber(value)) {
-            return Number(value);
-        }
-        return -1;
-    }
-
-    interface Inferability
-    {
-        isInferable: boolean;
-        totalMemory: number;
-        availableMemory: number;
-        normalizedQuantizedMemRequired: number;
-    }
-
-    const checkInferability = (model: AIModel): Inferability =>
-    {
-        if (!Vendors[model.vendor].isDownloadable) return { isInferable: false, totalMemory: -1, availableMemory: -1, normalizedQuantizedMemRequired: -1};
-        if (!model.size) {
-            logger.debug(`Model '${model.name}' has EMPTY size. Will not be analyzed to see if it is inferable.`);
-            return { isInferable: false, totalMemory: -1, availableMemory: -1, normalizedQuantizedMemRequired: -1};
-        }
-        let totalMemory = -1;
-        let availableMemory = -1;
-        // check if the model can be run on the current gpu and memory
-        //   by comparing the model size to the amount of gpu, or memory if
-        //   there is no gpu
-        // if there is no gpu, or this is an Apple arm64 device, use the system memory
-        if (controllers.length === 0 || (os.platform() === 'darwin' && os.arch() === 'arm64')) {
-            // availableMemory = os.freemem() / memoryAdjustment;
-            // availableMemory = os.totalmem() / memoryAdjustment;
-            // on M-series Macs, the free memory can change a lot based
-            //    on what the user is doing, so we add a percentage of the
-            //    total memory to the free memory to get a more stable value
-            // availableMemory = (os.totalmem() / memoryAdjustment) * (1 - memoryPressure) + os.freemem() / memoryAdjustment;
-            totalMemory = os.totalmem() / memoryAdjustment;
-            availableMemory = os.totalmem() / memoryAdjustment;
-        } else {
-            // Search the list of controllers for the first one that:
-            //  - Has nvidia or amd in the name
-            //  - Has a non-zero amount of VRAM
-            // Pick the one with the most VRAM
-            let bestController = controllers[0];
-            for (let i = 1; i < controllers.length; i++) {
-                let controller = controllers[i];
-                let vram = toNumber(controller.vram);
-                if (vram > 0
-                    && (controller.vendor.toLowerCase().includes('nvidia')
-                        /*|| controller.vendor.toLowerCase().includes('amd')
-                        || controller.vendor.toLowerCase().includes('advanced micro devices')*/)
-                ) {
-                    if (vram > toNumber(bestController.vram)) {
-                        bestController = controller;
-                    }
-                }
-            }
-            totalMemory = toNumber(bestController.vram);
-            availableMemory = toNumber(bestController.vram);
-            // if we couldn't find a controller with non-zero VRAM, use the system memory
-            const minVRAM = 0;
-            if (availableMemory <= minVRAM) {
-                totalMemory = os.totalmem() / memoryAdjustment;
-                availableMemory = os.totalmem() / memoryAdjustment;
-            }
-        }
-        logger.silly(`Available Memory to run ${model.name} (${model.size}): ${availableMemory}`);
-        if (availableMemory === -1) return { isInferable: false, totalMemory: totalMemory, availableMemory: -1, normalizedQuantizedMemRequired: -1};
-
-        // paramSize is the last character of the model size
-        const parameterSizeIndicator = model.size.slice(-1);
-        // check if model is MoE by looking for an 'x' in the size
-        const isMoe = model.size.includes('x');
-        let sizeMultiplier = -1;
-        switch (parameterSizeIndicator) {
-            case 'K':
-                sizeMultiplier = 1000;
-                break;
-            case 'M':
-                sizeMultiplier = 1000000;
-                break;
-            case 'B':
-                sizeMultiplier = 1000000000;
-                break;
-            case 'T':
-                sizeMultiplier = 1000000000000;
-                break;
-            case 'Q':
-                sizeMultiplier = 1000000000000000;
-                break;
-        }
-        if (sizeMultiplier === -1) return { isInferable: false, totalMemory: totalMemory, availableMemory: availableMemory, normalizedQuantizedMemRequired: -1};
-        let moeMultiplier = 1;
-        let parameterValue = 0;
-        if (isMoe) {
-            const moeSize = model.size.split('x');
-            moeMultiplier = Number(moeSize[0]);
-            const parameterSize = Number(moeSize[1].substring(0, moeSize[1].length - 1));
-            parameterValue = parameterSize * moeMultiplier;
-        } else {
-            parameterValue = Number(model.size.substring(0, model.size.length - 1));
-        }
-        const quantizedBits = 4;
-        logger.silly(`Parameter Value: ${parameterValue}`);
-        logger.silly(`Quantized Bits: ${quantizedBits}`);
-        const quantizedSize = parameterValue * quantizedBits * sizeMultiplier / 8;
-        logger.silly(`Quantized Size: ${quantizedSize}`);
-        const quantizedMemRequired = quantizedSize / sizeMultiplier;
-        logger.silly(`Quantized Memory Required: ${quantizedMemRequired}`);
-        const normalizedQuantizedMemRequired = quantizedMemRequired * 1024;
-        logger.silly(`Normalized Quantized Memory Required to Run '${model.name}': ${normalizedQuantizedMemRequired}`);
-        const memoryDelta = availableMemory - normalizedQuantizedMemRequired;
-        // logger.info(`Memory Delta to Run '${model.name}': ${memoryDelta}`);
-        logger.debug(`Model '${model.name}' (${model.size}) ${normalizedQuantizedMemRequired <= availableMemory ? 'is' : 'is not'} inferable. Available Memory: ${availableMemory} Quantized Need: ${normalizedQuantizedMemRequired} Delta: ${memoryDelta}`);
-        // logger.info(`Model ${normalizedQuantizedMemRequired <= availableMemory ? 'is' : 'is not'} inferable`);
-        if (normalizedQuantizedMemRequired <= availableMemory) return { isInferable: true, totalMemory: totalMemory, availableMemory: availableMemory, normalizedQuantizedMemRequired: normalizedQuantizedMemRequired};
-        return { isInferable: false, totalMemory: totalMemory, availableMemory: availableMemory, normalizedQuantizedMemRequired: normalizedQuantizedMemRequired};
-    };
-
-    const setIsInferables = (models: AIModel[]) =>
-    {
-        if (models && models.length > 0) {
-            // set isInferable to true for each model that can be run on the current gpu and memory
-            let inferrables = 0;
-            for (let i = 0; i < models.length; i++) {
-                const inferability = checkInferability(models[i]);
-                if (inferability)
-                    inferrables++;
-                models[i].isInferable = inferability.isInferable;
-                models[i].totalMemory = inferability.totalMemory;
-                models[i].availableMemory = inferability.availableMemory;
-                models[i].normalizedQuantizedMemRequired = inferability.normalizedQuantizedMemRequired;
-            }
-            logger.info(`Number of inferable models: ${inferrables}`);
-        }
-    };
-
     const fetchWithRetry = async (url: string, retries: number = 3, delay: number = 1000): Promise<Response> =>
     {
         for (let i = 0; i < retries; i++) {
@@ -305,7 +137,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) =>
         } else {
             throw new Error(`HuggingFace API returned an error ${ores.status}: ${await ores.text()}`);
         }
-        setIsInferables(models);
+        // setIsInferables(models);
         res.status(200).json(models);
     } catch (error: unknown) {
         logger.error(`Error: ${error}`);

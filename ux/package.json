@@ -1,7 +1,7 @@
 {
     "name": "wingman",
     "description": "Wingman is the best way to run Llama AI locally.",
-    "version": "0.11.1",
+    "version": "0.12.0",
     "author": {
         "name": "Electric Curtis",
         "url": "https://x.com/electric_curtis"
@@ -36,6 +36,7 @@
         "electron-squirrel-startup": "^1.0.0",
         "eventsource-parser": "^0.1.0",
         "i18next": "^22.5.1",
+        "immer": "^10.1.1",
         "lodash": "^4.17.21",
         "next": "^13.2.4",
         "next-i18next": "^13.3.0",
@@ -44,6 +45,7 @@
         "react-hot-toast": "^2.4.1",
         "react-i18next": "^12.3.1",
         "react-markdown": "^9.0.1",
+        "react-paginate": "^8.2.0",
         "react-query": "^3.39.3",
         "react-select": "^5.8.0",
         "react-syntax-highlighter": "^15.5.0",
