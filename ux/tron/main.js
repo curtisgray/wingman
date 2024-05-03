@@ -188,34 +188,6 @@ if (!gotTheLock)
         return baseDir;
     };
 
-    // const handleWingmanResetAndRestart = async (exeDir, wingmanDir, nextDir, waitForExitFirst = true) =>
-    // {
-    //     return new Promise(async (resolve) =>
-    //     {
-    //         try
-    //         {
-    //             etell('[W] (handleAIModelLoadingError): Terminating Wingman server process...');
-    //             // Ensure the termination of the wingman process
-    //             if (!wingmanProcessController)
-    //             {
-    //                 etell(`[W] (handleAIModelLoadingError): Wingman process controller is not available`);
-    //                 reject(new Error('Wingman process controller is not available'));
-    //                 return;
-    //             }
-    //             await wingmanProcessController.terminate();
-    //             dtell('[W] (handleAIModelLoadingError): Wingman server process terminated.');
-    //             // After reset is complete, attempt to restart wingman
-    //             dtell(`[W] (handleAIModelLoadingError): Firing 'start-wingman' event...`);
-    //             ipcMain.emit("start-wingman", wingmanDir, nextDir);
-    //             resolve();
-    //         } catch (error)
-    //         {
-    //             etell(`[W] (handleAIModelLoadingError): Error handling Wingman reset and restart: ${error}`);
-    //             reject(error);
-    //         }
-    //     });
-    // };
-
     const getWingmanExecutableInfo = async (wingmanDir) =>
     {
         return new Promise(async (resolve, reject) =>
@@ -627,12 +599,6 @@ if (!gotTheLock)
                 };
                 const onRestartWingmanService = async () =>
                 {
-                    // await handleWingmanResetAndRestart(exeDir, wingmanDir, nextDir, false, false);
-                    // if (APP_WINDOW)
-                    // {
-                    //     // refresh the main window after restarting Wingman
-                    //     APP_WINDOW.reload();
-                    // }
                 };
                 createMenu(onShowLogViewer, onRestartWingmanService);
 
