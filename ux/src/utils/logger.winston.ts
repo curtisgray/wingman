@@ -1,0 +1,69 @@
+const DISABLE_LOGGING = false;
+import path from "path";
+import winston from "winston";
+import os from "os";
+// BASE_DIR is at `~/.wingman`. The ~ must be expanded to the user's home directory.
+const BASE_DIR = path.join(os.homedir(), ".wingman");
+
+// const dailyRotateFileOptions = {
+//     maxFiles: "14d",
+//     maxSize: "2m",
+//     createSymlink: true,
+// };
+// const loggerOutputPath = path.join(DATA_DIR, "logs");
+
+const logger = winston.createLogger({
+    // level: process.env.LOG_LEVEL || 'debug',
+    // silent: process.env.NODE_ENV === "test",
+    silent: DISABLE_LOGGING,
+    transports: [
+        new winston.transports.Console({
+            level: process.env.LOG_LEVEL ?? "verbose",
+            format: winston.format.combine(
+                winston.format.colorize(),
+                winston.format.printf(({ timestamp, level, message }) =>
+                {
+                    return `[${timestamp}] [${level}] ${message}`;
+                }),
+            ),
+        }),
+        new winston.transports.File({
+            level: "verbose",
+            filename: path.join(BASE_DIR, "wingman.log"),
+            format: winston.format.combine(
+                winston.format.uncolorize(),
+                winston.format.printf(({ timestamp, level, message }) =>
+                {
+                    return `[${timestamp}] [${level}] ${message}`;
+                }),
+            ),
+        }),
+        // new DailyRotateFile(Object.assign(dailyRotateFileOptions, {
+        //     level: "silly",
+        //     dirname: loggerOutputPath,
+        //     symlinkName: "silly.log",
+        //     format: winston.format.combine(winston.format.uncolorize(), winston.format.json()),
+        // })),
+        // new DailyRotateFile(Object.assign(dailyRotateFileOptions, {
+        //     level: "debug",
+        //     dirname: loggerOutputPath,
+        //     symlinkName: "debug.log",
+        //     format: winston.format.combine(winston.format.uncolorize(), winston.format.json()),
+        // })),
+        // new DailyRotateFile(Object.assign(dailyRotateFileOptions, {
+        //     level: "verbose",
+        //     dirname: loggerOutputPath,
+        //     symlinkName: "verbose.log",
+        //     format: winston.format.combine(winston.format.uncolorize(), winston.format.json()),
+        // })),
+        // new DailyRotateFile(Object.assign(dailyRotateFileOptions, {
+        //     level: "http",
+        //     dirname: loggerOutputPath,
+        //     symlinkName: "http.log",
+        //     format: winston.format.combine(winston.format.uncolorize(), winston.format.json()),
+        // })),
+    ],
+    format: winston.format.combine(winston.format.metadata(), winston.format.timestamp()),
+});
+
+export default logger;

@@ -77,7 +77,7 @@ try {
 
     # Copy static files needed by Electron
     Write-Host "Copying static files for Electron..."
-    Copy-Item ".next/static" ".next/standalone/.next" -Recurse -Force
+    # Copy-Item ".next/static" ".next/standalone/.next" -Recurse -Force
 
     # Do not build the Electron app if platform is linux
     if ($platform -ne "linux") {

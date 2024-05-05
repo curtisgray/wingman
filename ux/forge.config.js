@@ -9,8 +9,8 @@ module.exports = {
         asar: true,
         extraResource: [
             "server/wingman",
-            ".next/standalone",
-            "assets/iq"
+            ".dist",
+            // "assets/iq"
         ],
         icon: "assets/logo-color",
         osxSign: {},
@@ -79,15 +79,15 @@ module.exports = {
             execSync("npm run build", { cwd: __dirname });
             // copy the static folder into standalone/.next. standalone/public is already copied by electron-forge
             //  though NextJs docs say to copy the public folder, it seems to work without it
-            var src = path.join(__dirname, ".next", "static");
-            var dst = path.join(__dirname, ".next", "standalone", ".next", "static");
-            await fs.cp(src, dst, { recursive: true });
+            // var src = path.join(__dirname, ".next", "static");
+            // var dst = path.join(__dirname, ".next", "standalone", ".next", "static");
+            // await fs.cp(src, dst, { recursive: true });
         },
         packageAfterCopy: async (config, buildPath, electronVersion, platform, arch) => {
             // files under server/wingman are already copied to
             //   resources folder so we can delete them from the root
             await fs.rm(path.join(buildPath, "server", "wingman"), { recursive: true });
-            await fs.rm(path.join(buildPath, ".next"), { recursive: true });
+            await fs.rm(path.join(buildPath, ".dist"), { recursive: true });
         },
     },
 };

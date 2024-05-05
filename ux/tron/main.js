@@ -694,7 +694,8 @@ if (!gotTheLock)
                     WINGMAN_SERVICE_PROCESS_MAP.set(`PID_${controller.pid}`, controller);
                     dtell(`(start-wingman): WINGMAN_SERVICE_PROCESS_MAP has : ${WINGMAN_SERVICE_PROCESS_MAP.size} entries after adding PID_${controller.pid}`);
                     dtell(`(start-wingman): Firing 'start-nextjs' event...`);
-                    ipcMain.emit("start-nextjs", WINGMAN_UI_PORT, nextDir);
+                    // ipcMain.emit("start-nextjs", WINGMAN_UI_PORT, nextDir);
+                    ipcMain.emit('go-to-ux', port);
                     firstTimeStartingWingman = false;
                 }
             })

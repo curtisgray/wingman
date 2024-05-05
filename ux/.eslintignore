@@ -1,0 +1,7 @@
+node_modules/
+dist/
+build/
+public/
+**/*.config.js
+!**/eslint.config.js
+forge.config.js

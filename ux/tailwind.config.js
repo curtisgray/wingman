@@ -1,19 +1,10 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: [
-    './app/**/*.{js,ts,jsx,tsx}',
-    './pages/**/*.{js,ts,jsx,tsx}',
-    './components/**/*.{js,ts,jsx,tsx}',
-    './*.html',
-  ],
-  darkMode: 'class',
-  theme: {
+/** @type {import("tailwindcss").Config} */
+export const content = [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+];
+export const darkMode = "class";
+export const theme = {
     extend: {},
-  },
-  variants: {
-    extend: {
-      visibility: ['group-hover'],
-    },
-  },
-  plugins: [require('@tailwindcss/typography')],
 };
+export const plugins = [];

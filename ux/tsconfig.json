@@ -1,39 +1,46 @@
 {
     "compilerOptions": {
-        "target": "es5",
+        "target": "ES2020",
+        "useDefineForClassFields": true,
         "lib": [
-            "dom",
-            "dom.iterable",
-            "esnext"
+            "ES2020",
+            "DOM",
+            "DOM.Iterable"
         ],
-        "allowJs": true,
+        "module": "ESNext",
         "skipLibCheck": true,
-        "strict": true,
-        "forceConsistentCasingInFileNames": true,
-        "noEmit": true,
-        "sourceMap": true,
-        "esModuleInterop": true,
-        "module": "esnext",
-        "moduleResolution": "node",
+        /* Bundler mode */
+        "moduleResolution": "bundler",
+        "allowImportingTsExtensions": true,
         "resolveJsonModule": true,
         "isolatedModules": true,
-        "jsx": "preserve",
+        "noEmit": true,
+        "jsx": "react-jsx",
+        /* Linting */
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true,
+        "allowJs": true,
+        "forceConsistentCasingInFileNames": true,
+        "sourceMap": true,
+        "esModuleInterop": true,
         "incremental": true,
         "types": [
             "vitest/globals"
         ],
         "paths": {
             "@/*": [
-                "./*"
+                "./src/*"
             ]
         }
     },
     "include": [
-        "next-env.d.ts",
-        "**/*.ts",
-        "**/*.tsx"
+        "src"
     ],
-    "exclude": [
-        "node_modules"
-    ]
+    "references": [
+        {
+            "path": "./tsconfig.node.json"
+        }
+    ],
 }
