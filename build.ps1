@@ -15,6 +15,15 @@ Push-Location -Path $PSScriptRoot
 try {
     Write-Host "Starting build for Wingman on platform: $BuildPlatform"
 
+    # Build Wingman UX
+    Write-Host "Building Wingman UX"
+    Push-Location -Path "./ux"
+    ./build-ux-ci.ps1 -BuildPlatform $BuildPlatform -Force:$Force -SkipDeployment:$SkipDeployment
+    if ($LASTEXITCODE -ne 0) {
+        throw "Building Wingman UX failed with exit code $LASTEXITCODE" 
+    }
+    Pop-Location
+
     # Build Wingman.cpp
     Write-Host "Building Wingman.cpp"
     Push-Location -Path "./services/wingman.cpp"
@@ -25,11 +34,11 @@ try {
     Pop-Location
 
     # Build Wingman UX
-    Write-Host "Building Wingman UX"
+    Write-Host "Deploying Wingman Desktop ..."
     Push-Location -Path "./ux"
-    ./build-ux-ci.ps1 -BuildPlatform $BuildPlatform -Force:$Force -SkipDeployment:$SkipDeployment
+    ./build-ux-ci.ps1 -BuildPlatform $BuildPlatform -SkipBuild -SkipDeployment:$SkipDeployment
     if ($LASTEXITCODE -ne 0) {
-        throw "Building Wingman UX failed with exit code $LASTEXITCODE" 
+        throw "Deploying Wingman failed with exit code $LASTEXITCODE" 
     }
     Pop-Location
 

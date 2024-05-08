@@ -1,7 +1,7 @@
 {
     "name": "wingman",
     "description": "Wingman is the best way to run Llama AI locally.",
-    "version": "0.20.0",
+    "version": "0.20.1",
     "author": {
         "name": "Electric Curtis",
         "url": "https://x.com/electric_curtis"
@@ -16,6 +16,7 @@
     "scripts": {
         "dev": "vite --port 2000",
         "build": "tsc && vite build --emptyOutDir",
+        "build:dist": "tsc && vite build --emptyOutDir --mode production && cpx '.dist/**/*' '../services/wingman.cpp/wingman/'",
         "lint": "eslint ./src/** --report-unused-disable-directives --max-warnings 0",
         "preview": "vite preview --port 2000",
         "watch": "tsc && vite build --emptyOutDir --watch"

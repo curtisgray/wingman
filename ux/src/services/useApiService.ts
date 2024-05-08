@@ -5,9 +5,6 @@ import { ChatBody, Message } from "@/types/chat";
 import { GetWingmanControlServerUrl } from "@/types/wingman";
 import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE, SYSTEM_MAX_TOKENS as TOKEN_BUFFER, OPENAI_API_HOST, OPENAI_API_TYPE, OPENAI_API_VERSION, OPENAI_ORGANIZATION } from "@/utils/app/const";
 import { OpenAIStream, OpenAIError } from "@/utils/server";
-// import wasm from "../../node_modules/@dqbd/tiktoken/lite/tiktoken_bg.wasm?module";
-// import wasm from "../../node_modules/@dqbd/tiktoken/lite/tiktoken_bg.wasm";
-// import * as wasm from "@dqbd/tiktoken/lite/tiktoken_bg.wasm";
 import tiktokenEncoder from "@dqbd/tiktoken/encoders/cl100k_base.json";
 import { Tiktoken, init } from "@dqbd/tiktoken/lite/init";
 
@@ -135,7 +132,7 @@ const useApiService = () =>
                 throw new Error(`Failed to fetch wasm file: ${wres.status}`);
             }
             const wasm = await wres.arrayBuffer();
-            await init((imports) => WebAssembly.instantiate(wasm, imports));
+            await init((imports: WebAssembly.Imports | undefined) => WebAssembly.instantiate(wasm, imports));
             const encoding = new Tiktoken(
                 tiktokenEncoder.bpe_ranks,
                 tiktokenEncoder.special_tokens,

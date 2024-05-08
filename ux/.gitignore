@@ -13,11 +13,14 @@ server/wingman/macos*
 server/wingman/linux*
 llama*.log
 wingman*.log
-
+.secrets
+.venv
+venv
 # dependencies
 /node_modules
 /.pnp
 .pnp.js
+.npm
 
 # testing
 /coverage

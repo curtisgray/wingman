@@ -1,22 +1,25 @@
-import {
-    AZURE_DEPLOYMENT_ID,
-    OPENAI_API_HOST,
-    OPENAI_API_TYPE,
-    OPENAI_API_VERSION,
-    OPENAI_ORGANIZATION,
-    SYSTEM_MAX_TOKENS,
-} from "../app/const";
+import
+    {
+        AZURE_DEPLOYMENT_ID,
+        OPENAI_API_HOST,
+        OPENAI_API_TYPE,
+        OPENAI_API_VERSION,
+        OPENAI_ORGANIZATION,
+        SYSTEM_MAX_TOKENS,
+    } from "../app/const";
 import { Message } from "@/types/chat";
 import { AIModel, VendorName } from "@/types/ai";
 import { ParsedEvent, ReconnectInterval, createParser } from "eventsource-parser";
 import { GetWingmanInferenceServerUrl } from "@/types/wingman";
 
-export class OpenAIError extends Error {
+export class OpenAIError extends Error
+{
     type: string;
     param: string;
     code: string;
 
-    constructor(message: string, type: string, param: string, code: string) {
+    constructor (message: string, type: string, param: string, code: string)
+    {
         super(message);
         this.name = "OpenAIError";
         this.type = type;
@@ -33,7 +36,8 @@ export const OpenAIStream = async (
     messages: Message[],
     vendor: VendorName,
     signal?: AbortSignal
-) => {
+) =>
+{
     let vendorDisplayName = "";
     let host = "";
     switch (vendor) {
@@ -59,16 +63,15 @@ export const OpenAIStream = async (
         headers: {
             "Content-Type": "application/json",
             ...(OPENAI_API_TYPE === "openai" && {
-                Authorization: `Bearer ${
-                    key
-                }`,
+                Authorization: `Bearer ${key
+                    }`,
             }),
             ...(OPENAI_API_TYPE === "azure" && {
                 "api-key": `${key}`,
             }),
             ...(OPENAI_API_TYPE === "openai" &&
                 OPENAI_ORGANIZATION && {
-                    "OpenAI-Organization": OPENAI_ORGANIZATION,
+                "OpenAI-Organization": OPENAI_ORGANIZATION,
             }),
         },
         method: "POST",
@@ -102,16 +105,17 @@ export const OpenAIStream = async (
             );
         } else {
             throw new Error(
-                `${vendorDisplayName} returned an error: ${
-                    decoder.decode(result?.value) || result.statusText
+                `${vendorDisplayName} returned an error: ${decoder.decode(result?.value) || result.statusText
                 }`
             );
         }
     }
 
     const stream = new ReadableStream({
-        async start(controller) {
-            const onParse = (event: ParsedEvent | ReconnectInterval) => {
+        async start(controller)
+        {
+            const onParse = (event: ParsedEvent | ReconnectInterval) =>
+            {
                 if (event.type === "event") {
                     const data = event.data;
 
@@ -132,9 +136,14 @@ export const OpenAIStream = async (
 
             const parser = createParser(onParse);
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            for await (const chunk of res.body as any) {
-                parser.feed(decoder.decode(chunk));
+            if (res.body == null) {
+                throw new Error("Response body is null");
+            }
+            const reader = res.body.getReader();
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                parser.feed(decoder.decode(value));
             }
         },
     });
