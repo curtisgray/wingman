@@ -36,7 +36,7 @@ try {
     # Build Wingman UX
     Write-Host "Deploying Wingman Desktop ..."
     Push-Location -Path "./ux"
-    ./build-ux-ci.ps1 -BuildPlatform $BuildPlatform -SkipBuild -SkipDeployment:$SkipDeployment
+    ./deploy-ux-ci.ps1 -BuildPlatform $BuildPlatform -SkipBuild -SkipDeployment:$SkipDeployment
     if ($LASTEXITCODE -ne 0) {
         throw "Deploying Wingman failed with exit code $LASTEXITCODE" 
     }
