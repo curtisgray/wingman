@@ -122,7 +122,7 @@ export default () =>
     return (
         <div className="h-screen w-screen flex flex-col p-8 items-center justify-center bg-gray-50">
             <h1 className="font-semibold text-xl pb-8">ODOBO</h1>
-            <div className="flex flex-col items-center p-4 space-y-4 w-full overflow-y-auto bg-gray-100" style={{ maxHeight: "50vh" }}>
+            <div className="flex flex-col items-center p-4 space-y-4 w-full overflow-y-auto bg-gray-100">
                 {downloads.length > 0 &&
                     downloads.map((download) => (
                         <div className="flex justify-between w-3/4 items-center" key={download.filePath}>
