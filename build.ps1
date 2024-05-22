@@ -24,6 +24,15 @@ try {
     }
     Pop-Location
 
+    # Build Wingman Admin UX
+    Write-Host "Building Wingman Admin UX"
+    Push-Location -Path "./admin"
+    ./build-ux-ci.ps1 -BuildPlatform $BuildPlatform -Force:$Force -SkipDeployment:$SkipDeployment
+    if ($LASTEXITCODE -ne 0) {
+        throw "Building Wingman Admin UX failed with exit code $LASTEXITCODE" 
+    }
+    Pop-Location
+
     # Build Wingman.cpp
     Write-Host "Building Wingman.cpp"
     Push-Location -Path "./services/wingman.cpp"

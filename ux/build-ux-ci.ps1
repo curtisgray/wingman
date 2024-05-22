@@ -19,8 +19,7 @@ try {
     if ($Force) {
         Write-Host "Cleaning previous build artifacts..."
         Remove-Item -Recurse -Force -ErrorAction SilentlyContinue node_modules
-        Remove-Item -Recurse -Force -ErrorAction SilentlyContinue out
-        Remove-Item -Recurse -Force -ErrorAction SilentlyContinue .next
+        Remove-Item -Recurse -Force -ErrorAction SilentlyContinue dist
     }
 
     # Determine architecture based on platform
