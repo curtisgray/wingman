@@ -71,7 +71,6 @@ RUN if [ "${INSTALL_POWERSHELL}" = "true" ]; then \
 COPY docker/ /root/
 COPY .secrets/ /root/
 COPY .secrets/.ssh/ /root/.ssh/
-COPY ux/assets/iq/ /root/iq/
 
 RUN chmod 700 /root/.ssh
 RUN chmod 600 /root/.ssh/id_rsa

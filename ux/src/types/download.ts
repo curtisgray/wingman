@@ -32,6 +32,7 @@ export type DownloadItem = DownloadProps & {
     downloadSpeed?: string;
     progress: number;
     error?: string;
+    metadata?: string;
     created: number;
     updated: number;
 };
