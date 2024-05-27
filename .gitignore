@@ -9,6 +9,7 @@ wingman_history*.json
 *.db
 build
 llama.log
+.npm
 
 ux/server/wingman/Windows
 ux/server/wingman/Linux

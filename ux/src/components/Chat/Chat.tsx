@@ -59,10 +59,10 @@ export const Chat = memo(({ stopConversationRef }: Props) =>
     } = useContext(HomeContext);
 
     const {
-        state: { isOnline, currentWingmanInferenceItem },
+        state: { isOnline, currentWingmanInferenceItem, config },
     } = useContext(WingmanContext);
 
-    const { generate } = useApiService();
+    const { generate } = useApiService(config);
 
     const settings: Settings = getSettings();
 

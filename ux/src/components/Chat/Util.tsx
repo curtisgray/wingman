@@ -84,9 +84,9 @@ export const displayModelName = (model: AIModel) =>
         // split the repo owner and name and return 'name (repo owner)'
         const [, repo] = model.name.split('/');
         const cleanName = repo.replace(/-/g, ' ');
-        return <div className="flex"><span>{cleanName}</span></div>;
+        return <div className="flex text-ellipsis"><span>{cleanName}</span></div>;
     } else {
-        return <div className="flex"><span>{model.name}</span></div>;
+        return <div className="flex text-ellipsis"><span>{model.name}</span></div>;
     }
 };
 

@@ -1,4 +1,4 @@
-import { GetWingmanControlServerUrl, GetWingmanInferenceServerUrl, WingmanContent, WingmanItem } from "@/types/wingman";
+import { WingmanConfig, WingmanContent, WingmanItem } from "@/types/wingman";
 import { useRef, useState } from "react";
 
 interface InferenceActionProps
@@ -14,7 +14,7 @@ interface InferenceActionProps
     isGenerating: boolean;
 }
 
-export function useRequestInferenceAction(): InferenceActionProps
+export function useRequestInferenceAction(config: WingmanConfig): InferenceActionProps
 {
     const inferenceAction = async (url: string): Promise<WingmanItem | undefined> =>
     {
@@ -47,27 +47,27 @@ export function useRequestInferenceAction(): InferenceActionProps
 
     const requestStartInference = async (alias: string, modelRepo: string, filePath: string, gpuLayers: number = -1): Promise<WingmanItem | undefined> =>
     {
-        const url = `${GetWingmanControlServerUrl()}/api/inference/start?alias=${encodeURI(alias)}&modelRepo=${encodeURI(modelRepo)}&filePath=${encodeURI(filePath)}&gpuLayers=${gpuLayers}`;
+        const url = `http://${config.serverHost}:${config.controlPort}/api/inference/start?alias=${encodeURI(alias)}&modelRepo=${encodeURI(modelRepo)}&filePath=${encodeURI(filePath)}&gpuLayers=${gpuLayers}`;
         return await inferenceAction(url);
     };
 
     const requestStopInference = async (alias: string) =>
     {
-        const url = `${GetWingmanControlServerUrl()}/api/inference/stop?alias=${encodeURI(alias)}`;
+        const url = `http://${config.serverHost}:${config.controlPort}/api/inference/stop?alias=${encodeURI(alias)}`;
         return await inferenceAction(url);
     };
 
     const requestResetInference = async (alias: string) =>
     {
-        const url = `${GetWingmanControlServerUrl()}/api/inference/reset?alias=${encodeURI(alias)}`;
+        const url = `http://${config.serverHost}:${config.controlPort}/api/inference/reset?alias=${encodeURI(alias)}`;
         return await inferenceAction(url);
     };
 
     const requestInferenceStatus = async (alias: string|undefined = undefined) =>
     {
-        let url = `${GetWingmanControlServerUrl()}/api/inference/status`;
+        let url = `http://${config.serverHost}:${config.controlPort}/api/inference/status`;
         if (alias) {
-            url = `${GetWingmanControlServerUrl()}/api/inference/status?alias=${encodeURI(alias)}`;
+            url = `http://${config.serverHost}:${config.controlPort}/api/inference/status?alias=${encodeURI(alias)}`;
         }
         return await inferenceAction(url);
     };
@@ -84,7 +84,7 @@ export function useRequestInferenceAction(): InferenceActionProps
             setItems([]);
             try {
                 const controller = new AbortController();
-                fetch(encodeURI(`${GetWingmanInferenceServerUrl()}/completion`), {
+                fetch(encodeURI(`http://${config.serverHost}:${config.inferencePort}/completion`), {
                     method: "POST",
                     headers: {
                         "Content-Type": "text/event-stream"

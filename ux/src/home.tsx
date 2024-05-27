@@ -31,7 +31,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 import { useWingman } from "@/hooks/useWingman";
-import { WingmanStateProps } from "@/types/wingman";
+import { WingmanConfig, WingmanStateProps } from "@/types/wingman";
 import { initialWingmanState } from "./wingman.state";
 import { useRequestInferenceAction } from "@/hooks/useRequestInferenceAction";
 import toast from "react-hot-toast";
@@ -42,7 +42,6 @@ import { displayLoadingMessage } from "./components/Chat/Util";
 
 const Home = () =>
 {
-    const { getModels } = useApiService();
     const { getModelsError } = useErrorService();
     const [enableAutoModelsRefresh, setEnableAutoModelsRefresh] = useState<boolean>(true);
     const [isSwitchingConversationModel, setIsSwitchingConversationModel] = useState<boolean>(false);
@@ -74,6 +73,13 @@ const Home = () =>
         initialState: initialWingmanState,
     });
 
+    const [wingmanConfig, setWingmanConfig] = useState<WingmanConfig>({
+        inferencePort: 6567,
+        controlPort: 6568,
+        embeddingPort: 6567,
+        serverHost: "localhost",
+    });
+
     const {
         dispatch: wingmanDispatch,
     } = wingmanContextValue;
@@ -99,8 +105,9 @@ const Home = () =>
         wingmanStatusLabel,
 
         hasReceivedWingmanItems,
-    } = useWingman();
-    const inferenceActions = useRequestInferenceAction();
+    } = useWingman(wingmanConfig);
+    const inferenceActions = useRequestInferenceAction(wingmanConfig);
+    const { getModels } = useApiService(wingmanConfig);
 
     useEffect(() =>
     {
@@ -826,6 +833,7 @@ const Home = () =>
         <WingmanContext.Provider
             value={{
                 ...wingmanContextValue,
+                handleUpdateWingmanConfig: setWingmanConfig,
                 handleUpdateWingmanStatusMessage
             }}
         >

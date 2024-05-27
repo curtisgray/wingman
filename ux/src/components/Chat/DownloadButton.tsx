@@ -12,7 +12,7 @@ const DownloadButton = ({ modelRepo, filePath,
     className = undefined, children = undefined, autoStart = false }: DownloadButtonProps) =>
 {
     const {
-        state: { downloadItems },
+        state: { downloadItems, config },
     } = useContext(WingmanContext);
 
     const {
@@ -21,7 +21,7 @@ const DownloadButton = ({ modelRepo, filePath,
 
     const { handleRefreshModels } = useContext(HomeContext);
 
-    const downloadActions = useRequestDownloadAction();
+    const downloadActions = useRequestDownloadAction(config);
 
     const [downloadItem, setDownloadItem] = useState<DownloadItem | undefined>(undefined);
     const [isDownloading, setIsDownloading] = useState<boolean>(false);

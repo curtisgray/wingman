@@ -27,12 +27,12 @@ const WingmanDownloadStatus = ({
     className = undefined }: Props) =>
 {
     const {
-        state: { downloadItems },
+        state: { downloadItems, config },
     } = useContext(WingmanContext);
 
     const { handleRefreshModels } = useContext(HomeContext);
 
-    const downloadActions = useRequestDownloadAction();
+    const downloadActions = useRequestDownloadAction(config);
 
     const [downloadItem, setDownloadItem] = useState<DownloadItem | undefined>(undefined);
     const [isDownloading, setIsDownloading] = useState<boolean>(false);

@@ -24,4 +24,10 @@ export const initialWingmanState: WingmanStateProps = {
     wingmanStatusLabel: "Unknown",
     
     hasReceivedWingmanItems: false,
+    config: {
+        inferencePort: 6567,
+        embeddingPort: 6567,
+        controlPort: 6568,
+        serverHost: "localhost",
+    }
 };

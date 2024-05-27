@@ -1,17 +1,17 @@
-import { GetWingmanControlServerUrl, WingmanLogItem } from "@/types/wingman";
+import { WingmanConfig, WingmanLogItem } from "@/types/wingman";
 
 interface UtilsActionProps
 {
     requestWriteToLog: (logItem: WingmanLogItem) => Promise<boolean>;
 }
 
-export function useRequestUtilsAction(): UtilsActionProps
+export function useRequestUtilsAction(config: WingmanConfig): UtilsActionProps
 {
     const requestWriteToLog = async (logItem: WingmanLogItem): Promise<boolean> =>
     {
         try {
             const body = JSON.stringify(logItem);
-            const url = `${GetWingmanControlServerUrl()}/api/utils/log`;
+            const url = `http://${config.serverHost}:${config.controlPort}/api/utils/log`;
             // post message to log as json
             const response = await fetch(url, {
                 method: "POST",

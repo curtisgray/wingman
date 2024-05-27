@@ -70,14 +70,6 @@ export default function ModelSearchView({ className = undefined }: Props)
         }
     }, [setSelectedModel]);
 
-    // const handleSelectItem = useCallback((item: DownloadableItem) =>
-    // {
-    //     // setSelectedModel(draft =>
-    //     // {
-    //     //     draft.item = item;
-    //     // });
-    // }, [setSelectedModel]);
-
     const displayShowDetails = useCallback((model: AIModel): ReactNode =>
     {
         const wi = wingmanItems.find((wi) => wi.modelRepo === model.id);
@@ -253,7 +245,7 @@ export default function ModelSearchView({ className = undefined }: Props)
                             placeholder="Search models..."
                             value={searchTerm}
                             onChange={handleSearch}
-                            className="w-full px-2 py-1 border border-gray-300 rounded"
+                            className="w-full px-2 py-1 border border-gray-300 rounded dark:text-gray-700 text-gray-400"
                         />
                     </div>
                     <div className='rounded bg-white dark:text-gray-700 text-gray-400'>
@@ -282,7 +274,7 @@ export default function ModelSearchView({ className = undefined }: Props)
                                             onClick={() => handleSelectModel(model)}
                                         >
                                             <div className='p-4'>
-                                                <h3 className='text-base font-medium leading-5'>
+                                                <h3 className='text-base font-medium leading-5 text-ellipsis'>
                                                     {displayModelName(model)}
                                                 </h3>
                                                 {displayModelMetrics(model)}

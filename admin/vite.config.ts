@@ -18,5 +18,5 @@ export default defineConfig({
             plugins: [tailwindcss],
         },
     },
-    base: '/admin/',
+    base: '/admin',
 });

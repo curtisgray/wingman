@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FC, useEffect, useState } from "react";
+import { FC, useContext, useEffect, useState } from "react";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import { MemoizedReactMarkdown } from "../Markdown/MemoizedReactMarkdown";
 import { CodeBlock } from "../Markdown/CodeBlock";
 import { useRequestUtilsAction } from "@/hooks/useRequestUtilsAction";
 import { WingmanLogLevel, WingmanLogItem } from "@/types/wingman";
+import WingmanContext from "@/wingman.context";
 
 interface Props
 {
@@ -15,8 +16,12 @@ interface Props
 
 export const MarkdownView: FC<Props> = ({ fileName, text }) =>
 {
+    const {
+        state: { config },
+    } = useContext(WingmanContext);
+
     const [content, setContent] = useState("");
-    const { requestWriteToLog } = useRequestUtilsAction();
+    const { requestWriteToLog } = useRequestUtilsAction(config);
 
     const handleRequestWriteToLog = (level: WingmanLogLevel, message: string) =>
     {

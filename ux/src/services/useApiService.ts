@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useFetch } from "@/hooks/useFetch";
-import { AIModel, AIModelID, AIModels, Vendors } from "@/types/ai";
+import { AIModel, AIModelID, AIModels, VendorName, Vendors } from "@/types/ai";
 import { ChatBody, Message } from "@/types/chat";
-import { GetWingmanControlServerUrl } from "@/types/wingman";
-import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE, SYSTEM_MAX_TOKENS as TOKEN_BUFFER, OPENAI_API_HOST, OPENAI_API_TYPE, OPENAI_API_VERSION, OPENAI_ORGANIZATION } from "@/utils/app/const";
-import { OpenAIStream, OpenAIError } from "@/utils/server";
+import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE, SYSTEM_MAX_TOKENS as TOKEN_BUFFER, OPENAI_API_HOST, OPENAI_API_TYPE, OPENAI_API_VERSION, OPENAI_ORGANIZATION, AZURE_DEPLOYMENT_ID, SYSTEM_MAX_TOKENS } from "@/utils/app/const";
+import { type ParsedEvent, type ReconnectInterval, createParser } from "eventsource-parser";
 import tiktokenEncoder from "@dqbd/tiktoken/encoders/cl100k_base.json";
 import { Tiktoken, init } from "@dqbd/tiktoken/lite/init";
+import { WingmanConfig } from "@/types/wingman";
 
 export interface GetModelsRequestProps
 {
@@ -14,10 +14,148 @@ export interface GetModelsRequestProps
     url: string;
 }
 
-const useApiService = () =>
+class OpenAIError extends Error
+{
+    type: string;
+    param: string;
+    code: string;
+
+    constructor (message: string, type: string, param: string, code: string)
+    {
+        super(message);
+        this.name = "OpenAIError";
+        this.type = type;
+        this.param = param;
+        this.code = code;
+    }
+}
+
+const useApiService = (config: WingmanConfig) =>
 {
     const fetchService = useFetch();
 
+    const OpenAIStream = async (
+        model: AIModel,
+        systemPrompt: string,
+        temperature: number,
+        key: string,
+        messages: Message[],
+        vendor: VendorName,
+        signal?: AbortSignal
+    ) =>
+    {
+        let vendorDisplayName = "";
+        let host = "";
+        switch (vendor) {
+            case "openai":
+                host = OPENAI_API_HOST;
+                vendorDisplayName = "OpenAI API";
+                break;
+            case "meta":
+                host = `http://${config.serverHost}:${config.inferencePort}`;
+                vendorDisplayName = "Wingman";
+                break;
+            default:
+                throw new Error(`Unknown vendor: ${vendor}`);
+        }
+
+        let url = `${host}/v1/chat/completions`;
+        console.log(`${vendorDisplayName}: url=${url}`);
+
+        if (OPENAI_API_TYPE === "azure") {
+            url = `${OPENAI_API_HOST}/openai/deployments/${AZURE_DEPLOYMENT_ID}/chat/completions?api-version=${OPENAI_API_VERSION}`;
+        }
+        const res = await fetch(url, {
+            headers: {
+                "Content-Type": "application/json",
+                ...(OPENAI_API_TYPE === "openai" && {
+                    Authorization: `Bearer ${key
+                        }`,
+                }),
+                ...(OPENAI_API_TYPE === "azure" && {
+                    "api-key": `${key}`,
+                }),
+                ...(OPENAI_API_TYPE === "openai" &&
+                    OPENAI_ORGANIZATION && {
+                    "OpenAI-Organization": OPENAI_ORGANIZATION,
+                }),
+            },
+            method: "POST",
+            body: JSON.stringify({
+                ...((vendor === "openai" || vendor === "meta") && { model: model.id }),
+                messages: [
+                    {
+                        role: "system",
+                        content: systemPrompt,
+                    },
+                    ...messages,
+                ],
+                max_tokens: SYSTEM_MAX_TOKENS,
+                temperature: temperature,
+                stream: true,
+            }),
+            signal,
+        });
+
+        const encoder = new TextEncoder();
+        const decoder = new TextDecoder();
+
+        if (res.status !== 200) {
+            const result = await res.json();
+            if (result.error) {
+                throw new OpenAIError(
+                    result.error.message,
+                    result.error.type,
+                    result.error.param,
+                    result.error.code
+                );
+            } else {
+                throw new Error(
+                    `${vendorDisplayName} returned an error: ${decoder.decode(result?.value) || result.statusText
+                    }`
+                );
+            }
+        }
+
+        const stream = new ReadableStream({
+            async start(controller)
+            {
+                const onParse = (event: ParsedEvent | ReconnectInterval) =>
+                {
+                    if (event.type === "event") {
+                        const data = event.data;
+
+                        try {
+                            const json = JSON.parse(data);
+                            if (json.choices[0].finish_reason != null) {
+                                controller.close();
+                                return;
+                            }
+                            const text = json.choices[0].delta.content;
+                            const queue = encoder.encode(text);
+                            controller.enqueue(queue);
+                        } catch (e) {
+                            controller.error(e);
+                        }
+                    }
+                };
+
+                const parser = createParser(onParse);
+
+                if (res.body == null) {
+                    throw new Error("Response body is null");
+                }
+                const reader = res.body.getReader();
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    parser.feed(decoder.decode(value));
+                }
+            },
+        });
+
+        return stream;
+    };
     const fetchWithRetry = async (url: string, retries: number = 3, delay: number = 1000): Promise<Response> =>
     {
         for (let i = 0; i < retries; i++) {
@@ -99,7 +237,7 @@ const useApiService = () =>
                     .filter(Boolean));
             }
 
-            const ores = await fetchWithRetry(`${GetWingmanControlServerUrl()}/api/models`);
+            const ores = await fetchWithRetry(`http://${config.serverHost}:${config.controlPort}/api/models`);
             if (ores.ok) {
                 const res = await ores.json();
                 models.push(...res.models);

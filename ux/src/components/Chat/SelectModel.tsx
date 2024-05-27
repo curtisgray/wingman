@@ -56,16 +56,16 @@ const SelectModelInternal = ({ onValidateChange = () => true, onDownloadComplete
 
     // const { t } = useTranslation("chat");
 
-    const { requestResetInference } = useRequestInferenceAction();
-
     const {
         state: { models, globalModel, defaultModelId, isSwitchingModel },
         handleChangeModel,
     } = useContext(HomeContext);
 
     const {
-        state: { isOnline },
+        state: { isOnline, config },
     } = useContext(WingmanContext);
+
+    const { requestResetInference } = useRequestInferenceAction(config);
 
     const handleDownloadInitialized = () => {
         if (expertMode) setIsChangingModel(false);

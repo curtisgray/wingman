@@ -7,7 +7,7 @@ param(
     [switch]$Force,
 
     [Parameter(Mandatory = $false)]
-    [switch]$SkipDeployment,
+    [switch]$SkipCopyTo,
 
     [Parameter(Mandatory = $false)]
     [switch]$SkipNpmInstall
@@ -78,15 +78,19 @@ try {
         throw "npm run build failed" 
     }
 
-    if ($SkipDeployment) {
-        Write-Warning "Skipping deployment..."
+    if ($SkipCopyTo) {
+        Write-Warning "Skipping copy to destination..."
     }
     else {
         # Copy the dist folder to wingman.cpp if the ../services/wingman.cpp/wingman folder exists
         $distRoot = "../services/wingman.cpp/wingman"
+        $newDestination = Join-Path $distRoot "distadmin"
         if (Test-Path $distRoot) {
-            Write-Host "Copying dist folder to wingman.cpp..."    
-            Copy-Item -Recurse -Force -ErrorAction SilentlyContinue ./dist ../services/wingman.cpp/wingman/distadmin
+            Write-Host "Copying dist [admin] folder to wingman.cpp..."    
+            if (Test-Path $newDestination) {
+                Remove-Item -Recurse -Force $newDestination # Delete the entire folder if it exists
+            }
+            Copy-Item -Recurse -Force -ErrorAction SilentlyContinue -Path ./dist -Destination $newDestination
         }
         else {
             Write-Warning "wingman.cpp folder not found. Skipping copy of dist folder..."
